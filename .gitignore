@@ -1,0 +1,54 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual Environment
+venv/
+env/
+ENV/
+
+# IDE files
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store
+
+# Project specific
+ads/*
+!ads/.gitkeep
+logs/*
+!logs/.gitkeep
+
+# Appium logs
+appium.log
+
+# Android Studio
+.gradle/
+local.properties
+captures/
+.externalNativeBuild/
+.cxx/
+
+# Node.js
+node_modules/
+npm-debug.log
+yarn-error.log 
