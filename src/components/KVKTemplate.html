@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>KVK Business Register Extract</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,400;0,700;1,400&display=swap');
+
+    /* Reset and base styles */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: Helvetica, Arial, sans-serif;
+      width: 210mm; /* A4 width */
+      height: 297mm; /* A4 height */
+      position: relative;
+      background-color: white;
+      color: black;
+      overflow: hidden;
+    }
+
+    /* Common styling */
+    .separator {
+      position: absolute;
+      height: 1px;
+      background-color: rgba(200, 200, 200, 0.8);
+      left: 111px;
+      right: 111px;
+    }
+
+    /* KVK Logo */
+    .kvk-logo {
+      position: absolute;
+      top: 70px;
+      left: 111px;
+      font-size: 34px;
+      font-weight: bold;
+      color: #204a63; /* Dark blue color */
+    }
+
+    /* Title section */
+    .title {
+      position: absolute;
+      top: 170px;
+      left: 111px;
+      font-size: 16px;
+      font-weight: bold;
+      color: #204a63; /* Dark blue color */
+    }
+
+    .subtitle {
+      position: absolute;
+      top: 195px;
+      left: 111px;
+      font-size: 16px;
+      font-weight: bold;
+      color: #204a63; /* Dark blue color */
+    }
+
+    .sep-1 {
+      top: 232px;
+    }
+
+    /* CCI Number & Page section */
+    .cci-label {
+      position: absolute;
+      top: 255px;
+      left: 111px;
+      font-size: 9px;
+      font-weight: bold;
+    }
+
+    .cci-value {
+      position: absolute;
+      top: 255px;
+      left: 291px; /* 111px + 180px */
+      font-size: 9px;
+    }
+
+    .sep-2 {
+      top: 280px;
+    }
+
+    .page-info {
+      position: absolute;
+      top: 305px;
+      left: 111px;
+      font-size: 9px;
+    }
+
+    .sep-3 {
+      top: 321px;
+    }
+
+    /* Disclaimer */
+    .disclaimer {
+      position: absolute;
+      top: 355px;
+      width: 100%;
+      text-align: center;
+      font-style: italic;
+      font-size: 9px;
+      line-height: 1.4;
+    }
+
+    .sep-4 {
+      top: 395px;
+    }
+
+    /* COMPANY section */
+    .company-title {
+      position: absolute;
+      top: 420px;
+      left: 111px;
+      font-size: 11px;
+      font-weight: bold;
+    }
+
+    .sep-5 {
+      top: 435px;
+    }
+
+    /* Company details */
+    .data-grid {
+      position: absolute;
+      left: 111px;
+      width: calc(100% - 222px);
+    }
+
+    .company-data {
+      top: 445px;
+    }
+
+    .label {
+      display: inline-block;
+      width: 180px;
+      font-size: 9px;
+      font-weight: bold;
+      vertical-align: top;
+      margin-bottom: 20px;
+    }
+
+    .value {
+      display: inline-block;
+      font-size: 9px;
+      width: calc(100% - 185px);
+      vertical-align: top;
+    }
+
+    .value-row {
+      margin-bottom: 5px;
+    }
+
+    .sep-6 {
+      top: 585px;
+    }
+
+    /* ESTABLISHMENT section */
+    .establishment-title {
+      position: absolute;
+      top: 610px;
+      left: 111px;
+      font-size: 11px;
+      font-weight: bold;
+    }
+
+    .sep-7 {
+      top: 625px;
+    }
+
+    .establishment-data {
+      top: 645px;
+    }
+
+    .italic-note {
+      font-style: italic;
+      font-size: 9px;
+      margin-top: 5px;
+    }
+
+    .sep-8 {
+      top: 810px;
+    }
+
+    /* OWNER section */
+    .owner-title {
+      position: absolute;
+      top: 830px;
+      left: 111px;
+      font-size: 11px;
+      font-weight: bold;
+    }
+
+    .sep-9 {
+      top: 845px;
+    }
+
+    .owner-data {
+      top: 865px;
+    }
+
+    .sep-10 {
+      top: 925px;
+    }
+
+    /* Footer elements */
+    .extract-date {
+      position: absolute;
+      top: 970px;
+      width: 100%;
+      text-align: center;
+      font-size: 9px;
+    }
+
+    .waarmerk {
+      position: absolute;
+      bottom: 45px;
+      left: 112px;
+      font-weight: bold;
+      font-size: 14px;
+      color: #808080;
+    }
+
+    .kvk-subtitle {
+      position: absolute;
+      bottom: 30px;
+      left: 112px;
+      font-size: 8px;
+      color: #808080;
+    }
+
+    .footer-text {
+      position: absolute;
+      bottom: 70px;
+      left: 170px;
+      font-size: 7px;
+      line-height: 1.4;
+      width: 60%;
+    }
+
+    .timestamp {
+      position: absolute;
+      bottom: 120px;
+      right: 20px;
+      transform: rotate(90deg);
+      transform-origin: right bottom;
+      font-size: 8px;
+    }
+
+    .magenta-bar {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      height: 24px;
+      background-color: #d90080;
+    }
+  </style>
+</head>
+<body>
+  <!-- KVK Logo -->
+  <div class="kvk-logo">KVK</div>
+  
+  <!-- Title -->
+  <div class="title">Business Register extract</div>
+  <div class="subtitle">Netherlands Chamber of Commerce</div>
+  
+  <!-- First separator -->
+  <div class="separator sep-1"></div>
+  
+  <!-- CCI Number -->
+  <div class="cci-label">CCI number</div>
+  <div class="cci-value">77678303</div>
+  
+  <!-- Separator -->
+  <div class="separator sep-2"></div>
+  
+  <!-- Page info -->
+  <div class="page-info">Page 1 (of 1)</div>
+  
+  <!-- Separator -->
+  <div class="separator sep-3"></div>
+  
+  <!-- Disclaimer -->
+  <div class="disclaimer">
+    The company / organisation does not want its address details to be used for<br>
+    unsolicited postal advertising or visits from sales representatives.
+  </div>
+  
+  <!-- Separator -->
+  <div class="separator sep-4"></div>
+  
+  <!-- COMPANY section -->
+  <div class="company-title">COMPANY</div>
+  
+  <!-- Separator -->
+  <div class="separator sep-5"></div>
+  
+  <!-- Company data -->
+  <div class="data-grid company-data">
+    <div>
+      <span class="label">Trade names</span>
+      <span class="value">
+        <div class="value-row">Diamond Sky Marketing</div>
+        <div class="value-row">AdWings</div>
+      </span>
+    </div>
+    
+    <div>
+      <span class="label">Legal form</span>
+      <span class="value">Eenmanszaak (comparable with One-man business)</span>
+    </div>
+    
+    <div>
+      <span class="label">Company start date</span>
+      <span class="value">09-03-2020 (registration date: 20-03-2020)</span>
+    </div>
+    
+    <div>
+      <span class="label">Activities</span>
+      <span class="value">
+        <div class="value-row">SBI-code: 74101 - Communication and graphic design</div>
+        <div class="value-row">SBI-code: 6201 - Writing, producing and publishing of software</div>
+      </span>
+    </div>
+    
+    <div>
+      <span class="label">Employees</span>
+      <span class="value">0</span>
+    </div>
+  </div>
+  
+  <!-- Separator -->
+  <div class="separator sep-6"></div>
+  
+  <!-- ESTABLISHMENT section -->
+  <div class="establishment-title">ESTABLISHMENT</div>
+  
+  <!-- Separator -->
+  <div class="separator sep-7"></div>
+  
+  <!-- Establishment data -->
+  <div class="data-grid establishment-data">
+    <div>
+      <span class="label">Establishment number</span>
+      <span class="value">000045362920</span>
+    </div>
+    
+    <div>
+      <span class="label">Trade names</span>
+      <span class="value">
+        <div class="value-row">Diamond Sky Marketing</div>
+        <div class="value-row">AdWings</div>
+      </span>
+    </div>
+    
+    <div>
+      <span class="label">Visiting address</span>
+      <span class="value">Spreeuwenhof 81, 7051XJ Varsseveld</span>
+    </div>
+    
+    <div>
+      <span class="label">Date of incorporation</span>
+      <span class="value">09-03-2020 (registration date: 20-03-2020)</span>
+    </div>
+    
+    <div>
+      <span class="label">Activities</span>
+      <span class="value">
+        <div class="value-row">SBI-code: 74101 - Communication and graphic design</div>
+        <div class="value-row">SBI-code: 6201 - Writing, producing and publishing of software</div>
+        <div class="italic-note">For further information on activities, see Dutch extract.</div>
+      </span>
+    </div>
+    
+    <div>
+      <span class="label">Employees</span>
+      <span class="value">0</span>
+    </div>
+  </div>
+  
+  <!-- Separator -->
+  <div class="separator sep-8"></div>
+  
+  <!-- OWNER section -->
+  <div class="owner-title">OWNER</div>
+  
+  <!-- Separator -->
+  <div class="separator sep-9"></div>
+  
+  <!-- Owner data -->
+  <div class="data-grid owner-data">
+    <div>
+      <span class="label">Name</span>
+      <span class="value">Piyirci, Okan</span>
+    </div>
+    
+    <div>
+      <span class="label">Date of birth</span>
+      <span class="value">21-01-1994</span>
+    </div>
+    
+    <div>
+      <span class="label">Date of entry into office</span>
+      <span class="value">09-03-2020 (registration date: 20-03-2020)</span>
+    </div>
+  </div>
+  
+  <!-- Separator -->
+  <div class="separator sep-10"></div>
+  
+  <!-- Extract date -->
+  <div class="extract-date">Extract was made on 23-10-2024 at 14.18 hours.</div>
+  
+  <!-- WAARMERK watermark -->
+  <div class="waarmerk">WAARMERK</div>
+  <div class="kvk-subtitle">KAMER VAN KOOPHANDEL</div>
+  
+  <!-- Footer text -->
+  <div class="footer-text">
+    This extract has been certified with a digital signature and is an official proof of registration in the Business<br>
+    Register. You can check the integrity of this document and validate the signature in Adobe at the top of your<br>
+    screen. The Chamber of Commerce recommends that this document be viewed in digital form so that its<br>
+    integrity is safeguarded and the signature remains verifiable.
+  </div>
+  
+  <!-- Timestamp -->
+  <div class="timestamp">2023-10-23 14:18:04</div>
+  
+  <!-- Magenta bar -->
+  <div class="magenta-bar"></div>
+</body>
+</html> 

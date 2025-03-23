@@ -1,100 +1,108 @@
-# PDF Editor for Legal Documents
+# KVK Business Register Extract Generator
 
-A simple tool to edit PDF documents for legal purposes. This tool allows you to take an existing PDF template and modify it by:
+This application generates pixel-perfect, exact 1:1 match replicas of KVK (Netherlands Chamber of Commerce) business register extracts.
 
-1. Filling in form fields (if they exist in the PDF)
-2. Adding custom text at specific positions
-3. Saving the modified document with a new name
+## Features
 
-## Installation
+- **Exact 1:1 Match**: Precisely replicates the official KVK document layout
+- **Table-Based Layout**: Uses HTML tables to ensure perfect alignment of data
+- **Proper Typography**: Matches fonts, sizes, weights, and spacing exactly
+- **Correct Colors**: Uses exact color matching for all elements
+- **Print to PDF**: Built-in functionality to save as PDF with proper formatting
+- **Special Character Handling**: Properly handles Unicode characters
+- **Responsive UI**: User-friendly interface for data input
 
-1. Clone this repository
+## Getting Started
+
+### Prerequisites
+
+- Node.js 14+ and npm
+
+### Installation
+
+1. Clone the repository
 2. Install dependencies:
-   ```
-   npm install
-   ```
+
+```bash
+cd pdf-generator-app
+npm install
+```
+
+3. Start the development server:
+
+```bash
+npm run dev
+```
+
+4. Open your browser to http://localhost:3001
 
 ## Usage
 
-### Basic Usage
+1. Fill in the required fields:
+   - Trade Name
+   - KVK Number
+   - Optional: Owner Name (with Unicode character support)
 
-Run the editor with command line arguments:
+2. Click "Generate KVK Extract"
 
-```bash
-node src/cli-pdf-editor.js --input=./your-template.pdf --output=./modified-output.pdf --config=./your-config.json
-```
+3. The HTML document will open in a new tab with a print button
 
-### Parameters
+4. To save as PDF, click the print button and:
+   - Select "Save as PDF" as the destination
+   - Set paper size to A4
+   - Set margins to "None"
+   - Disable headers and footers
+   - Click Save
 
-- `--input`: Path to the input PDF template
-- `--output`: Path where the modified PDF will be saved
-- `--config`: (Optional) Path to a JSON configuration file with field data
+## Implementation Details
 
-If no `--config` parameter is provided, default values will be used.
+### HTML Template
 
-### Configuration File Format
+The application uses a carefully crafted HTML template with:
 
-The configuration file should be a JSON file with the following structure:
+- Table-based layout for perfect alignment
+- Absolute positioning for header elements
+- Precise typography matching
+- Exact color reproduction
+- Z-index management for overlapping elements
+- Print-specific CSS for PDF generation
 
-```json
-{
-  "FieldName1": "Value for field 1",
-  "FieldName2": "Value for field 2",
-  "customText": [
-    {
-      "text": "Text to add to the PDF",
-      "x": 50,           // X coordinate (from left)
-      "y": 750,          // Y coordinate (from bottom)
-      "size": 12,        // Font size
-      "color": {         // RGB color (values from 0-1)
-        "r": 0,
-        "g": 0,
-        "b": 0
-      },
-      "isBold": false    // Whether to use bold font
-    },
-    // Add more text items as needed
-  ]
-}
-```
+### Key Technical Highlights
 
-## Examples
+- Uses CSS tables for perfect data alignment
+- Handles special Unicode characters properly
+- Dynamic date formatting matching the official KVK format
+- Responsive print dialog with instructions
+- Magenta bar properly positioned at bottom of the page
+- Watermark with proper transparency
+- Vertical timestamp on the right edge
 
-1. **Basic Example**:
-   ```bash
-   node src/cli-pdf-editor.js --input=./uittreksel_handelsregister_77678303.pdf --output=./output/modified.pdf
-   ```
+## API
 
-2. **With Config File**:
-   ```bash
-   node src/cli-pdf-editor.js --input=./uittreksel_handelsregister_77678303.pdf --output=./output/modified.pdf --config=./src/sample-config.json
-   ```
+The application provides a REST API endpoint for generating the HTML:
 
-## Determining PDF Field Names
+- **Endpoint:** `/api/generate-pdf`
+- **Method:** POST
+- **Content-Type:** application/json
+- **Body:**
+  ```json
+  {
+    "tradeName": "Your Company Name",
+    "kvkNumber": "12345678",
+    "ownerName": "Last Name, First Name",
+    "legalForm": "Optional legal form",
+    "address": "Optional address",
+    "dateOfIncorporation": "Optional date (YYYY-MM-DD)",
+    "ownerDOB": "Optional date of birth (YYYY-MM-DD)"
+  }
+  ```
 
-To determine the names of fields in your PDF, you can run the analysis tool:
+## Technologies
 
-```bash
-node src/analyze-pdf.js
-```
-
-This will show information about the PDF including any form fields that might be available for editing.
-
-## Coordinates
-
-When adding custom text, you need to specify the x and y coordinates:
-
-- **X coordinate**: Distance from the left edge of the page (in points)
-- **Y coordinate**: Distance from the bottom edge of the page (in points)
-
-The default page size is typically 595.44 x 841.68 points (A4).
-
-## Limitations
-
-- This tool currently works best with simple PDF modifications
-- For signature fields, only simple text modifications are possible
-- Some PDFs may have restrictions that prevent modifications
+- Next.js
+- React
+- Tailwind CSS
 
 ## License
 
-MIT 
+This project is licensed under the MIT License - see the LICENSE file for details.

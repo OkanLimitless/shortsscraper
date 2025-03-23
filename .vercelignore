@@ -1,0 +1,28 @@
+# Local development
+node_modules
+.next
+.DS_Store
+
+# Temporary files
+*.log
+*.tmp
+
+# PDF-generator app subdirectory (since we moved it to root)
+pdf-generator-app/
+
+# Backup directory
+backup_root/
+
+# Test files
+test_*.html
+final_*.html
+exact_match.html
+*_output.pdf
+*.pdf
+
+# Local env files
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local 

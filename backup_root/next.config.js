@@ -20,8 +20,9 @@ const nextConfig = {
   // Explicitly set webpack config to resolve aliases
   webpack: (config) => {
     return config;
-  }
-  // Removed experimental and serverExternalPackages that were causing warnings
+  },
+  // External packages that should be handled by the server
+  serverComponentsExternalPackages: ["pdf-lib"]
 };
 
 module.exports = nextConfig; 
