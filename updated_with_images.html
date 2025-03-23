@@ -1,97 +1,4 @@
-/**
- * HTML Generator for KVK business register extracts
- * Used to create HTML that matches the official KVK layout exactly
- */
-export function generateHTML(formData) {
-  // Default values if not provided
-  const tradeName = formData.tradeName || 'Diamond Sky Marketing';
-  // Only use tradeNameAlias if provided
-  const tradeNameAlias = formData.tradeNameAlias && formData.tradeNameAlias.trim() !== '' 
-    ? formData.tradeNameAlias 
-    : null;
-  const legalForm = formData.legalForm || 'Eenmanszaak (comparable with One-man business)';
-  const kvkNumber = formData.kvkNumber || '77678303';
-  const address = formData.address || 'Spreeuwenhof 81, 7051XJ Varsseveld';
-  const establishmentNumber = formData.establishmentNumber || '000045362920';
-  
-  // Generate random employee count if not provided
-  const employees = formData.employees || Math.floor(Math.random() * 5).toString();
-  
-  // Generate random date of incorporation if not provided
-  const getRandomStartDate = () => {
-    const now = new Date();
-    // Random date within the last 5 years
-    const randomMonths = Math.floor(Math.random() * 60); // 0-59 months ago
-    const pastDate = new Date(now);
-    pastDate.setMonth(now.getMonth() - randomMonths);
-    // Format as DD-MM-YYYY
-    const day = pastDate.getDate().toString().padStart(2, '0');
-    const month = (pastDate.getMonth() + 1).toString().padStart(2, '0');
-    const year = pastDate.getFullYear();
-    
-    // Add registration date (usually a few days after incorporation)
-    const regDate = new Date(pastDate);
-    regDate.setDate(regDate.getDate() + Math.floor(Math.random() * 14) + 1); // 1-14 days after
-    const regDay = regDate.getDate().toString().padStart(2, '0');
-    const regMonth = (regDate.getMonth() + 1).toString().padStart(2, '0');
-    const regYear = regDate.getFullYear();
-    
-    return `${day}-${month}-${year} (registration date: ${regDay}-${regMonth}-${regYear})`;
-  };
-  
-  // Generate random date of entry into office that's more recent
-  const getRandomEntryDate = () => {
-    const now = new Date();
-    // Random date within the last 6 months
-    const randomDays = Math.floor(Math.random() * 180); // 0-180 days ago
-    const entryDate = new Date(now);
-    entryDate.setDate(now.getDate() - randomDays);
-    // Format as DD-MM-YYYY
-    const day = entryDate.getDate().toString().padStart(2, '0');
-    const month = (entryDate.getMonth() + 1).toString().padStart(2, '0');
-    const year = entryDate.getFullYear();
-    
-    // Add registration date (usually a few days after)
-    const regDate = new Date(entryDate);
-    regDate.setDate(regDate.getDate() + Math.floor(Math.random() * 7) + 1); // 1-7 days after
-    const regDay = regDate.getDate().toString().padStart(2, '0');
-    const regMonth = (regDate.getMonth() + 1).toString().padStart(2, '0');
-    const regYear = regDate.getFullYear();
-    
-    return `${day}-${month}-${year} (registration date: ${regDay}-${regMonth}-${regYear})`;
-  };
-  
-  const startDate = formData.dateOfIncorporation 
-    ? formatDutchDate(formData.dateOfIncorporation)
-    : getRandomStartDate();
-  
-  const entryDate = formData.dateOfEntry
-    ? formatDutchDate(formData.dateOfEntry)
-    : getRandomEntryDate();
-  
-  // Handle special characters in owner name
-  let ownerName = formData.ownerName || 'Henk Plipemers';
-  // Replace ṛ with r if present (for compatibility)
-  ownerName = ownerName.replace(/ṛ/g, 'r');
-  
-  const dob = formData.ownerDOB 
-    ? formatDutchDate(formData.ownerDOB)
-    : '12-03-1994';
-  
-  // Format the current date for the extract timestamp and page header
-  const today = new Date();
-  const headerDate = formatCustomDate(today);
-  const extractionDate = formatDutchDate(today, true);
-  const extractionTime = today.toLocaleTimeString('nl-NL', {
-    hour: '2-digit',
-    minute: '2-digit'
-  }).replace(':', '.');
-  
-  // Format date for vertical timestamp
-  const timestamp = formatTimestamp(today);
-  
-  // Generate HTML with the provided data
-  return `<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -364,7 +271,7 @@ export function generateHTML(formData) {
       <!-- Header data section -->
       <tr>
         <td style="font-weight: bold; font-size: 9px; padding-top: 0;">CCI number</td>
-        <td style="font-size: 9px; padding-top: 0;">${kvkNumber}</td>
+        <td style="font-size: 9px; padding-top: 0;">12345678</td>
       </tr>
       <tr class="separator-row">
         <td colspan="2"></td>
@@ -397,17 +304,17 @@ export function generateHTML(formData) {
       <tr class="data-row">
         <td>Trade names</td>
         <td>
-          ${tradeName}
-          ${tradeNameAlias ? `<br>${tradeNameAlias}` : ''}
+          Test Company
+          
         </td>
       </tr>
       <tr class="data-row">
         <td>Legal form</td>
-        <td>${legalForm}</td>
+        <td>Eenmanszaak (comparable with One-man business)</td>
       </tr>
       <tr class="data-row">
         <td>Company start date</td>
-        <td>${startDate}</td>
+        <td>23-05-2022 (registration date: 30-05-2022)</td>
       </tr>
       <tr class="data-row">
         <td>Activities</td>
@@ -418,7 +325,7 @@ export function generateHTML(formData) {
       </tr>
       <tr class="data-row">
         <td>Employees</td>
-        <td>${employees}</td>
+        <td>3</td>
       </tr>
       <tr class="separator-row">
         <td colspan="2"></td>
@@ -432,22 +339,22 @@ export function generateHTML(formData) {
       </tr>
       <tr class="data-row">
         <td>Establishment number</td>
-        <td>${establishmentNumber}</td>
+        <td>000045362920</td>
       </tr>
       <tr class="data-row">
         <td>Trade names</td>
         <td>
-          ${tradeName}
-          ${tradeNameAlias ? `<br>${tradeNameAlias}` : ''}
+          Test Company
+          
         </td>
       </tr>
       <tr class="data-row">
         <td>Visiting address</td>
-        <td>${address}</td>
+        <td>Spreeuwenhof 81, 7051XJ Varsseveld</td>
       </tr>
       <tr class="data-row">
         <td>Date of incorporation</td>
-        <td>${startDate}</td>
+        <td>23-05-2022 (registration date: 30-05-2022)</td>
       </tr>
       <tr class="data-row">
         <td>Activities</td>
@@ -459,13 +366,13 @@ export function generateHTML(formData) {
       </tr>
       <tr class="data-row">
         <td>Employees</td>
-        <td>${employees}</td>
+        <td>3</td>
       </tr>
       <tr class="separator-row">
         <td colspan="2"></td>
       </tr>
       
-      <!-- OWNER section - updated to match screenshot -->
+      <!-- OWNER section -->
       <tr class="header-row">
         <td colspan="2">
           <h2>Owner</h2>
@@ -473,15 +380,15 @@ export function generateHTML(formData) {
       </tr>
       <tr class="data-row">
         <td>Name</td>
-        <td>${ownerName}</td>
+        <td>Henk Plipemers</td>
       </tr>
       <tr class="data-row">
         <td>Date of birth</td>
-        <td>${dob}</td>
+        <td>12-03-1994</td>
       </tr>
       <tr class="data-row">
         <td>Date of entry into office</td>
-        <td>${entryDate}</td>
+        <td>23-05-2022 (registration date: 30-05-2022)</td>
       </tr>
       <tr class="separator-row">
         <td colspan="2"></td>
@@ -489,7 +396,7 @@ export function generateHTML(formData) {
       
       <!-- Extract date -->
       <tr class="extract-date-row">
-        <td colspan="2">Extract was made on ${extractionDate} at ${extractionTime} hours.</td>
+        <td colspan="2">Extract was made on 23-03-2025 at 19.36 hours.</td>
       </tr>
     </table>
   </div>
@@ -507,50 +414,9 @@ export function generateHTML(formData) {
   </div>
   
   <!-- Timestamp -->
-  <div class="timestamp">${timestamp}</div>
+  <div class="timestamp">2025-03-23 19:36:18</div>
   
   <!-- Bottom Bar Image - replaces the CSS magenta bar -->
   <img src="/images/bottombar.png" alt="Bottom Bar" class="bottom-bar">
 </body>
-</html>`;
-}
-
-// Format date as DD-MM-YYYY, HH:MM for header
-function formatCustomDate(date) {
-  const day = date.getDate().toString().padStart(2, '0');
-  const month = (date.getMonth() + 1).toString().padStart(2, '0');
-  const year = date.getFullYear();
-  const hours = date.getHours().toString().padStart(2, '0');
-  const minutes = date.getMinutes().toString().padStart(2, '0');
-  
-  return `${day}-${month}-${year}, ${hours}:${minutes}`;
-}
-
-// Format timestamp for vertical display
-function formatTimestamp(date) {
-  const formattedDate = date.toISOString().slice(0, 10).replace(/-/g, '-');
-  const formattedTime = date.toLocaleTimeString('nl-NL', {
-    hour: '2-digit',
-    minute: '2-digit',
-    second: '2-digit'
-  }).replace(/:/g, ':');
-  
-  return `${formattedDate} ${formattedTime}`;
-}
-
-// Helper function to format date in Dutch format (DD-MM-YYYY)
-function formatDutchDate(dateString, useToday = false) {
-  if (!dateString && !useToday) return '';
-  
-  try {
-    const date = useToday ? new Date() : new Date(dateString);
-    return date.toLocaleDateString('nl-NL', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric'
-    }).replace(/\//g, '-');
-  } catch (error) {
-    console.error('Error formatting date:', error);
-    return dateString;
-  }
-} 
+</html>

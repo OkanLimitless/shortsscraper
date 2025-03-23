@@ -191,29 +191,6 @@ export default function KVKForm() {
               <p className={styles.errorText}>{validationErrors.kvkNumber}</p>
             )}
           </div>
-          
-          <div className={styles.formGroup}>
-            <label htmlFor="dateOfIncorporation">Date of Incorporation</label>
-            <input
-              type="date"
-              id="dateOfIncorporation"
-              name="dateOfIncorporation"
-              value={formatDate(formData.dateOfIncorporation)}
-              onChange={handleInputChange}
-            />
-          </div>
-          
-          <div className={styles.formGroup}>
-            <label htmlFor="employees">Number of Employees</label>
-            <input
-              type="number"
-              id="employees"
-              name="employees"
-              value={formData.employees}
-              onChange={handleInputChange}
-              min="0"
-            />
-          </div>
         </div>
         
         {/* Establishment Information Section */}
