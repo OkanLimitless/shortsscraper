@@ -30,11 +30,23 @@ async function generateCustomPDF(formData) {
     const { width, height } = page.getSize();
     console.log(`Page dimensions: ${width} x ${height}`);
     
-    // Load fonts - use Times for a closer match to the original
+    // Load fonts - use Helvetica which is guaranteed to be available
     console.log('Loading fonts...');
-    const fontRegular = await pdfDoc.embedFont(StandardFonts.TimesRoman);
-    const fontBold = await pdfDoc.embedFont(StandardFonts.TimesBold);
+    let fontRegular, fontBold;
+    try {
+      fontRegular = await pdfDoc.embedFont(StandardFonts.Helvetica);
+      fontBold = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
+    } catch (fontError) {
+      console.error('Error loading preferred fonts, falling back to standard fonts:', fontError);
+      // Fallback to Times Roman if Helvetica fails
+      fontRegular = await pdfDoc.embedFont(StandardFonts.TimesRoman);
+      fontBold = await pdfDoc.embedFont(StandardFonts.TimesBold);
+    }
     console.log('Fonts loaded successfully');
+    
+    if (!fontRegular || !fontBold) {
+      throw new Error('Failed to load fonts');
+    }
     
     // Extract form data with defaults
     const tradeName = formData.tradeName || 'Diamond Sky Marketing';
@@ -56,45 +68,56 @@ async function generateCustomPDF(formData) {
     const kvkBlue = { r: 0.078, g: 0.31, b: 0.439 }; // Dark blue
     const kvkPurple = { r: 0.7, g: 0.0, b: 0.5 }; // Purple for the bottom bar
 
-    // Helper function to draw text
+    // Helper function to draw text with safe guards
     const drawText = (text, x, y, options = {}) => {
       if (!text) return;
       
-      const { 
-        size = 10, 
-        color = { r: 0, g: 0, b: 0 }, 
-        font = fontRegular,
-        align = 'left',
-        maxWidth = null
-      } = options;
-      
-      // Handle text truncation if needed
-      let finalText = text;
-      if (maxWidth && font.widthOfTextAtSize(text, size) > maxWidth) {
-        let truncatedText = text;
-        while (font.widthOfTextAtSize(truncatedText + '...', size) > maxWidth && truncatedText.length > 0) {
-          truncatedText = truncatedText.slice(0, -1);
+      try {
+        const { 
+          size = 10, 
+          color = { r: 0, g: 0, b: 0 }, 
+          font = fontRegular,
+          align = 'left',
+          maxWidth = null
+        } = options;
+        
+        // Safety check for font
+        if (!font) {
+          console.error('Font is undefined in drawText call');
+          return;
         }
-        finalText = truncatedText + '...';
+        
+        // Handle text truncation if needed
+        let finalText = text;
+        if (maxWidth && font.widthOfTextAtSize(text, size) > maxWidth) {
+          let truncatedText = text;
+          while (font.widthOfTextAtSize(truncatedText + '...', size) > maxWidth && truncatedText.length > 0) {
+            truncatedText = truncatedText.slice(0, -1);
+          }
+          finalText = truncatedText + '...';
+        }
+        
+        // Calculate x position for different alignments
+        let xPos = x;
+        if (align === 'center') {
+          xPos = x - font.widthOfTextAtSize(finalText, size) / 2;
+        } else if (align === 'right') {
+          xPos = x - font.widthOfTextAtSize(finalText, size);
+        }
+        
+        page.drawText(finalText, {
+          x: xPos,
+          y: y,
+          size,
+          font,
+          color: rgb(color.r, color.g, color.b)
+        });
+        
+        return font.widthOfTextAtSize(finalText, size);
+      } catch (error) {
+        console.error('Error in drawText:', error, { text, x, y, options });
+        return 0;
       }
-      
-      // Calculate x position for different alignments
-      let xPos = x;
-      if (align === 'center') {
-        xPos = x - font.widthOfTextAtSize(finalText, size) / 2;
-      } else if (align === 'right') {
-        xPos = x - font.widthOfTextAtSize(finalText, size);
-      }
-      
-      page.drawText(finalText, {
-        x: xPos,
-        y: y,
-        size,
-        font,
-        color: rgb(color.r, color.g, color.b)
-      });
-      
-      return font.widthOfTextAtSize(finalText, size);
     };
     
     // Draw horizontal line
@@ -239,28 +262,30 @@ async function generateCustomPDF(formData) {
     });
     
     // Certification text on the left side (small, gray text)
-    drawText('WAARMERK', 155, 50, { 
+    // Ensure y values are positive and above the purple bar
+    const bottomMargin = 30;
+    drawText('WAARMERK', 155, bottomMargin + 25, { 
       font: fontBold,
       size: 12,
       color: { r: 0.5, g: 0.5, b: 0.5 }
     });
     
-    drawText('KAMER VAN KOOPHANDEL', 155, 37, {
+    drawText('KAMER VAN KOOPHANDEL', 155, bottomMargin + 12, {
       size: 8,
       color: { r: 0.5, g: 0.5, b: 0.5 }
     });
     
-    // Add certification text on the right
+    // Add certification text on the right side
     const certText1 = "This extract has been certified with a digital signature and is an official proof of registration in the Business";
     const certText2 = "Register. You can check the integrity of this document and validate the signature in Adobe at the top of your";
     const certText3 = "screen. The Chamber of Commerce recommends that this document be viewed in digital form so that its";
     const certText4 = "integrity is safeguarded and the signature remains verifiable.";
 
-    // Draw certification text paragraphs
-    drawText(certText1, 325, 50, { size: 8, color: { r: 0.5, g: 0.5, b: 0.5 } });
-    drawText(certText2, 325, 37, { size: 8, color: { r: 0.5, g: 0.5, b: 0.5 } });
-    drawText(certText3, 325, 24, { size: 8, color: { r: 0.5, g: 0.5, b: 0.5 } });
-    drawText(certText4, 325, 11, { size: 8, color: { r: 0.5, g: 0.5, b: 0.5 } });
+    // Draw certification text paragraphs with positive y values
+    drawText(certText1, 325, bottomMargin + 35, { size: 8, color: { r: 0.5, g: 0.5, b: 0.5 } });
+    drawText(certText2, 325, bottomMargin + 25, { size: 8, color: { r: 0.5, g: 0.5, b: 0.5 } });
+    drawText(certText3, 325, bottomMargin + 15, { size: 8, color: { r: 0.5, g: 0.5, b: 0.5 } });
+    drawText(certText4, 325, bottomMargin + 5, { size: 8, color: { r: 0.5, g: 0.5, b: 0.5 } });
 
     // Date stamp on the right side of the page - rotated vertically
     drawText(`${dateStr} ${hours}.${minutes}`, 580, 90, {
