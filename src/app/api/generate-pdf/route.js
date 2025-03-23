@@ -131,7 +131,7 @@ async function generateCustomPDF(formData) {
     };
     
     // KVK Logo - large blue "KVK" text at the top
-    drawText('KVK', 111, 790, {
+    drawText('KVK', 85, 790, {
       size: 48,
       color: kvkBlue,
       font: fontBold
@@ -139,14 +139,14 @@ async function generateCustomPDF(formData) {
     
     // Title and top section - center aligned like in the example
     const titleX = width / 2;
-    drawText('Business Register extract', titleX, 680, { 
+    drawText('Business Register extract', titleX, 700, { 
       size: 20, 
       color: kvkBlue,
       font: fontBold,
       align: 'center'
     });
     
-    drawText('Netherlands Chamber of Commerce', titleX, 655, { 
+    drawText('Netherlands Chamber of Commerce', titleX, 675, { 
       size: 18, 
       color: kvkBlue,
       font: fontBold,
@@ -154,7 +154,7 @@ async function generateCustomPDF(formData) {
     });
     
     // Draw first horizontal line
-    drawHorizontalLine(620, 105, width - 105);
+    drawHorizontalLine(640);
     
     // CCI number section
     drawText('CCI number', 105, 600, { font: fontBold });
@@ -257,7 +257,7 @@ async function generateCustomPDF(formData) {
     
     // Move extraction date to match example (at the bottom before the certification text)
     const extractionInfo = `Extract was made on ${dateStr} at ${hours}.${minutes} hours.`;
-    drawText(extractionInfo, 325, 80, { align: 'left' });
+    drawText(extractionInfo, 105, 120, { align: 'left' });
     
     // Date stamp on the right side of the page - vertical, near the bottom
     const formattedDateStr = currentDate.toISOString().split('T')[0].split('-').reverse().join('-');
@@ -288,13 +288,13 @@ async function generateCustomPDF(formData) {
     
     // Bottom section with certified text
     // WAARMERK text on the bottom left, just above the watermark
-    drawText('WAARMERK', 105, 60, { 
+    drawText('WAARMERK', 105, 75, { 
       font: fontBold,
       size: 12,
       color: { r: 0.5, g: 0.5, b: 0.5 }
     });
     
-    drawText('KAMER VAN KOOPHANDEL', 105, 47, {
+    drawText('KAMER VAN KOOPHANDEL', 105, 62, {
       size: 8,
       color: { r: 0.5, g: 0.5, b: 0.5 }
     });
@@ -306,10 +306,10 @@ async function generateCustomPDF(formData) {
     const certText4 = "integrity is safeguarded and the signature remains verifiable.";
 
     // Draw certification text paragraphs - positioned just above the purple bar
-    drawText(certText1, 280, 60, { size: 8, color: { r: 0.5, g: 0.5, b: 0.5 } });
-    drawText(certText2, 280, 47, { size: 8, color: { r: 0.5, g: 0.5, b: 0.5 } });
-    drawText(certText3, 280, 34, { size: 8, color: { r: 0.5, g: 0.5, b: 0.5 } });
-    drawText(certText4, 280, 21, { size: 8, color: { r: 0.5, g: 0.5, b: 0.5 } });
+    drawText(certText1, 280, 75, { size: 8, color: { r: 0.5, g: 0.5, b: 0.5 } });
+    drawText(certText2, 280, 62, { size: 8, color: { r: 0.5, g: 0.5, b: 0.5 } });
+    drawText(certText3, 280, 49, { size: 8, color: { r: 0.5, g: 0.5, b: 0.5 } });
+    drawText(certText4, 280, 36, { size: 8, color: { r: 0.5, g: 0.5, b: 0.5 } });
     
     // Save the PDF
     const pdfBytes = await pdfDoc.save();
