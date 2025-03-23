@@ -239,13 +239,13 @@ async function generateCustomPDF(formData) {
     });
     
     // Certification text on the left side (small, gray text)
-    drawText('WAARMERK', 155, -50, { 
+    drawText('WAARMERK', 155, 50, { 
       font: fontBold,
       size: 12,
       color: { r: 0.5, g: 0.5, b: 0.5 }
     });
     
-    drawText('KAMER VAN KOOPHANDEL', 155, -63, {
+    drawText('KAMER VAN KOOPHANDEL', 155, 37, {
       size: 8,
       color: { r: 0.5, g: 0.5, b: 0.5 }
     });
@@ -257,10 +257,10 @@ async function generateCustomPDF(formData) {
     const certText4 = "integrity is safeguarded and the signature remains verifiable.";
 
     // Draw certification text paragraphs
-    drawText(certText1, 325, -50, { size: 8, color: { r: 0.5, g: 0.5, b: 0.5 } });
-    drawText(certText2, 325, -63, { size: 8, color: { r: 0.5, g: 0.5, b: 0.5 } });
-    drawText(certText3, 325, -76, { size: 8, color: { r: 0.5, g: 0.5, b: 0.5 } });
-    drawText(certText4, 325, -89, { size: 8, color: { r: 0.5, g: 0.5, b: 0.5 } });
+    drawText(certText1, 325, 50, { size: 8, color: { r: 0.5, g: 0.5, b: 0.5 } });
+    drawText(certText2, 325, 37, { size: 8, color: { r: 0.5, g: 0.5, b: 0.5 } });
+    drawText(certText3, 325, 24, { size: 8, color: { r: 0.5, g: 0.5, b: 0.5 } });
+    drawText(certText4, 325, 11, { size: 8, color: { r: 0.5, g: 0.5, b: 0.5 } });
 
     // Date stamp on the right side of the page - rotated vertically
     drawText(`${dateStr} ${hours}.${minutes}`, 580, 90, {
