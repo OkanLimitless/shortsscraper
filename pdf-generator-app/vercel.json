@@ -1,9 +1,3 @@
 {
-  "version": 2,
-  "buildCommand": "npm run vercel-build",
-  "installCommand": "npm install",
-  "framework": "nextjs",
-  "routes": [
-    { "src": "/(.*)", "dest": "/" }
-  ]
+  "framework": "nextjs"
 } 

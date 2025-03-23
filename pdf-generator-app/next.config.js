@@ -1,9 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  output: 'standalone',
   reactStrictMode: true,
-  swcMinify: true,
-  // Ensure routing works correctly
+  // Removing swcMinify as it's causing issues
   trailingSlash: false,
   // Make sure PDF files in public directory are accessible
   async headers() {
