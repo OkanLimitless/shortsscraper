@@ -120,13 +120,13 @@ async function generateCustomPDF(formData) {
       }
     };
     
-    // Draw horizontal line
-    const drawHorizontalLine = (y, startX = 155, endX = width - 155, thickness = 0.75) => {
+    // Draw horizontal line - better spacing, slightly thinner lines
+    const drawHorizontalLine = (y, startX = 105, endX = width - 105, thickness = 0.5) => {
       page.drawLine({
         start: { x: startX, y },
         end: { x: endX, y },
         thickness,
-        color: rgb(0.8, 0.8, 0.8)
+        color: rgb(0.85, 0.85, 0.85)
       });
     };
     
@@ -137,14 +137,14 @@ async function generateCustomPDF(formData) {
       font: fontBold
     });
     
-    // Title and top section
-    drawText('Business Register extract', 180, 680, { 
+    // Title and top section - move slightly left to match example
+    drawText('Business Register extract', 150, 680, { 
       size: 20, 
       color: kvkBlue,
       font: fontBold 
     });
     
-    drawText('Netherlands Chamber of Commerce', 180, 655, { 
+    drawText('Netherlands Chamber of Commerce', 150, 655, { 
       size: 18, 
       color: kvkBlue,
       font: fontBold 
@@ -173,7 +173,11 @@ async function generateCustomPDF(formData) {
     // Draw third horizontal line
     drawHorizontalLine(495, 105, width - 105);
     
-    // Company section
+    // Adjust line spacing throughout document
+    // Add more whitespace between sections by adjusting y coordinates
+    const sectionSpacing = 10;
+    
+    // Company section - adjust spacing to match example
     drawText('Company', 105, 475, { font: fontBold });
     drawText('Trade names', 105, 455);
     
@@ -242,16 +246,17 @@ async function generateCustomPDF(formData) {
     // Draw final horizontal line
     drawHorizontalLine(35, 105, width - 105);
     
-    // Footer with extraction date
+    // Create more space at the bottom for the watermark
+    // Footer with extraction date - move up
     const currentDate = new Date();
     const dateStr = formatDutchDate(currentDate.toISOString());
     const hours = String(currentDate.getHours()).padStart(2, '0');
     const minutes = String(currentDate.getMinutes()).padStart(2, '0');
     
     const extractionInfo = `Extract was made on ${dateStr} at ${hours}.${minutes} hours.`;
-    drawText(extractionInfo, 300, 15, { align: 'center' });
+    drawText(extractionInfo, width/2, 120, { align: 'center' });
     
-    // Date stamp on the right side of the page - vertical
+    // Date stamp on the right side of the page - vertical, near the bottom
     const formattedDateStr = currentDate.toISOString().split('T')[0].split('-').reverse().join('-');
     const verticalDateStr = `${formattedDateStr} ${hours}.${minutes}`;
     page.drawText(verticalDateStr, {
@@ -265,7 +270,7 @@ async function generateCustomPDF(formData) {
       },
     });
     
-    // Add the watermark section
+    // Add the watermark section - leave enough space for the watermark
     // Purple bar at the bottom
     page.drawRectangle({
       x: 0,
@@ -277,13 +282,13 @@ async function generateCustomPDF(formData) {
     
     // Bottom section with certified text
     // WAARMERK text on the bottom left, just above the watermark
-    drawText('WAARMERK', 105, 65, { 
+    drawText('WAARMERK', 105, 60, { 
       font: fontBold,
       size: 12,
       color: { r: 0.5, g: 0.5, b: 0.5 }
     });
     
-    drawText('KAMER VAN KOOPHANDEL', 105, 52, {
+    drawText('KAMER VAN KOOPHANDEL', 105, 47, {
       size: 8,
       color: { r: 0.5, g: 0.5, b: 0.5 }
     });
@@ -295,10 +300,10 @@ async function generateCustomPDF(formData) {
     const certText4 = "integrity is safeguarded and the signature remains verifiable.";
 
     // Draw certification text paragraphs - positioned just above the purple bar
-    drawText(certText1, 280, 65, { size: 8, color: { r: 0.5, g: 0.5, b: 0.5 } });
-    drawText(certText2, 280, 52, { size: 8, color: { r: 0.5, g: 0.5, b: 0.5 } });
-    drawText(certText3, 280, 39, { size: 8, color: { r: 0.5, g: 0.5, b: 0.5 } });
-    drawText(certText4, 280, 26, { size: 8, color: { r: 0.5, g: 0.5, b: 0.5 } });
+    drawText(certText1, 280, 60, { size: 8, color: { r: 0.5, g: 0.5, b: 0.5 } });
+    drawText(certText2, 280, 47, { size: 8, color: { r: 0.5, g: 0.5, b: 0.5 } });
+    drawText(certText3, 280, 34, { size: 8, color: { r: 0.5, g: 0.5, b: 0.5 } });
+    drawText(certText4, 280, 21, { size: 8, color: { r: 0.5, g: 0.5, b: 0.5 } });
     
     // Save the PDF
     const pdfBytes = await pdfDoc.save();
