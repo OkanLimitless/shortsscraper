@@ -131,7 +131,7 @@ async function generateCustomPDF(formData) {
     };
     
     // KVK Logo - large blue "KVK" text at the top
-    drawText('KVK', 180, 790, {
+    drawText('KVK', 111, 790, {
       size: 48,
       color: kvkBlue,
       font: fontBold
@@ -151,18 +151,18 @@ async function generateCustomPDF(formData) {
     });
     
     // Draw first horizontal line
-    drawHorizontalLine(620);
+    drawHorizontalLine(620, 105, width - 105);
     
     // CCI number section
-    drawText('CCI number', 155, 600, { font: fontBold });
+    drawText('CCI number', 105, 600, { font: fontBold });
     drawText(kvkNumber, 300, 600);
     
     // Page number
-    drawText('Page', 155, 575, { font: fontBold });
-    drawText('1 (of 1)', 190, 575);
+    drawText('Page', 105, 575, { font: fontBold });
+    drawText('1 (of 1)', 140, 575);
     
     // Draw second horizontal line
-    drawHorizontalLine(555);
+    drawHorizontalLine(555, 105, width - 105);
     
     // Privacy notice - center aligned
     const privacyText = "The company / organisation does not want its address details to be used for";
@@ -171,76 +171,76 @@ async function generateCustomPDF(formData) {
     drawText(privacyText2, width/2, 515, { align: 'center' });
     
     // Draw third horizontal line
-    drawHorizontalLine(495);
+    drawHorizontalLine(495, 105, width - 105);
     
     // Company section
-    drawText('Company', 155, 475, { font: fontBold });
-    drawText('Trade names', 155, 455);
+    drawText('Company', 105, 475, { font: fontBold });
+    drawText('Trade names', 105, 455);
     
     // Company trade name
-    drawText(tradeName, 325, 455);
+    drawText(tradeName, 300, 455);
     
     // Legal form and start date
-    drawText('Legal form', 155, 435);
-    drawText(`${legalForm} (comparable with One-man business)`, 325, 435);
+    drawText('Legal form', 105, 435);
+    drawText(`${legalForm} (comparable with One-man business)`, 300, 435);
     
-    drawText('Company start date', 155, 415);
-    drawText(`${formattedIncorporationDate} (registration date: ${formattedRegDate})`, 325, 415);
+    drawText('Company start date', 105, 415);
+    drawText(`${formattedIncorporationDate} (registration date: ${formattedRegDate})`, 300, 415);
     
     // Activities
-    drawText('Activities', 155, 395);
-    drawText('SBI-code: 74101 - Communication and graphic design', 325, 395);
-    drawText('SBI-code: 6201 - Writing, producing and publishing of software', 325, 375);
+    drawText('Activities', 105, 395);
+    drawText('SBI-code: 74101 - Communication and graphic design', 300, 395);
+    drawText('SBI-code: 6201 - Writing, producing and publishing of software', 300, 375);
     
     // Employees
-    drawText('Employees', 155, 355);
-    drawText('0', 325, 355);
+    drawText('Employees', 105, 355);
+    drawText('0', 300, 355);
     
     // Draw fourth horizontal line
-    drawHorizontalLine(335);
+    drawHorizontalLine(335, 105, width - 105);
     
     // Establishment section
-    drawText('Establishment', 155, 315, { font: fontBold });
-    drawText('Establishment number', 155, 295);
-    drawText('000045362920', 325, 295);
+    drawText('Establishment', 105, 315, { font: fontBold });
+    drawText('Establishment number', 105, 295);
+    drawText('000045362920', 300, 295);
     
-    drawText('Trade names', 155, 275);
-    drawText(tradeName, 325, 275);
+    drawText('Trade names', 105, 275);
+    drawText(tradeName, 300, 275);
     
     // Visiting address
-    drawText('Visiting address', 155, 255);
-    drawText(address, 325, 255);
+    drawText('Visiting address', 105, 255);
+    drawText(address, 300, 255);
     
     // Date of incorporation (repeated)
-    drawText('Date of incorporation', 155, 235);
-    drawText(`${formattedIncorporationDate} (registration date: ${formattedRegDate})`, 325, 235);
+    drawText('Date of incorporation', 105, 235);
+    drawText(`${formattedIncorporationDate} (registration date: ${formattedRegDate})`, 300, 235);
     
     // Activities (repeated in establishment section)
-    drawText('Activities', 155, 215);
-    drawText('SBI-code: 74101 - Communication and graphic design', 325, 215);
-    drawText('SBI-code: 6201 - Writing, producing and publishing of software', 325, 195);
-    drawText('For further information on activities, see Dutch extract.', 325, 175);
+    drawText('Activities', 105, 215);
+    drawText('SBI-code: 74101 - Communication and graphic design', 300, 215);
+    drawText('SBI-code: 6201 - Writing, producing and publishing of software', 300, 195);
+    drawText('For further information on activities, see Dutch extract.', 300, 175);
     
     // Employees (repeated)
-    drawText('Employees', 155, 155);
-    drawText('0', 325, 155);
+    drawText('Employees', 105, 155);
+    drawText('0', 300, 155);
     
     // Draw fifth horizontal line
-    drawHorizontalLine(135);
+    drawHorizontalLine(135, 105, width - 105);
     
     // Owner section
-    drawText('Owner', 155, 115, { font: fontBold });
-    drawText('Name', 155, 95);
-    drawText(ownerName, 325, 95);
+    drawText('Owner', 105, 115, { font: fontBold });
+    drawText('Name', 105, 95);
+    drawText(ownerName, 300, 95);
     
-    drawText('Date of birth', 155, 75);
-    drawText(formattedOwnerDOB, 325, 75);
+    drawText('Date of birth', 105, 75);
+    drawText(formattedOwnerDOB, 300, 75);
     
-    drawText('Date of entry into office', 155, 55);
-    drawText(`${formattedIncorporationDate} (registration date: ${formattedRegDate})`, 325, 55);
+    drawText('Date of entry into office', 105, 55);
+    drawText(`${formattedIncorporationDate} (registration date: ${formattedRegDate})`, 300, 55);
     
     // Draw final horizontal line
-    drawHorizontalLine(35);
+    drawHorizontalLine(35, 105, width - 105);
     
     // Footer with extraction date
     const currentDate = new Date();
@@ -249,12 +249,13 @@ async function generateCustomPDF(formData) {
     const minutes = String(currentDate.getMinutes()).padStart(2, '0');
     
     const extractionInfo = `Extract was made on ${dateStr} at ${hours}.${minutes} hours.`;
-    drawText(extractionInfo, 325, 15, { align: 'center' });
+    drawText(extractionInfo, 300, 15, { align: 'center' });
     
     // Date stamp on the right side of the page - vertical
-    const verticalDateStr = `${dateStr.split('-').reverse().join('-')} ${hours}.${minutes}`;
+    const formattedDateStr = currentDate.toISOString().split('T')[0].split('-').reverse().join('-');
+    const verticalDateStr = `${formattedDateStr} ${hours}.${minutes}`;
     page.drawText(verticalDateStr, {
-      x: 590,
+      x: 880,
       y: 150,
       size: 7,
       color: rgb(0.5, 0.5, 0.5),
