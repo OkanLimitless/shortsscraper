@@ -10,7 +10,8 @@ dist/
 downloads/
 eggs/
 .eggs/
-lib/
+/lib/
+!pdf-generator-app/src/lib/
 lib64/
 parts/
 sdist/
