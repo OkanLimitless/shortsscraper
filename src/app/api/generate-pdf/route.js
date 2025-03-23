@@ -129,24 +129,29 @@ async function generateCustomPDF(formData) {
         color: rgb(0.85, 0.85, 0.85)
       });
     };
+
+    // Define consistent margins
+    const leftMargin = 110;
+    const rightMargin = 110;
+    const dataColumnX = 310;
     
     // KVK Logo - large blue "KVK" text at the top
-    drawText('KVK', 85, 790, {
+    drawText('KVK', leftMargin, 780, {
       size: 48,
       color: kvkBlue,
       font: fontBold
     });
     
-    // Title and top section - center aligned like in the example
+    // Title and top section - center aligned
     const titleX = width / 2;
-    drawText('Business Register extract', titleX, 700, { 
+    drawText('Business Register extract', titleX, 680, { 
       size: 20, 
       color: kvkBlue,
       font: fontBold,
       align: 'center'
     });
     
-    drawText('Netherlands Chamber of Commerce', titleX, 675, { 
+    drawText('Netherlands Chamber of Commerce', titleX, 655, { 
       size: 18, 
       color: kvkBlue,
       font: fontBold,
@@ -154,117 +159,113 @@ async function generateCustomPDF(formData) {
     });
     
     // Draw first horizontal line
-    drawHorizontalLine(640);
+    drawHorizontalLine(620, leftMargin, width - rightMargin);
     
     // CCI number section
-    drawText('CCI number', 105, 600, { font: fontBold });
-    drawText(kvkNumber, 300, 600);
+    drawText('CCI number', leftMargin, 590, { font: fontBold });
+    drawText(kvkNumber, dataColumnX, 590);
     
     // Page number
-    drawText('Page', 105, 575, { font: fontBold });
-    drawText('1 (of 1)', 140, 575);
+    drawText('Page', leftMargin, 565, { font: fontBold });
+    drawText('1 (of 1)', 150, 565);
     
     // Draw second horizontal line
-    drawHorizontalLine(555, 105, width - 105);
+    drawHorizontalLine(545, leftMargin, width - rightMargin);
     
     // Privacy notice - center aligned
     const privacyText = "The company / organisation does not want its address details to be used for";
-    drawText(privacyText, width/2, 535, { align: 'center' });
+    drawText(privacyText, width/2, 525, { align: 'center' });
     const privacyText2 = "unsolicited postal advertising or visits from sales representatives.";
-    drawText(privacyText2, width/2, 515, { align: 'center' });
+    drawText(privacyText2, width/2, 505, { align: 'center' });
     
     // Draw third horizontal line
-    drawHorizontalLine(495, 105, width - 105);
+    drawHorizontalLine(485, leftMargin, width - rightMargin);
     
-    // Adjust line spacing throughout document
-    // Add more whitespace between sections by adjusting y coordinates
-    const sectionSpacing = 10;
-    
-    // Company section - adjust spacing to match example
-    drawText('Company', 105, 475, { font: fontBold });
-    drawText('Trade names', 105, 455);
+    // Company section
+    drawText('Company', leftMargin, 465, { font: fontBold });
+    drawText('Trade names', leftMargin, 445);
     
     // Company trade name
-    drawText(tradeName, 300, 455);
+    drawText(tradeName, dataColumnX, 445);
     
     // Legal form and start date
-    drawText('Legal form', 105, 435);
-    drawText(`${legalForm} (comparable with One-man business)`, 300, 435);
+    drawText('Legal form', leftMargin, 425);
+    drawText(`${legalForm} (comparable with One-man business)`, dataColumnX, 425);
     
-    drawText('Company start date', 105, 415);
-    drawText(`${formattedIncorporationDate} (registration date: ${formattedRegDate})`, 300, 415);
+    drawText('Company start date', leftMargin, 405);
+    drawText(`${formattedIncorporationDate} (registration date: ${formattedRegDate})`, dataColumnX, 405);
     
     // Activities
-    drawText('Activities', 105, 395);
-    drawText('SBI-code: 74101 - Communication and graphic design', 300, 395);
-    drawText('SBI-code: 6201 - Writing, producing and publishing of software', 300, 375);
+    drawText('Activities', leftMargin, 385);
+    drawText('SBI-code: 74101 - Communication and graphic design', dataColumnX, 385);
+    drawText('SBI-code: 6201 - Writing, producing and publishing of software', dataColumnX, 365);
     
     // Employees
-    drawText('Employees', 105, 355);
-    drawText('0', 300, 355);
+    drawText('Employees', leftMargin, 345);
+    drawText('0', dataColumnX, 345);
     
     // Draw fourth horizontal line
-    drawHorizontalLine(335, 105, width - 105);
+    drawHorizontalLine(325, leftMargin, width - rightMargin);
     
     // Establishment section
-    drawText('Establishment', 105, 315, { font: fontBold });
-    drawText('Establishment number', 105, 295);
-    drawText('000045362920', 300, 295);
+    drawText('Establishment', leftMargin, 305, { font: fontBold });
+    drawText('Establishment number', leftMargin, 285);
+    drawText('000045362920', dataColumnX, 285);
     
-    drawText('Trade names', 105, 275);
-    drawText(tradeName, 300, 275);
+    drawText('Trade names', leftMargin, 265);
+    drawText(tradeName, dataColumnX, 265);
     
     // Visiting address
-    drawText('Visiting address', 105, 255);
-    drawText(address, 300, 255);
+    drawText('Visiting address', leftMargin, 245);
+    drawText(address, dataColumnX, 245);
     
     // Date of incorporation (repeated)
-    drawText('Date of incorporation', 105, 235);
-    drawText(`${formattedIncorporationDate} (registration date: ${formattedRegDate})`, 300, 235);
+    drawText('Date of incorporation', leftMargin, 225);
+    drawText(`${formattedIncorporationDate} (registration date: ${formattedRegDate})`, dataColumnX, 225);
     
     // Activities (repeated in establishment section)
-    drawText('Activities', 105, 215);
-    drawText('SBI-code: 74101 - Communication and graphic design', 300, 215);
-    drawText('SBI-code: 6201 - Writing, producing and publishing of software', 300, 195);
-    drawText('For further information on activities, see Dutch extract.', 300, 175);
+    drawText('Activities', leftMargin, 205);
+    drawText('SBI-code: 74101 - Communication and graphic design', dataColumnX, 205);
+    drawText('SBI-code: 6201 - Writing, producing and publishing of software', dataColumnX, 185);
+    drawText('For further information on activities, see Dutch extract.', dataColumnX, 165);
     
     // Employees (repeated)
-    drawText('Employees', 105, 155);
-    drawText('0', 300, 155);
+    drawText('Employees', leftMargin, 145);
+    drawText('0', dataColumnX, 145);
     
     // Draw fifth horizontal line
-    drawHorizontalLine(135, 105, width - 105);
+    drawHorizontalLine(125, leftMargin, width - rightMargin);
     
     // Owner section
-    drawText('Owner', 105, 115, { font: fontBold });
-    drawText('Name', 105, 95);
-    drawText(ownerName, 300, 95);
+    drawText('Owner', leftMargin, 105, { font: fontBold });
+    drawText('Name', leftMargin, 85);
+    drawText(ownerName, dataColumnX, 85);
     
-    drawText('Date of birth', 105, 75);
-    drawText(formattedOwnerDOB, 300, 75);
+    drawText('Date of birth', leftMargin, 65);
+    drawText(formattedOwnerDOB, dataColumnX, 65);
     
-    drawText('Date of entry into office', 105, 55);
-    drawText(`${formattedIncorporationDate} (registration date: ${formattedRegDate})`, 300, 55);
+    drawText('Date of entry into office', leftMargin, 45);
+    drawText(`${formattedIncorporationDate} (registration date: ${formattedRegDate})`, dataColumnX, 45);
     
     // Draw final horizontal line
-    drawHorizontalLine(35, 105, width - 105);
+    drawHorizontalLine(25, leftMargin, width - rightMargin);
     
-    // Add extraction date at the bottom like in the example (not in the middle)
+    // Add extraction date at the bottom
     const currentDate = new Date();
     const dateStr = formatDutchDate(currentDate.toISOString());
     const hours = String(currentDate.getHours()).padStart(2, '0');
     const minutes = String(currentDate.getMinutes()).padStart(2, '0');
     
-    // Move extraction date to match example (at the bottom before the certification text)
+    // Extraction date is above Owner section
     const extractionInfo = `Extract was made on ${dateStr} at ${hours}.${minutes} hours.`;
-    drawText(extractionInfo, 105, 120, { align: 'left' });
+    drawText(extractionInfo, width/2, 105, { align: 'center' }); 
     
     // Date stamp on the right side of the page - vertical, near the bottom
     const formattedDateStr = currentDate.toISOString().split('T')[0].split('-').reverse().join('-');
     const verticalDateStr = `${formattedDateStr} ${hours}.${minutes}`;
     page.drawText(verticalDateStr, {
-      x: 880,
-      y: 90,
+      x: 560,
+      y: 26,
       size: 7,
       color: rgb(0.5, 0.5, 0.5),
       rotate: {
@@ -273,10 +274,7 @@ async function generateCustomPDF(formData) {
       },
     });
     
-    // Create more space between the data and the watermark
-    const extraSpace = 15; // Add extra space
-    
-    // Add the watermark section - leave enough space for the watermark
+    // Add the watermark section
     // Purple bar at the bottom
     page.drawRectangle({
       x: 0,
@@ -288,13 +286,13 @@ async function generateCustomPDF(formData) {
     
     // Bottom section with certified text
     // WAARMERK text on the bottom left, just above the watermark
-    drawText('WAARMERK', 105, 75, { 
+    drawText('WAARMERK', leftMargin, 60, { 
       font: fontBold,
       size: 12,
       color: { r: 0.5, g: 0.5, b: 0.5 }
     });
     
-    drawText('KAMER VAN KOOPHANDEL', 105, 62, {
+    drawText('KAMER VAN KOOPHANDEL', leftMargin, 47, {
       size: 8,
       color: { r: 0.5, g: 0.5, b: 0.5 }
     });
@@ -306,10 +304,10 @@ async function generateCustomPDF(formData) {
     const certText4 = "integrity is safeguarded and the signature remains verifiable.";
 
     // Draw certification text paragraphs - positioned just above the purple bar
-    drawText(certText1, 280, 75, { size: 8, color: { r: 0.5, g: 0.5, b: 0.5 } });
-    drawText(certText2, 280, 62, { size: 8, color: { r: 0.5, g: 0.5, b: 0.5 } });
-    drawText(certText3, 280, 49, { size: 8, color: { r: 0.5, g: 0.5, b: 0.5 } });
-    drawText(certText4, 280, 36, { size: 8, color: { r: 0.5, g: 0.5, b: 0.5 } });
+    drawText(certText1, 280, 60, { size: 8, color: { r: 0.5, g: 0.5, b: 0.5 } });
+    drawText(certText2, 280, 47, { size: 8, color: { r: 0.5, g: 0.5, b: 0.5 } });
+    drawText(certText3, 280, 34, { size: 8, color: { r: 0.5, g: 0.5, b: 0.5 } });
+    drawText(certText4, 280, 21, { size: 8, color: { r: 0.5, g: 0.5, b: 0.5 } });
     
     // Save the PDF
     const pdfBytes = await pdfDoc.save();
