@@ -36,17 +36,21 @@ async function generateCustomPDF(formData) {
     const fontBold = await pdfDoc.embedFont(StandardFonts.TimesBold);
     console.log('Fonts loaded successfully');
     
-    // Extract form data
-    const {
-      tradeName,
-      legalForm,
-      address,
-      kvkNumber,
-      activities,
-      dateOfIncorporation,
-      ownerName,
-      ownerDOB
-    } = formData;
+    // Extract form data with defaults
+    const tradeName = formData.tradeName || 'Diamond Sky Marketing';
+    const legalForm = formData.legalForm || 'Eenmanszaak';
+    const address = formData.address || 'Spreeuwenhof 81, 7051XJ Varsseveld';
+    const kvkNumber = formData.kvkNumber || '77678303';
+    const dateOfIncorporation = formData.dateOfIncorporation || '2020-03-09';
+    const ownerName = formData.ownerName || 'Piyirici, Okan';
+    const ownerDOB = formData.ownerDOB || '1994-01-21';
+    
+    console.log('Using data:', { tradeName, legalForm, kvkNumber });
+    
+    // Pre-format dates to avoid issues
+    const formattedIncorporationDate = formatDutchDate(dateOfIncorporation);
+    const formattedRegDate = formatDutchDate(dateOfIncorporation);
+    const formattedOwnerDOB = formatDutchDate(ownerDOB);
     
     // Brand colors for KVK
     const kvkBlue = { r: 0.078, g: 0.31, b: 0.439 }; // Dark blue
@@ -128,7 +132,7 @@ async function generateCustomPDF(formData) {
     
     // CCI number section
     drawText('CCI number', 155, 600, { font: fontBold });
-    drawText(kvkNumber || '77678303', 300, 600);
+    drawText(kvkNumber, 300, 600);
     
     // Page number
     drawText('Page', 155, 575, { font: fontBold });
@@ -151,14 +155,14 @@ async function generateCustomPDF(formData) {
     drawText('Trade names', 155, 455);
     
     // Company trade name
-    drawText(tradeName || 'Diamond Sky Marketing', 325, 455);
+    drawText(tradeName, 325, 455);
     
     // Legal form and start date
     drawText('Legal form', 155, 435);
-    drawText(`${legalForm || 'Eenmanszaak'} (comparable with One-man business)`, 325, 435);
+    drawText(`${legalForm} (comparable with One-man business)`, 325, 435);
     
     drawText('Company start date', 155, 415);
-    drawText(`${formatDutchDate(dateOfIncorporation) || '09-03-2020'} (registration date: ${formatDutchDate(dateOfIncorporation) || '20-03-2020'})`, 325, 415);
+    drawText(`${formattedIncorporationDate} (registration date: ${formattedRegDate})`, 325, 415);
     
     // Activities
     drawText('Activities', 155, 395);
@@ -178,15 +182,15 @@ async function generateCustomPDF(formData) {
     drawText('000045362920', 325, 295);
     
     drawText('Trade names', 155, 275);
-    drawText(tradeName || 'Diamond Sky Marketing', 325, 275);
+    drawText(tradeName, 325, 275);
     
     // Visiting address
     drawText('Visiting address', 155, 255);
-    drawText(address || 'Spreeuwenhof 81, 7051XJ Varsseveld', 325, 255);
+    drawText(address, 325, 255);
     
     // Date of incorporation (repeated)
     drawText('Date of incorporation', 155, 235);
-    drawText(`${formatDutchDate(dateOfIncorporation) || '09-03-2020'} (registration date: ${formatDutchDate(dateOfIncorporation) || '20-03-2020'})`, 325, 235);
+    drawText(`${formattedIncorporationDate} (registration date: ${formattedRegDate})`, 325, 235);
     
     // Activities (repeated in establishment section)
     drawText('Activities', 155, 215);
@@ -204,13 +208,13 @@ async function generateCustomPDF(formData) {
     // Owner section
     drawText('Owner', 155, 115, { font: fontBold });
     drawText('Name', 155, 95);
-    drawText(ownerName || 'Piyirici, Okan', 325, 95);
+    drawText(ownerName, 325, 95);
     
     drawText('Date of birth', 155, 75);
-    drawText(formatDutchDate(ownerDOB) || '21-01-1994', 325, 75);
+    drawText(formattedOwnerDOB, 325, 75);
     
     drawText('Date of entry into office', 155, 55);
-    drawText(`${formatDutchDate(dateOfIncorporation) || '09-03-2020'} (registration date: ${formatDutchDate(dateOfIncorporation) || '20-03-2020'})`, 325, 55);
+    drawText(`${formattedIncorporationDate} (registration date: ${formattedRegDate})`, 325, 55);
     
     // Draw final horizontal line
     drawHorizontalLine(35);
@@ -304,14 +308,20 @@ function formatDutchDate(dateString) {
   
   try {
     const date = new Date(dateString);
-    return date.toLocaleDateString('nl-NL', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric'
-    }).replace(/\//g, '-');
+    // Check if date is valid before formatting
+    if (isNaN(date.getTime())) {
+      console.warn('Invalid date provided:', dateString);
+      return '';
+    }
+    
+    const day = String(date.getDate()).padStart(2, '0');
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const year = date.getFullYear();
+    
+    return `${day}-${month}-${year}`;
   } catch (error) {
     console.error('Error formatting date:', error);
-    return dateString;
+    return '';
   }
 }
 
