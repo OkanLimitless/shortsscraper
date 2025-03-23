@@ -30,9 +30,9 @@ async function generateCustomPDF(formData) {
     const { width, height } = page.getSize();
     console.log(`Page dimensions: ${width} x ${height}`);
     
-    // Load fonts
-    const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
-    const boldFont = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
+    // Load fonts - use Times for a closer match to the original
+    const font = await pdfDoc.embedFont(StandardFonts.TimesRoman);
+    const boldFont = await pdfDoc.embedFont(StandardFonts.TimesBold);
     
     // Extract form data
     const {
@@ -92,128 +92,126 @@ async function generateCustomPDF(formData) {
     };
     
     // Draw horizontal line
-    const drawHorizontalLine = (y, startX = 115, endX = width - 115, thickness = 0.5) => {
+    const drawHorizontalLine = (y, startX = 155, endX = width - 155, thickness = 0.75) => {
       page.drawLine({
         start: { x: startX, y },
         end: { x: endX, y },
         thickness,
-        color: rgb(0.7, 0.7, 0.7)
+        color: rgb(0.8, 0.8, 0.8)
       });
     };
     
     // KVK Logo - large blue "KVK" text at the top
-    drawText('KVK', 115, 810, {
+    drawText('KVK', 215, 790, {
       size: 48,
       color: kvkBlue,
       font: boldFont
     });
     
     // Title and top section
-    drawText('Business Register extract', 115, 710, { 
+    drawText('Business Register extract', 215, 680, { 
       size: 20, 
       color: kvkBlue,
       font: boldFont 
     });
     
-    drawText('Netherlands Chamber of Commerce', 115, 685, { 
+    drawText('Netherlands Chamber of Commerce', 215, 655, { 
       size: 18, 
       color: kvkBlue,
       font: boldFont 
     });
     
     // Draw first horizontal line
-    drawHorizontalLine(650);
+    drawHorizontalLine(620);
     
     // CCI number section
-    drawText('CCI number', 115, 630, { font: boldFont });
-    drawText(kvkNumber || '77678303', 190, 630);
+    drawText('CCI number', 155, 600, { font: boldFont });
+    drawText(kvkNumber || '77678303', 300, 600);
     
     // Page number
-    drawText('Page', 115, 600, { font: boldFont });
-    drawText('1 (of 1)', 155, 600);
+    drawText('Page', 155, 575, { font: boldFont });
+    drawText('1 (of 1)', 190, 575);
     
     // Draw second horizontal line
-    drawHorizontalLine(580);
+    drawHorizontalLine(555);
     
-    // Privacy notice
+    // Privacy notice - center aligned
     const privacyText = "The company / organisation does not want its address details to be used for";
-    drawText(privacyText, 400, 560, { align: 'center' });
+    drawText(privacyText, width/2, 535, { align: 'center' });
     const privacyText2 = "unsolicited postal advertising or visits from sales representatives.";
-    drawText(privacyText2, 400, 540, { align: 'center' });
+    drawText(privacyText2, width/2, 515, { align: 'center' });
     
     // Draw third horizontal line
-    drawHorizontalLine(520);
+    drawHorizontalLine(495);
     
     // Company section
-    drawText('Company', 115, 500, { font: boldFont });
-    drawText('Trade names', 115, 480);
+    drawText('Company', 155, 475, { font: boldFont });
+    drawText('Trade names', 155, 455);
     
     // Company trade name
-    drawText(tradeName || 'Diamond Sky Marketing', 300, 480);
-    drawText('AdWings', 300, 465);
+    drawText(tradeName || 'Diamond Sky Marketing', 325, 455);
     
     // Legal form and start date
-    drawText('Legal form', 115, 445);
-    drawText(`${legalForm} (comparable with One-man business)`, 300, 445);
+    drawText('Legal form', 155, 435);
+    drawText(`${legalForm || 'Eenmanszaak'} (comparable with One-man business)`, 325, 435);
     
-    drawText('Company start date', 115, 425);
-    drawText(`${formatDutchDate(dateOfIncorporation)} (registration date: ${formatDutchDate(dateOfIncorporation)})`, 300, 425);
+    drawText('Company start date', 155, 415);
+    drawText(`${formatDutchDate(dateOfIncorporation) || '09-03-2020'} (registration date: ${formatDutchDate(dateOfIncorporation) || '20-03-2020'})`, 325, 415);
     
     // Activities
-    drawText('Activities', 115, 405);
-    drawText('SBI-code: 74101 - Communication and graphic design', 300, 405);
-    drawText('SBI-code: 6201 - Writing, producing and publishing of software', 300, 385);
+    drawText('Activities', 155, 395);
+    drawText('SBI-code: 74101 - Communication and graphic design', 325, 395);
+    drawText('SBI-code: 6201 - Writing, producing and publishing of software', 325, 375);
     
     // Employees
-    drawText('Employees', 115, 365);
-    drawText('0', 300, 365);
+    drawText('Employees', 155, 355);
+    drawText('0', 325, 355);
     
     // Draw fourth horizontal line
-    drawHorizontalLine(345);
+    drawHorizontalLine(335);
     
     // Establishment section
-    drawText('Establishment', 115, 325, { font: boldFont });
-    drawText('Establishment number', 115, 305);
-    drawText('000045362920', 300, 305);
+    drawText('Establishment', 155, 315, { font: boldFont });
+    drawText('Establishment number', 155, 295);
+    drawText('000045362920', 325, 295);
     
-    drawText('Trade names', 115, 285);
-    drawText(tradeName || 'Diamond Sky Marketing', 300, 285);
-    drawText('AdWings', 300, 270);
+    drawText('Trade names', 155, 275);
+    drawText(tradeName || 'Diamond Sky Marketing', 325, 275);
     
     // Visiting address
-    drawText('Visiting address', 115, 250);
-    drawText(address || 'Spreeuwenhof 81, 7051XJ Varsseveld', 300, 250);
+    drawText('Visiting address', 155, 255);
+    drawText(address || 'Spreeuwenhof 81, 7051XJ Varsseveld', 325, 255);
     
     // Date of incorporation (repeated)
-    drawText('Date of incorporation', 115, 230);
-    drawText(`${formatDutchDate(dateOfIncorporation)} (registration date: ${formatDutchDate(dateOfIncorporation)})`, 300, 230);
+    drawText('Date of incorporation', 155, 235);
+    drawText(`${formatDutchDate(dateOfIncorporation) || '09-03-2020'} (registration date: ${formatDutchDate(dateOfIncorporation) || '20-03-2020'})`, 325, 235);
     
     // Activities (repeated in establishment section)
-    drawText('Activities', 115, 210);
-    drawText('SBI-code: 74101 - Communication and graphic design', 300, 210);
-    drawText('SBI-code: 6201 - Writing, producing and publishing of software', 300, 190);
-    drawText('For further information on activities, see Dutch extract.', 300, 170);
+    drawText('Activities', 155, 215);
+    drawText('SBI-code: 74101 - Communication and graphic design', 325, 215);
+    drawText('SBI-code: 6201 - Writing, producing and publishing of software', 325, 195);
+    drawText('For further information on activities, see Dutch extract.', 325, 175);
     
     // Employees (repeated)
-    drawText('Employees', 115, 150);
-    drawText('0', 300, 150);
+    drawText('Employees', 155, 155);
+    drawText('0', 325, 155);
     
     // Draw fifth horizontal line
-    drawHorizontalLine(130);
+    drawHorizontalLine(135);
     
     // Owner section
-    drawText('Owner', 115, 110, { font: boldFont });
-    drawText('Name', 115, 90);
-    drawText(ownerName || 'Piyirici, Okan', 300, 90);
+    drawText('Owner', 155, 115, { font: boldFont });
+    drawText('Name', 155, 95);
+    drawText(ownerName || 'Piyirici, Okan', 325, 95);
     
-    drawText('Date of birth', 115, 70);
-    drawText(formatDutchDate(ownerDOB) || '21-01-1994', 300, 70);
+    drawText('Date of birth', 155, 75);
+    drawText(formatDutchDate(ownerDOB) || '21-01-1994', 325, 75);
     
-    drawText('Date of entry into office', 115, 50);
-    drawText(`${formatDutchDate(dateOfIncorporation)} (registration date: ${formatDutchDate(dateOfIncorporation)})`, 300, 50);
+    drawText('Date of entry into office', 155, 55);
+    drawText(`${formatDutchDate(dateOfIncorporation) || '09-03-2020'} (registration date: ${formatDutchDate(dateOfIncorporation) || '20-03-2020'})`, 325, 55);
     
     // Draw final horizontal line
-    drawHorizontalLine(30);
+    drawHorizontalLine(35);
     
     // Footer with extraction date
     const currentDate = new Date();
@@ -222,7 +220,7 @@ async function generateCustomPDF(formData) {
     const minutes = String(currentDate.getMinutes()).padStart(2, '0');
     
     const extractionInfo = `Extract was made on ${dateStr} at ${hours}.${minutes} hours.`;
-    drawText(extractionInfo, 400, 10, { align: 'center' });
+    drawText(extractionInfo, 325, 15, { align: 'center' });
     
     // Add the watermark section
     // Purple bar at the bottom
@@ -230,18 +228,18 @@ async function generateCustomPDF(formData) {
       x: 0,
       y: 0,
       width: width,
-      height: 20,
+      height: 22,
       color: rgb(kvkPurple.r, kvkPurple.g, kvkPurple.b),
     });
     
     // Certification text on the left side (small, gray text)
-    drawText('WAARMERK', 115, -40, { 
+    drawText('WAARMERK', 155, -50, { 
       font: boldFont,
       size: 12,
       color: { r: 0.5, g: 0.5, b: 0.5 }
     });
     
-    drawText('KAMER VAN KOOPHANDEL', 115, -53, {
+    drawText('KAMER VAN KOOPHANDEL', 155, -63, {
       size: 8,
       color: { r: 0.5, g: 0.5, b: 0.5 }
     });
@@ -253,19 +251,13 @@ async function generateCustomPDF(formData) {
     const certText4 = "integrity is safeguarded and the signature remains verifiable.";
 
     // Draw certification text paragraphs
-    drawText(certText1, 300, -40, { size: 8, color: { r: 0.5, g: 0.5, b: 0.5 } });
-    drawText(certText2, 300, -53, { size: 8, color: { r: 0.5, g: 0.5, b: 0.5 } });
-    drawText(certText3, 300, -66, { size: 8, color: { r: 0.5, g: 0.5, b: 0.5 } });
-    drawText(certText4, 300, -79, { size: 8, color: { r: 0.5, g: 0.5, b: 0.5 } });
+    drawText(certText1, 325, -50, { size: 8, color: { r: 0.5, g: 0.5, b: 0.5 } });
+    drawText(certText2, 325, -63, { size: 8, color: { r: 0.5, g: 0.5, b: 0.5 } });
+    drawText(certText3, 325, -76, { size: 8, color: { r: 0.5, g: 0.5, b: 0.5 } });
+    drawText(certText4, 325, -89, { size: 8, color: { r: 0.5, g: 0.5, b: 0.5 } });
 
-    // Date stamp on the right side of the page
-    drawText(dateStr, 550, -160, {
-      size: 7,
-      align: 'right',
-      color: { r: 0.5, g: 0.5, b: 0.5 }
-    });
-    
-    drawText(`${hours}.${minutes}`, 550, -145, {
+    // Date stamp on the right side of the page - rotated vertically
+    drawText(`${dateStr} ${hours}.${minutes}`, 580, 90, {
       size: 7,
       align: 'right',
       color: { r: 0.5, g: 0.5, b: 0.5 }
