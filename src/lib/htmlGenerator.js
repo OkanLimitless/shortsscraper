@@ -150,7 +150,7 @@ export function generateHTML(formData) {
       font-size: 11px;
       font-weight: bold;
       margin: 0;
-      text-transform: uppercase;
+      color: #204a63;
     }
     
     tr.data-row td {
@@ -195,7 +195,7 @@ export function generateHTML(formData) {
     /* Footer elements */
     .waarmerk {
       position: absolute;
-      bottom: 74px; /* Reduced from 84px */
+      bottom: 64px; /* Reduced from 84px */
       left: 112px;
       font-weight: bold;
       font-size: 14px;
@@ -205,7 +205,7 @@ export function generateHTML(formData) {
     
     .kvk-subtitle {
       position: absolute;
-      bottom: 58px; /* Reduced from 68px */
+      bottom: 48px; /* Reduced from 68px */
       left: 112px;
       font-size: 8px;
       color: rgba(128, 128, 128, 0.4);
@@ -214,7 +214,7 @@ export function generateHTML(formData) {
     
     .footer-text {
       position: absolute;
-      bottom: 74px; /* Reduced from 84px */
+      bottom: 64px; /* Reduced from 84px */
       left: 230px;
       font-size: 7px;
       line-height: 1.4;
@@ -224,8 +224,8 @@ export function generateHTML(formData) {
     
     .timestamp {
       position: absolute;
-      bottom: 120px; /* Reduced from 140px */
-      right: 15px;
+      bottom: 140px; /* Reduced from 140px */
+      right: 10px;
       transform: rotate(90deg);
       transform-origin: right bottom;
       font-size: 8px;
@@ -439,7 +439,7 @@ export function generateHTML(formData) {
         <td colspan="2"></td>
       </tr>
       
-      <!-- OWNER section -->
+      <!-- OWNER section - updated to match screenshot -->
       <tr class="header-row">
         <td colspan="2">
           <h2>Owner</h2>
