@@ -1,0 +1,43 @@
+{
+  "customText": [
+    {
+      "text": "LEGAL DOCUMENT - MODIFIED",
+      "x": 50,
+      "y": 780,
+      "size": 18,
+      "color": { "r": 0, "g": 0, "b": 0.8 },
+      "isBold": true
+    },
+    {
+      "text": "Company Name: ABC Legal Services",
+      "x": 50,
+      "y": 740,
+      "size": 12
+    },
+    {
+      "text": "Registration Number: 12345678",
+      "x": 50,
+      "y": 720,
+      "size": 12
+    },
+    {
+      "text": "Date of Modification: 2024-03-25",
+      "x": 50,
+      "y": 700,
+      "size": 12
+    },
+    {
+      "text": "DOCUMENT ID: DOC-2024-001",
+      "x": 50,
+      "y": 670,
+      "size": 12,
+      "isBold": true
+    },
+    {
+      "text": "This document has been legally modified in accordance with section 123 of statute XYZ.",
+      "x": 50,
+      "y": 640,
+      "size": 10
+    }
+  ]
+} 

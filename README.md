@@ -1,146 +1,100 @@
-# YouTube Shorts Ad Scraper
+# PDF Editor for Legal Documents
 
-A Python-based automation tool that uses Appium to scrape ads from YouTube Shorts on an Android Emulator.
+A simple tool to edit PDF documents for legal purposes. This tool allows you to take an existing PDF template and modify it by:
 
-## 🔎 Project Overview
+1. Filling in form fields (if they exist in the PDF)
+2. Adding custom text at specific positions
+3. Saving the modified document with a new name
 
-This project automates the process of detecting and capturing ads that appear while scrolling through YouTube Shorts in the official YouTube Android app. It uses Appium to interact with an Android Emulator, simulating natural user behavior to reliably capture ad content.
+## Installation
 
-## 📋 Key Features
+1. Clone this repository
+2. Install dependencies:
+   ```
+   npm install
+   ```
 
-- Automated interaction with the YouTube Android app
-- Natural scrolling behavior through YouTube Shorts
-- Intelligent ad detection algorithms
-- Screenshot capture of identified ads
-- Detailed logging for debugging and analysis
-- Configurable parameters for customized scraping sessions
+## Usage
 
-## 📌 Requirements
+### Basic Usage
 
-- Python 3.8+
-- Appium Server
-- Android Studio with Emulator (Pixel device, API 32+)
-- Java Development Kit (JDK)
-- Android SDK
-- Node.js and npm
-
-## 🗂️ Project Structure
-
-```
-youtube-shorts-scraper/
-├── ads/                      # Folder for captured ad screenshots
-├── scripts/
-│   ├── scraper.py            # Main Appium automation script
-│   ├── ad_detector.py        # Logic for identifying ads
-│   ├── utils.py              # Helper functions
-│   └── config.py             # Configuration settings
-├── requirements.txt          # Python dependencies
-├── logs/                     # Automation logs/debug info
-└── README.md                 # Project documentation
-```
-
-## ⚙️ Setup Instructions
-
-### 1. Environment Setup
-
-#### Install Required Software:
-
-- **Java Development Kit (JDK)**
-  - Download and install JDK 8 or higher
-  - Set JAVA_HOME environment variable
-
-- **Android Studio & SDK**
-  - Download and install Android Studio
-  - Install Android SDK through Android Studio
-  - Set ANDROID_HOME environment variable
-
-- **Node.js & npm**
-  - Download and install Node.js (includes npm)
-
-- **Appium**
-  - Install Appium using npm: `npm install -g appium`
-  - Install Appium Doctor: `npm install -g appium-doctor`
-  - Run `appium-doctor` to verify your setup
-
-#### Python Environment:
+Run the editor with command line arguments:
 
 ```bash
-# Create and activate virtual environment (optional but recommended)
-python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
-
-# Install dependencies
-pip install -r requirements.txt
+node src/cli-pdf-editor.js --input=./your-template.pdf --output=./modified-output.pdf --config=./your-config.json
 ```
 
-### 2. Android Emulator Setup
+### Parameters
 
-1. Open Android Studio
-2. Go to "Virtual Device Manager"
-3. Create a new device (recommended: Pixel 6, API 32+)
-4. Configure with at least 2GB RAM and 2GB internal storage
-5. Start the emulator and verify it works
+- `--input`: Path to the input PDF template
+- `--output`: Path where the modified PDF will be saved
+- `--config`: (Optional) Path to a JSON configuration file with field data
 
-### 3. Install YouTube App
+If no `--config` parameter is provided, default values will be used.
 
-1. With the emulator running, open Google Play Store
-2. Sign in with a Google account
-3. Search for and install the official YouTube app
-4. Open the app and sign in (recommended for consistent experience)
+### Configuration File Format
 
-### 4. Appium Server Setup
+The configuration file should be a JSON file with the following structure:
 
-1. Start Appium server:
+```json
+{
+  "FieldName1": "Value for field 1",
+  "FieldName2": "Value for field 2",
+  "customText": [
+    {
+      "text": "Text to add to the PDF",
+      "x": 50,           // X coordinate (from left)
+      "y": 750,          // Y coordinate (from bottom)
+      "size": 12,        // Font size
+      "color": {         // RGB color (values from 0-1)
+        "r": 0,
+        "g": 0,
+        "b": 0
+      },
+      "isBold": false    // Whether to use bold font
+    },
+    // Add more text items as needed
+  ]
+}
+```
+
+## Examples
+
+1. **Basic Example**:
+   ```bash
+   node src/cli-pdf-editor.js --input=./uittreksel_handelsregister_77678303.pdf --output=./output/modified.pdf
+   ```
+
+2. **With Config File**:
+   ```bash
+   node src/cli-pdf-editor.js --input=./uittreksel_handelsregister_77678303.pdf --output=./output/modified.pdf --config=./src/sample-config.json
+   ```
+
+## Determining PDF Field Names
+
+To determine the names of fields in your PDF, you can run the analysis tool:
+
 ```bash
-appium
+node src/analyze-pdf.js
 ```
 
-2. Verify the server is running at the default address (typically http://localhost:4723)
+This will show information about the PDF including any form fields that might be available for editing.
 
-## 🚀 Usage
+## Coordinates
 
-1. Ensure your Android Emulator is running
-2. Make sure the YouTube app is installed
-3. Start the Appium server
-4. Run the scraper script:
+When adding custom text, you need to specify the x and y coordinates:
 
-```bash
-python scripts/scraper.py
-```
+- **X coordinate**: Distance from the left edge of the page (in points)
+- **Y coordinate**: Distance from the bottom edge of the page (in points)
 
-## ⚠️ Important Notes
+The default page size is typically 595.44 x 841.68 points (A4).
 
-- **App Interaction**: The script simulates natural user behavior to avoid detection
-- **Ad Detection**: Ads are identified through a combination of UI element analysis and image recognition
-- **Rate Limiting**: The script includes built-in delays to prevent being flagged as automated
-- **Emulator Performance**: For best results, allocate sufficient resources to your emulator
+## Limitations
 
-## 📝 Configuration
+- This tool currently works best with simple PDF modifications
+- For signature fields, only simple text modifications are possible
+- Some PDFs may have restrictions that prevent modifications
 
-Edit `scripts/config.py` to customize:
+## License
 
-- Scrolling speed and patterns
-- Session duration
-- Screenshot quality and format
-- Log verbosity
-- Ad detection sensitivity
-
-## 🔧 Troubleshooting
-
-Common issues and solutions:
-
-- **Element Not Found**: Adjust the wait times or element identification strategy
-- **Emulator Performance**: Increase allocated RAM and CPU cores
-- **App Updates**: YouTube app updates may change UI elements; update selectors accordingly
-- **Connection Issues**: Verify Appium server is running and accessible
-
-## 📊 Future Improvements
-
-- Implement machine learning for better ad detection
-- Add support for multiple emulator instances
-- Create a dashboard for visualizing collected ad data
-- Extend functionality to other social media platforms
-
-## 📜 License
-
-This project is for educational purposes only. Use responsibly and in accordance with YouTube's terms of service. 
+MIT 
