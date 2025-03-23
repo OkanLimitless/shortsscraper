@@ -236,25 +236,26 @@ async function generateCustomPDF(formData) {
     // Draw fifth horizontal line
     drawHorizontalLine(125, leftMargin, width - rightMargin);
     
-    // Extract was made date - appears BEFORE Owner section (critical fix)
+    // Owner section - no extraction date above it in the example
+    drawText('Owner', leftMargin, 105, { font: fontBold });
+    drawText('Name', leftMargin, 85);
+    drawText(ownerName, dataColumnX, 85);
+    
+    drawText('Date of birth', leftMargin, 65);
+    drawText(formattedOwnerDOB, dataColumnX, 65);
+    
+    drawText('Date of entry into office', leftMargin, 45);
+    drawText(`${formattedIncorporationDate} (registration date: ${formattedRegDate})`, dataColumnX, 45);
+    
+    // Extraction date appears after all content
     const currentDate = new Date();
     const dateStr = formatDutchDate(currentDate.toISOString());
     const hours = String(currentDate.getHours()).padStart(2, '0');
     const minutes = String(currentDate.getMinutes()).padStart(2, '0');
     
+    // Add extraction date at the very bottom of the content
     const extractionInfo = `Extract was made on ${dateStr} at ${hours}.${minutes} hours.`;
-    drawText(extractionInfo, width/2, 105, { align: 'center' });
-    
-    // Owner section - comes AFTER the extraction date
-    drawText('Owner', leftMargin, 85, { font: fontBold });
-    drawText('Name', leftMargin, 65);
-    drawText(ownerName, dataColumnX, 65);
-    
-    drawText('Date of birth', leftMargin, 45);
-    drawText(formattedOwnerDOB, dataColumnX, 45);
-    
-    drawText('Date of entry into office', leftMargin, 25);
-    drawText(`${formattedIncorporationDate} (registration date: ${formattedRegDate})`, dataColumnX, 25);
+    drawText(extractionInfo, leftMargin, 25, { align: 'left' });
     
     // Date stamp on the right side of the page - vertical, near the bottom
     const formattedDateStr = currentDate.toISOString().split('T')[0].split('-').reverse().join('-');
@@ -280,30 +281,30 @@ async function generateCustomPDF(formData) {
       color: rgb(kvkPurple.r, kvkPurple.g, kvkPurple.b),
     });
     
-    // Bottom section with certified text
+    // Bottom section with certified text - match exact position from example
     // WAARMERK text on the bottom left, just above the watermark
-    drawText('WAARMERK', leftMargin, 60, { 
+    drawText('WAARMERK', leftMargin, 70, { 
       font: fontBold,
       size: 12,
       color: { r: 0.5, g: 0.5, b: 0.5 }
     });
     
-    drawText('KAMER VAN KOOPHANDEL', leftMargin, 47, {
+    drawText('KAMER VAN KOOPHANDEL', leftMargin, 57, {
       size: 8,
       color: { r: 0.5, g: 0.5, b: 0.5 }
     });
     
-    // Add certification text at the bottom right
+    // Add certification text at the bottom right - adjusted positioning
     const certText1 = "This extract has been certified with a digital signature and is an official proof of registration in the Business";
     const certText2 = "Register. You can check the integrity of this document and validate the signature in Adobe at the top of your";
     const certText3 = "screen. The Chamber of Commerce recommends that this document be viewed in digital form so that its";
     const certText4 = "integrity is safeguarded and the signature remains verifiable.";
 
     // Draw certification text paragraphs - positioned just above the purple bar
-    drawText(certText1, 280, 60, { size: 8, color: { r: 0.5, g: 0.5, b: 0.5 } });
-    drawText(certText2, 280, 47, { size: 8, color: { r: 0.5, g: 0.5, b: 0.5 } });
-    drawText(certText3, 280, 34, { size: 8, color: { r: 0.5, g: 0.5, b: 0.5 } });
-    drawText(certText4, 280, 21, { size: 8, color: { r: 0.5, g: 0.5, b: 0.5 } });
+    drawText(certText1, 280, 70, { size: 8, color: { r: 0.5, g: 0.5, b: 0.5 } });
+    drawText(certText2, 280, 57, { size: 8, color: { r: 0.5, g: 0.5, b: 0.5 } });
+    drawText(certText3, 280, 44, { size: 8, color: { r: 0.5, g: 0.5, b: 0.5 } });
+    drawText(certText4, 280, 31, { size: 8, color: { r: 0.5, g: 0.5, b: 0.5 } });
     
     // Save the PDF
     const pdfBytes = await pdfDoc.save();
