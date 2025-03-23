@@ -137,17 +137,20 @@ async function generateCustomPDF(formData) {
       font: fontBold
     });
     
-    // Title and top section - move slightly left to match example
-    drawText('Business Register extract', 150, 680, { 
+    // Title and top section - center aligned like in the example
+    const titleX = width / 2;
+    drawText('Business Register extract', titleX, 680, { 
       size: 20, 
       color: kvkBlue,
-      font: fontBold 
+      font: fontBold,
+      align: 'center'
     });
     
-    drawText('Netherlands Chamber of Commerce', 150, 655, { 
+    drawText('Netherlands Chamber of Commerce', titleX, 655, { 
       size: 18, 
       color: kvkBlue,
-      font: fontBold 
+      font: fontBold,
+      align: 'center'
     });
     
     // Draw first horizontal line
@@ -246,15 +249,15 @@ async function generateCustomPDF(formData) {
     // Draw final horizontal line
     drawHorizontalLine(35, 105, width - 105);
     
-    // Create more space at the bottom for the watermark
-    // Footer with extraction date - move up
+    // Add extraction date at the bottom like in the example (not in the middle)
     const currentDate = new Date();
     const dateStr = formatDutchDate(currentDate.toISOString());
     const hours = String(currentDate.getHours()).padStart(2, '0');
     const minutes = String(currentDate.getMinutes()).padStart(2, '0');
     
+    // Move extraction date to match example (at the bottom before the certification text)
     const extractionInfo = `Extract was made on ${dateStr} at ${hours}.${minutes} hours.`;
-    drawText(extractionInfo, width/2, 120, { align: 'center' });
+    drawText(extractionInfo, 325, 80, { align: 'left' });
     
     // Date stamp on the right side of the page - vertical, near the bottom
     const formattedDateStr = currentDate.toISOString().split('T')[0].split('-').reverse().join('-');
@@ -269,6 +272,9 @@ async function generateCustomPDF(formData) {
         angle: 90,
       },
     });
+    
+    // Create more space between the data and the watermark
+    const extraSpace = 15; // Add extra space
     
     // Add the watermark section - leave enough space for the watermark
     // Purple bar at the bottom
