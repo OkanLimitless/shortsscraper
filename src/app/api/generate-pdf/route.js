@@ -31,8 +31,10 @@ async function generateCustomPDF(formData) {
     console.log(`Page dimensions: ${width} x ${height}`);
     
     // Load fonts - use Times for a closer match to the original
-    const font = await pdfDoc.embedFont(StandardFonts.TimesRoman);
-    const boldFont = await pdfDoc.embedFont(StandardFonts.TimesBold);
+    console.log('Loading fonts...');
+    const fontRegular = await pdfDoc.embedFont(StandardFonts.TimesRoman);
+    const fontBold = await pdfDoc.embedFont(StandardFonts.TimesBold);
+    console.log('Fonts loaded successfully');
     
     // Extract form data
     const {
@@ -57,16 +59,16 @@ async function generateCustomPDF(formData) {
       const { 
         size = 10, 
         color = { r: 0, g: 0, b: 0 }, 
-        font: useFont = font,
+        font = fontRegular,
         align = 'left',
         maxWidth = null
       } = options;
       
       // Handle text truncation if needed
       let finalText = text;
-      if (maxWidth && useFont.widthOfTextAtSize(text, size) > maxWidth) {
+      if (maxWidth && font.widthOfTextAtSize(text, size) > maxWidth) {
         let truncatedText = text;
-        while (useFont.widthOfTextAtSize(truncatedText + '...', size) > maxWidth && truncatedText.length > 0) {
+        while (font.widthOfTextAtSize(truncatedText + '...', size) > maxWidth && truncatedText.length > 0) {
           truncatedText = truncatedText.slice(0, -1);
         }
         finalText = truncatedText + '...';
@@ -75,20 +77,20 @@ async function generateCustomPDF(formData) {
       // Calculate x position for different alignments
       let xPos = x;
       if (align === 'center') {
-        xPos = x - useFont.widthOfTextAtSize(finalText, size) / 2;
+        xPos = x - font.widthOfTextAtSize(finalText, size) / 2;
       } else if (align === 'right') {
-        xPos = x - useFont.widthOfTextAtSize(finalText, size);
+        xPos = x - font.widthOfTextAtSize(finalText, size);
       }
       
       page.drawText(finalText, {
         x: xPos,
         y: y,
         size,
-        font: useFont,
+        font,
         color: rgb(color.r, color.g, color.b)
       });
       
-      return useFont.widthOfTextAtSize(finalText, size);
+      return font.widthOfTextAtSize(finalText, size);
     };
     
     // Draw horizontal line
@@ -105,31 +107,31 @@ async function generateCustomPDF(formData) {
     drawText('KVK', 215, 790, {
       size: 48,
       color: kvkBlue,
-      font: boldFont
+      font: fontBold
     });
     
     // Title and top section
     drawText('Business Register extract', 215, 680, { 
       size: 20, 
       color: kvkBlue,
-      font: boldFont 
+      font: fontBold 
     });
     
     drawText('Netherlands Chamber of Commerce', 215, 655, { 
       size: 18, 
       color: kvkBlue,
-      font: boldFont 
+      font: fontBold 
     });
     
     // Draw first horizontal line
     drawHorizontalLine(620);
     
     // CCI number section
-    drawText('CCI number', 155, 600, { font: boldFont });
+    drawText('CCI number', 155, 600, { font: fontBold });
     drawText(kvkNumber || '77678303', 300, 600);
     
     // Page number
-    drawText('Page', 155, 575, { font: boldFont });
+    drawText('Page', 155, 575, { font: fontBold });
     drawText('1 (of 1)', 190, 575);
     
     // Draw second horizontal line
@@ -145,7 +147,7 @@ async function generateCustomPDF(formData) {
     drawHorizontalLine(495);
     
     // Company section
-    drawText('Company', 155, 475, { font: boldFont });
+    drawText('Company', 155, 475, { font: fontBold });
     drawText('Trade names', 155, 455);
     
     // Company trade name
@@ -171,7 +173,7 @@ async function generateCustomPDF(formData) {
     drawHorizontalLine(335);
     
     // Establishment section
-    drawText('Establishment', 155, 315, { font: boldFont });
+    drawText('Establishment', 155, 315, { font: fontBold });
     drawText('Establishment number', 155, 295);
     drawText('000045362920', 325, 295);
     
@@ -200,7 +202,7 @@ async function generateCustomPDF(formData) {
     drawHorizontalLine(135);
     
     // Owner section
-    drawText('Owner', 155, 115, { font: boldFont });
+    drawText('Owner', 155, 115, { font: fontBold });
     drawText('Name', 155, 95);
     drawText(ownerName || 'Piyirici, Okan', 325, 95);
     
@@ -234,7 +236,7 @@ async function generateCustomPDF(formData) {
     
     // Certification text on the left side (small, gray text)
     drawText('WAARMERK', 155, -50, { 
-      font: boldFont,
+      font: fontBold,
       size: 12,
       color: { r: 0.5, g: 0.5, b: 0.5 }
     });
