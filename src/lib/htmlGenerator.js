@@ -102,10 +102,8 @@ export function generateHTML(formData) {
       position: absolute;
       top: 82px;
       left: 112px;
-      font-size: 36px;
-      font-weight: bold;
-      color: #204a63; /* Dark blue color */
-      letter-spacing: -0.5px;
+      width: 120px; /* Adjust based on actual logo size */
+      height: auto;
     }
     
     /* Title section */
@@ -197,7 +195,7 @@ export function generateHTML(formData) {
     /* Footer elements */
     .waarmerk {
       position: absolute;
-      bottom: 84px;
+      bottom: 74px; /* Reduced from 84px */
       left: 112px;
       font-weight: bold;
       font-size: 14px;
@@ -207,7 +205,7 @@ export function generateHTML(formData) {
     
     .kvk-subtitle {
       position: absolute;
-      bottom: 68px;
+      bottom: 58px; /* Reduced from 68px */
       left: 112px;
       font-size: 8px;
       color: rgba(128, 128, 128, 0.4);
@@ -216,7 +214,7 @@ export function generateHTML(formData) {
     
     .footer-text {
       position: absolute;
-      bottom: 84px;
+      bottom: 74px; /* Reduced from 84px */
       left: 230px;
       font-size: 7px;
       line-height: 1.4;
@@ -226,7 +224,7 @@ export function generateHTML(formData) {
     
     .timestamp {
       position: absolute;
-      bottom: 140px;
+      bottom: 120px; /* Reduced from 140px */
       right: 15px;
       transform: rotate(90deg);
       transform-origin: right bottom;
@@ -235,13 +233,11 @@ export function generateHTML(formData) {
       z-index: 1;
     }
     
-    .magenta-bar {
+    .bottom-bar {
       position: absolute;
       bottom: 0;
       left: 0;
       width: 100%;
-      height: 23px;
-      background-color: #d90080;
       z-index: 0;
     }
     
@@ -330,7 +326,7 @@ export function generateHTML(formData) {
   <!-- We're removing the header info to match the example -->
   
   <!-- KVK Logo -->
-  <div class="kvk-logo">KVK</div>
+  <img src="/images/kvklogo.png" alt="KVK Logo" class="kvk-logo">
   
   <!-- Title section -->
   <div class="title">Business Register extract</div>
@@ -487,8 +483,8 @@ export function generateHTML(formData) {
   <!-- Timestamp -->
   <div class="timestamp">${timestamp}</div>
   
-  <!-- Magenta bar - fixed to ensure it appears correctly -->
-  <div class="magenta-bar"></div>
+  <!-- Bottom Bar Image - replaces the CSS magenta bar -->
+  <img src="/images/bottombar.png" alt="Bottom Bar" class="bottom-bar">
 </body>
 </html>`;
 }
