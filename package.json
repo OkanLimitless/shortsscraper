@@ -1,16 +1,25 @@
 {
-  "name": "shortsscraper",
-  "version": "1.0.0",
-  "main": "index.js",
+  "name": "kvk-document-generator",
+  "version": "0.1.0",
+  "private": true,
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "vercel-build": "next build"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "description": "",
   "dependencies": {
-    "fs": "^0.0.1-security",
-    "pdf-lib": "^1.17.1"
+    "next": "13.4.19",
+    "pdf-lib": "^1.17.1",
+    "react": "18.2.0",
+    "react-dom": "18.2.0"
+  },
+  "devDependencies": {
+    "autoprefixer": "^10.4.14",
+    "eslint": "^8.45.0",
+    "eslint-config-next": "13.4.19",
+    "postcss": "^8.4.27",
+    "tailwindcss": "^3.3.3"
   }
 }
