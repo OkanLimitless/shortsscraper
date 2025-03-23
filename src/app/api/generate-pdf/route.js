@@ -236,36 +236,32 @@ async function generateCustomPDF(formData) {
     // Draw fifth horizontal line
     drawHorizontalLine(125, leftMargin, width - rightMargin);
     
-    // Extraction date below the line after Owner section
+    // Extract was made date - appears BEFORE Owner section (critical fix)
     const currentDate = new Date();
     const dateStr = formatDutchDate(currentDate.toISOString());
     const hours = String(currentDate.getHours()).padStart(2, '0');
     const minutes = String(currentDate.getMinutes()).padStart(2, '0');
     
-    // Owner section
-    drawText('Owner', leftMargin, 105, { font: fontBold });
-    drawText('Name', leftMargin, 85);
-    drawText(ownerName, dataColumnX, 85);
-    
-    drawText('Date of birth', leftMargin, 65);
-    drawText(formattedOwnerDOB, dataColumnX, 65);
-    
-    drawText('Date of entry into office', leftMargin, 45);
-    drawText(`${formattedIncorporationDate} (registration date: ${formattedRegDate})`, dataColumnX, 45);
-    
-    // Draw final horizontal line
-    drawHorizontalLine(25, leftMargin, width - rightMargin);
-    
-    // Extraction date text appears between Owner and the final line
     const extractionInfo = `Extract was made on ${dateStr} at ${hours}.${minutes} hours.`;
-    drawText(extractionInfo, leftMargin, 30, { align: 'left' });
+    drawText(extractionInfo, width/2, 105, { align: 'center' });
+    
+    // Owner section - comes AFTER the extraction date
+    drawText('Owner', leftMargin, 85, { font: fontBold });
+    drawText('Name', leftMargin, 65);
+    drawText(ownerName, dataColumnX, 65);
+    
+    drawText('Date of birth', leftMargin, 45);
+    drawText(formattedOwnerDOB, dataColumnX, 45);
+    
+    drawText('Date of entry into office', leftMargin, 25);
+    drawText(`${formattedIncorporationDate} (registration date: ${formattedRegDate})`, dataColumnX, 25);
     
     // Date stamp on the right side of the page - vertical, near the bottom
     const formattedDateStr = currentDate.toISOString().split('T')[0].split('-').reverse().join('-');
     const verticalDateStr = `${formattedDateStr} ${hours}.${minutes}`;
     page.drawText(verticalDateStr, {
-      x: 560,
-      y: 26,
+      x: 880,
+      y: 30,
       size: 7,
       color: rgb(0.5, 0.5, 0.5),
       rotate: {
