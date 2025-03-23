@@ -255,7 +255,7 @@ async function generateCustomPDF(formData) {
     const formattedDateStr = currentDate.toISOString().split('T')[0].split('-').reverse().join('-');
     const verticalDateStr = `${formattedDateStr} ${hours}.${minutes}`;
     page.drawText(verticalDateStr, {
-      x: 880,
+      x: 870,
       y: 150,
       size: 7,
       color: rgb(0.5, 0.5, 0.5),
@@ -276,31 +276,29 @@ async function generateCustomPDF(formData) {
     });
     
     // Bottom section with certified text
-    // WAARMERK text on the bottom left
-    const watermarkY = 85;  
-    drawText('WAARMERK', 115, watermarkY, { 
+    // WAARMERK text on the bottom left, just above the watermark
+    drawText('WAARMERK', 115, 55, { 
       font: fontBold,
       size: 12,
       color: { r: 0.5, g: 0.5, b: 0.5 }
     });
     
-    drawText('KAMER VAN KOOPHANDEL', 115, watermarkY - 13, {
+    drawText('KAMER VAN KOOPHANDEL', 115, 42, {
       size: 8,
       color: { r: 0.5, g: 0.5, b: 0.5 }
     });
     
     // Add certification text at the bottom right
-    const certY = 95;
     const certText1 = "This extract has been certified with a digital signature and is an official proof of registration in the Business";
     const certText2 = "Register. You can check the integrity of this document and validate the signature in Adobe at the top of your";
     const certText3 = "screen. The Chamber of Commerce recommends that this document be viewed in digital form so that its";
     const certText4 = "integrity is safeguarded and the signature remains verifiable.";
 
-    // Draw certification text paragraphs
-    drawText(certText1, 310, certY, { size: 8, color: { r: 0.5, g: 0.5, b: 0.5 } });
-    drawText(certText2, 310, certY - 13, { size: 8, color: { r: 0.5, g: 0.5, b: 0.5 } });
-    drawText(certText3, 310, certY - 26, { size: 8, color: { r: 0.5, g: 0.5, b: 0.5 } });
-    drawText(certText4, 310, certY - 39, { size: 8, color: { r: 0.5, g: 0.5, b: 0.5 } });
+    // Draw certification text paragraphs - positioned just above the purple bar
+    drawText(certText1, 300, 55, { size: 8, color: { r: 0.5, g: 0.5, b: 0.5 } });
+    drawText(certText2, 300, 42, { size: 8, color: { r: 0.5, g: 0.5, b: 0.5 } });
+    drawText(certText3, 300, 29, { size: 8, color: { r: 0.5, g: 0.5, b: 0.5 } });
+    drawText(certText4, 300, 16, { size: 8, color: { r: 0.5, g: 0.5, b: 0.5 } });
     
     // Save the PDF
     const pdfBytes = await pdfDoc.save();
