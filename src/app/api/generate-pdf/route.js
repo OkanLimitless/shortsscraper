@@ -10,23 +10,21 @@ async function generatePDF(formData) {
     let pdfDoc;
     
     try {
-      // Try to fetch the PDF template
+      // Fetch the official KVK template
       const response = await fetch('/template.pdf');
       const pdfBytes = await response.arrayBuffer();
       // Load the PDF document
       pdfDoc = await PDFDocument.load(pdfBytes);
     } catch (error) {
-      console.log('Template not found, creating a blank template');
-      // Create a new PDF document if template doesn't exist
-      pdfDoc = await PDFDocument.create();
-      pdfDoc.addPage([595, 842]); // A4 size
+      console.error('Error loading template:', error);
+      throw new Error('Failed to load template PDF');
     }
     
     // Get the first page
     const pages = pdfDoc.getPages();
     const firstPage = pages[0];
     
-    // Get page dimensions
+    // Get page dimensions for reference
     const { width, height } = firstPage.getSize();
     console.log(`Page dimensions: ${width} x ${height}`);
     
@@ -35,20 +33,30 @@ async function generatePDF(formData) {
     const boldFont = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
     
     // Define positions for each field
-    // These coordinates need to be adjusted based on the actual template
+    // These coordinates need to be adjusted based on the actual KVK template
     // The y-coordinate is measured from the bottom of the page
+    // These values should be carefully calibrated to match the template
     const positions = {
-      tradeName: { x: 170, y: 720 },       // Trade name position
-      legalForm: { x: 170, y: 680 },       // Legal form position
-      address: { x: 170, y: 640 },         // Address position
-      kvkNumber: { x: 170, y: 600 },       // KVK number position
-      activities: { x: 170, y: 560 },      // Activities position
-      sbiCode1: { x: 170, y: 500 },        // SBI code 1 position
-      sbiCode2: { x: 170, y: 480 },        // SBI code 2 position (if applicable)
-      dateOfIncorporation: { x: 170, y: 440 }, // Date of incorporation position
-      ownerName: { x: 170, y: 400 },       // Owner name position
-      ownerDOB: { x: 170, y: 380 },        // Owner date of birth position
-      generatedDate: { x: 400, y: 50 }     // Generated date position (bottom right)
+      // Legal entity information
+      tradeName: { x: 140, y: 700 },      // Handelsnaam
+      legalForm: { x: 140, y: 665 },      // Rechtsvorm
+      address: { x: 140, y: 630 },        // Vestigingsadres
+      kvkNumber: { x: 140, y: 590 },      // KVK-number
+      
+      // Activities section
+      activities: { x: 140, y: 550 },     // Main activities description
+      sbiCode1: { x: 140, y: 520 },       // SBI code 1
+      sbiCode2: { x: 140, y: 505 },       // SBI code 2 (if applicable)
+      
+      // Dates section
+      dateOfIncorporation: { x: 200, y: 470 }, // Datum inschrijving
+      
+      // Owner information
+      ownerName: { x: 140, y: 430 },      // Eigenaar naam 
+      ownerDOB: { x: 140, y: 405 },       // Geboortedatum
+      
+      // Footer generation info
+      generatedDate: { x: 400, y: 50 }    // Gegenereerd op datum
     };
     
     // Extract form data
@@ -63,15 +71,25 @@ async function generatePDF(formData) {
       ownerDOB
     } = formData;
     
-    // Mock SBI codes (in a real application, these could be determined from the activities)
+    // Generate SBI codes (in a real application, these would be determined by the activities)
+    // For demo purposes, we use fixed codes that are commonly used for businesses
     const sbiCodes = [
-      '62090 - Other information technology services', 
-      '85592 - Business training and coaching'
+      '62012 - Advisering op het gebied van informatietechnologie',
+      '85592 - Bedrijfsopleiding en -training'
     ];
     
     // Add text to the PDF
     const addText = (text, position, options = {}) => {
-      const { size = 10, color = { r: 0, g: 0, b: 0 }, isBold = false, maxWidth = null } = options;
+      if (!text) return; // Skip empty fields
+      
+      const { 
+        size = 10, 
+        color = { r: 0, g: 0, b: 0 }, 
+        isBold = false, 
+        maxWidth = null,
+        align = 'left' 
+      } = options;
+      
       const fontToUse = isBold ? boldFont : font;
       
       // If maxWidth is provided and text is longer, we need to truncate or wrap it
@@ -85,6 +103,16 @@ async function generatePDF(formData) {
         text = truncatedText + (truncatedText.length < text.length ? '...' : '');
       }
       
+      // Draw white rectangle behind text to cover existing content
+      firstPage.drawRectangle({
+        x: position.x - 2,
+        y: position.y - 2,
+        width: fontToUse.widthOfTextAtSize(text, size) + 4,
+        height: size + 4,
+        color: rgb(1, 1, 1), // White
+        opacity: 0.9,
+      });
+      
       firstPage.drawText(text, {
         x: position.x,
         y: position.y,
@@ -94,25 +122,14 @@ async function generatePDF(formData) {
       });
     };
     
-    // Section labels (these would be on the template, but we'll add them for clarity)
-    addText('Handelsnaam:', { x: 50, y: positions.tradeName.y }, { isBold: true });
-    addText('Rechtsvorm:', { x: 50, y: positions.legalForm.y }, { isBold: true });
-    addText('Bezoekadres:', { x: 50, y: positions.address.y }, { isBold: true });
-    addText('KVK-nummer:', { x: 50, y: positions.kvkNumber.y }, { isBold: true });
-    addText('Activiteiten:', { x: 50, y: positions.activities.y }, { isBold: true });
-    addText('SBI-codes:', { x: 50, y: positions.sbiCode1.y }, { isBold: true });
-    addText('Oprichtingsdatum:', { x: 50, y: positions.dateOfIncorporation.y }, { isBold: true });
-    addText('Eigenaar:', { x: 50, y: positions.ownerName.y }, { isBold: true });
-    addText('Geboortedatum:', { x: 50, y: positions.ownerDOB.y }, { isBold: true });
-    
-    // Add all the field values
-    addText(tradeName, positions.tradeName, { size: 12 });
+    // Add all the field values - only overwrite what's necessary
+    addText(tradeName, positions.tradeName, { size: 12, isBold: true });
     addText(legalForm, positions.legalForm);
     addText(address, positions.address);
     addText(kvkNumber, positions.kvkNumber);
     
     // Activities might be longer, so we need to handle multi-line text
-    const activityLines = splitIntoLines(activities, 50); // 50 chars per line
+    const activityLines = splitIntoLines(activities, 50); // 50 chars per line 
     activityLines.forEach((line, index) => {
       addText(line, { 
         x: positions.activities.x, 
