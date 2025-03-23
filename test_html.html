@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>KVK Business Register Extract</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,400;0,700;1,400&display=swap');
+
+    /* Reset and base styles */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: Helvetica, Arial, sans-serif;
+      width: 210mm; /* A4 width */
+      height: 297mm; /* A4 height */
+      position: relative;
+      background-color: white;
+      color: black;
+      overflow: hidden;
+    }
+
+    /* Common styling */
+    .separator {
+      position: absolute;
+      height: 1px;
+      background-color: rgba(200, 200, 200, 0.8);
+      left: 111px;
+      right: 111px;
+    }
+
+    /* KVK Logo */
+    .kvk-logo {
+      position: absolute;
+      top: 70px;
+      left: 111px;
+      font-size: 34px;
+      font-weight: bold;
+      color: #204a63; /* Dark blue color */
+    }
+
+    /* Title section */
+    .title {
+      position: absolute;
+      top: 170px;
+      left: 111px;
+      font-size: 16px;
+      font-weight: bold;
+      color: #204a63; /* Dark blue color */
+      letter-spacing: 0.2px;
+    }
+
+    .subtitle {
+      position: absolute;
+      top: 195px;
+      left: 111px;
+      font-size: 16px;
+      font-weight: bold;
+      color: #204a63; /* Dark blue color */
+      letter-spacing: 0.2px;
+    }
+
+    .sep-1 {
+      top: 232px;
+    }
+
+    /* CCI Number & Page section */
+    .cci-label {
+      position: absolute;
+      top: 255px;
+      left: 111px;
+      font-size: 9px;
+      font-weight: bold;
+    }
+
+    .cci-value {
+      position: absolute;
+      top: 255px;
+      left: 291px; /* 111px + 180px */
+      font-size: 9px;
+    }
+
+    .sep-2 {
+      top: 280px;
+    }
+
+    .page-info {
+      position: absolute;
+      top: 305px;
+      left: 111px;
+      font-size: 9px;
+    }
+
+    .sep-3 {
+      top: 321px;
+    }
+
+    /* Disclaimer */
+    .disclaimer {
+      position: absolute;
+      top: 352px;
+      width: 100%;
+      text-align: center;
+      font-style: italic;
+      font-size: 9px;
+      line-height: 1.4;
+    }
+
+    .sep-4 {
+      top: 395px;
+    }
+
+    /* COMPANY section */
+    .company-title {
+      position: absolute;
+      top: 420px;
+      left: 111px;
+      font-size: 11px;
+      font-weight: bold;
+    }
+
+    .sep-5 {
+      top: 435px;
+    }
+
+    /* Company details */
+    .data-grid {
+      position: absolute;
+      left: 111px;
+      width: calc(100% - 222px);
+    }
+
+    .company-data {
+      top: 445px;
+    }
+
+    .label {
+      display: inline-block;
+      width: 180px;
+      font-size: 9px;
+      font-weight: bold;
+      vertical-align: top;
+      margin-bottom: 15px;
+      line-height: 1.5;
+    }
+
+    .value {
+      display: inline-block;
+      font-size: 9px;
+      width: calc(100% - 185px);
+      vertical-align: top;
+      line-height: 1.5;
+    }
+
+    .value-row {
+      margin-bottom: 3px;
+    }
+
+    .sep-6 {
+      top: 585px;
+    }
+
+    /* ESTABLISHMENT section */
+    .establishment-title {
+      position: absolute;
+      top: 610px;
+      left: 111px;
+      font-size: 11px;
+      font-weight: bold;
+    }
+
+    .sep-7 {
+      top: 625px;
+    }
+
+    .establishment-data {
+      top: 645px;
+    }
+
+    .italic-note {
+      font-style: italic;
+      font-size: 9px;
+      margin-top: 5px;
+    }
+
+    .sep-8 {
+      top: 810px;
+    }
+
+    /* OWNER section */
+    .owner-title {
+      position: absolute;
+      top: 830px;
+      left: 111px;
+      font-size: 11px;
+      font-weight: bold;
+    }
+
+    .sep-9 {
+      top: 845px;
+    }
+
+    .owner-data {
+      top: 865px;
+    }
+
+    .sep-10 {
+      top: 925px;
+    }
+
+    /* Footer elements */
+    .extract-date {
+      position: absolute;
+      top: 970px;
+      width: 100%;
+      text-align: center;
+      font-size: 9px;
+    }
+
+    .waarmerk {
+      position: absolute;
+      bottom: 45px;
+      left: 112px;
+      font-weight: bold;
+      font-size: 14px;
+      color: rgba(128, 128, 128, 0.5);
+    }
+
+    .kvk-subtitle {
+      position: absolute;
+      bottom: 30px;
+      left: 112px;
+      font-size: 8px;
+      color: rgba(128, 128, 128, 0.5);
+    }
+
+    .footer-text {
+      position: absolute;
+      bottom: 70px;
+      left: 170px;
+      font-size: 7px;
+      line-height: 1.4;
+      width: 60%;
+    }
+
+    .timestamp {
+      position: absolute;
+      bottom: 120px;
+      right: 20px;
+      transform: rotate(90deg);
+      transform-origin: right bottom;
+      font-size: 8px;
+      color: #555;
+    }
+
+    .magenta-bar {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      height: 24px;
+      background-color: #d90080;
+    }
+
+    @media print {
+      body {
+        margin: 0;
+        height: 100vh;
+        width: 100%;
+      }
+      .magenta-bar {
+        position: fixed;
+        bottom: 0;
+      }
+    }
+  </style>
+  <script>
+    // Auto-print function - sets up the document for PDF printing
+    function setupPDFPrint() {
+      // Set margins and size for printing
+      document.body.style.margin = '0';
+      document.body.style.padding = '0';
+      
+      // Create print button
+      const printBtn = document.createElement('button');
+      printBtn.innerText = 'Print/Save as PDF';
+      printBtn.style.position = 'fixed';
+      printBtn.style.top = '10px';
+      printBtn.style.right = '10px';
+      printBtn.style.zIndex = '9999';
+      printBtn.style.padding = '8px 12px';
+      printBtn.style.background = '#204a63';
+      printBtn.style.color = 'white';
+      printBtn.style.border = 'none';
+      printBtn.style.borderRadius = '4px';
+      printBtn.style.cursor = 'pointer';
+      
+      printBtn.onclick = function() {
+        this.style.display = 'none';
+        window.print();
+        setTimeout(() => {
+          this.style.display = 'block';
+        }, 1000);
+      };
+      
+      document.body.appendChild(printBtn);
+      
+      // Show instructions
+      const instructions = document.createElement('div');
+      instructions.innerHTML = 
+        '<div style="position: fixed; top: 50px; right: 10px; width: 250px; background: #f8f9fa; ' +
+        'padding: 10px; border-radius: 4px; font-size: 12px; z-index: 9998; border: 1px solid #ddd;">' +
+        '<p><strong>To save as PDF:</strong></p>' +
+        '<ol>' +
+        '<li>Click the Print/Save button above</li>' +
+        '<li>In the print dialog, select "Save as PDF" as the destination</li>' +
+        '<li>Set paper size to A4</li>' +
+        '<li>Set margins to "None"</li>' +
+        '<li>Disable headers and footers</li>' +
+        '<li>Click Save</li>' +
+        '</ol>' +
+        '</div>';
+      document.body.appendChild(instructions);
+    }
+    
+    // Run setup when document loads
+    window.onload = setupPDFPrint;
+  </script>
+</head>
+<body>
+  <!-- KVK Logo -->
+  <div class="kvk-logo">KVK</div>
+  
+  <!-- Title -->
+  <div class="title">Business Register extract</div>
+  <div class="subtitle">Netherlands Chamber of Commerce</div>
+  
+  <!-- First separator -->
+  <div class="separator sep-1"></div>
+  
+  <!-- CCI Number -->
+  <div class="cci-label">CCI number</div>
+  <div class="cci-value">77678303</div>
+  
+  <!-- Separator -->
+  <div class="separator sep-2"></div>
+  
+  <!-- Page info -->
+  <div class="page-info">Page 1 (of 1)</div>
+  
+  <!-- Separator -->
+  <div class="separator sep-3"></div>
+  
+  <!-- Disclaimer -->
+  <div class="disclaimer">
+    The company / organisation does not want its address details to be used for<br>
+    unsolicited postal advertising or visits from sales representatives.
+  </div>
+  
+  <!-- Separator -->
+  <div class="separator sep-4"></div>
+  
+  <!-- COMPANY section -->
+  <div class="company-title">COMPANY</div>
+  
+  <!-- Separator -->
+  <div class="separator sep-5"></div>
+  
+  <!-- Company data -->
+  <div class="data-grid company-data">
+    <div>
+      <span class="label">Trade names</span>
+      <span class="value">
+        <div class="value-row">Diamond Sky Marketing</div>
+        <div class="value-row">AdWings</div>
+      </span>
+    </div>
+    
+    <div>
+      <span class="label">Legal form</span>
+      <span class="value">Eenmanszaak (comparable with One-man business)</span>
+    </div>
+    
+    <div>
+      <span class="label">Company start date</span>
+      <span class="value">09-03-2020 (registration date: 20-03-2020)</span>
+    </div>
+    
+    <div>
+      <span class="label">Activities</span>
+      <span class="value">
+        <div class="value-row">SBI-code: 74101 - Communication and graphic design</div>
+        <div class="value-row">SBI-code: 6201 - Writing, producing and publishing of software</div>
+      </span>
+    </div>
+    
+    <div>
+      <span class="label">Employees</span>
+      <span class="value">0</span>
+    </div>
+  </div>
+  
+  <!-- Separator -->
+  <div class="separator sep-6"></div>
+  
+  <!-- ESTABLISHMENT section -->
+  <div class="establishment-title">ESTABLISHMENT</div>
+  
+  <!-- Separator -->
+  <div class="separator sep-7"></div>
+  
+  <!-- Establishment data -->
+  <div class="data-grid establishment-data">
+    <div>
+      <span class="label">Establishment number</span>
+      <span class="value">000045362920</span>
+    </div>
+    
+    <div>
+      <span class="label">Trade names</span>
+      <span class="value">
+        <div class="value-row">Diamond Sky Marketing</div>
+        <div class="value-row">AdWings</div>
+      </span>
+    </div>
+    
+    <div>
+      <span class="label">Visiting address</span>
+      <span class="value">Spreeuwenhof 81, 7051XJ Varsseveld</span>
+    </div>
+    
+    <div>
+      <span class="label">Date of incorporation</span>
+      <span class="value">09-03-2020 (registration date: 20-03-2020)</span>
+    </div>
+    
+    <div>
+      <span class="label">Activities</span>
+      <span class="value">
+        <div class="value-row">SBI-code: 74101 - Communication and graphic design</div>
+        <div class="value-row">SBI-code: 6201 - Writing, producing and publishing of software</div>
+        <div class="italic-note">For further information on activities, see Dutch extract.</div>
+      </span>
+    </div>
+    
+    <div>
+      <span class="label">Employees</span>
+      <span class="value">0</span>
+    </div>
+  </div>
+  
+  <!-- Separator -->
+  <div class="separator sep-8"></div>
+  
+  <!-- OWNER section -->
+  <div class="owner-title">OWNER</div>
+  
+  <!-- Separator -->
+  <div class="separator sep-9"></div>
+  
+  <!-- Owner data -->
+  <div class="data-grid owner-data">
+    <div>
+      <span class="label">Name</span>
+      <span class="value">Piyirci, Okan</span>
+    </div>
+    
+    <div>
+      <span class="label">Date of birth</span>
+      <span class="value">21-01-1994</span>
+    </div>
+    
+    <div>
+      <span class="label">Date of entry into office</span>
+      <span class="value">09-03-2020 (registration date: 20-03-2020)</span>
+    </div>
+  </div>
+  
+  <!-- Separator -->
+  <div class="separator sep-10"></div>
+  
+  <!-- Extract date -->
+  <div class="extract-date">Extract was made on 23-03-2025 at 15.53 hours.</div>
+  
+  <!-- WAARMERK watermark -->
+  <div class="waarmerk">WAARMERK</div>
+  <div class="kvk-subtitle">KAMER VAN KOOPHANDEL</div>
+  
+  <!-- Footer text -->
+  <div class="footer-text">
+    This extract has been certified with a digital signature and is an official proof of registration in the Business<br>
+    Register. You can check the integrity of this document and validate the signature in Adobe at the top of your<br>
+    screen. The Chamber of Commerce recommends that this document be viewed in digital form so that its<br>
+    integrity is safeguarded and the signature remains verifiable.
+  </div>
+  
+  <!-- Timestamp -->
+  <div class="timestamp">2025-03-23 15:53:37</div>
+  
+  <!-- Magenta bar -->
+  <div class="magenta-bar"></div>
+</body>
+</html>

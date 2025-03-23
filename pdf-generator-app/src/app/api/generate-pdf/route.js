@@ -1,4 +1,4 @@
-import { generatePDF } from '../../../lib/pdfGenerator';
+import { generateHTML } from '../../../lib/htmlGenerator';
 import { NextResponse } from 'next/server';
 
 export async function POST(request) {
@@ -14,20 +14,20 @@ export async function POST(request) {
       );
     }
     
-    // Generate the PDF
-    const pdfBytes = await generatePDF(formData);
+    // Generate the HTML
+    const htmlContent = generateHTML(formData);
     
-    // Return the PDF as a binary response
-    return new NextResponse(pdfBytes, {
+    // Return the HTML content
+    return new NextResponse(htmlContent, {
       headers: {
-        'Content-Type': 'application/pdf',
-        'Content-Disposition': 'attachment; filename="kvk_business_register_extract.pdf"'
+        'Content-Type': 'text/html',
+        'Content-Disposition': 'inline; filename="kvk_business_register_extract.html"'
       }
     });
   } catch (error) {
-    console.error('Error generating PDF:', error);
+    console.error('Error generating HTML:', error);
     return NextResponse.json(
-      { error: 'Failed to generate PDF: ' + error.message },
+      { error: 'Failed to generate HTML: ' + error.message },
       { status: 500 }
     );
   }
