@@ -23,9 +23,10 @@ const nextConfig = {
   },
   // Ensure we can use the PDF template in public directory
   experimental: {
-    appDir: true,
-    serverComponentsExternalPackages: ["pdf-lib"]
-  }
+    // Remove appDir option as it's now default in Next.js 15+
+  },
+  // External packages that should be handled by the server
+  serverExternalPackages: ["pdf-lib"]
 };
 
 module.exports = nextConfig; 
