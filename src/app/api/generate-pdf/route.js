@@ -65,8 +65,8 @@ async function generateCustomPDF(formData) {
     const formattedOwnerDOB = formatDutchDate(ownerDOB);
     
     // Brand colors for KVK
-    const kvkBlue = { r: 0.078, g: 0.31, b: 0.439 }; // Dark blue
-    const kvkPurple = { r: 0.7, g: 0.0, b: 0.5 }; // Purple for the bottom bar
+    const kvkBlue = { r: 0.16, g: 0.35, b: 0.47 }; // Adjusted dark blue to match example
+    const kvkPurple = { r: 0.66, g: 0.11, b: 0.49 }; // Adjusted purple for the bottom bar
 
     // Helper function to draw text with safe guards
     const drawText = (text, x, y, options = {}) => {
@@ -131,20 +131,20 @@ async function generateCustomPDF(formData) {
     };
     
     // KVK Logo - large blue "KVK" text at the top
-    drawText('KVK', 215, 790, {
+    drawText('KVK', 180, 790, {
       size: 48,
       color: kvkBlue,
       font: fontBold
     });
     
     // Title and top section
-    drawText('Business Register extract', 215, 680, { 
+    drawText('Business Register extract', 180, 680, { 
       size: 20, 
       color: kvkBlue,
       font: fontBold 
     });
     
-    drawText('Netherlands Chamber of Commerce', 215, 655, { 
+    drawText('Netherlands Chamber of Commerce', 180, 655, { 
       size: 18, 
       color: kvkBlue,
       font: fontBold 
@@ -251,6 +251,19 @@ async function generateCustomPDF(formData) {
     const extractionInfo = `Extract was made on ${dateStr} at ${hours}.${minutes} hours.`;
     drawText(extractionInfo, 325, 15, { align: 'center' });
     
+    // Date stamp on the right side of the page - vertical
+    const verticalDateStr = `${dateStr.split('-').reverse().join('-')} ${hours}.${minutes}`;
+    page.drawText(verticalDateStr, {
+      x: 590,
+      y: 150,
+      size: 7,
+      color: rgb(0.5, 0.5, 0.5),
+      rotate: {
+        type: 'degrees',
+        angle: 90,
+      },
+    });
+    
     // Add the watermark section
     // Purple bar at the bottom
     page.drawRectangle({
@@ -261,38 +274,32 @@ async function generateCustomPDF(formData) {
       color: rgb(kvkPurple.r, kvkPurple.g, kvkPurple.b),
     });
     
-    // Certification text on the left side (small, gray text)
-    // Ensure y values are positive and above the purple bar
-    const bottomMargin = 30;
-    drawText('WAARMERK', 155, bottomMargin + 25, { 
+    // Bottom section with certified text
+    // WAARMERK text on the bottom left
+    const watermarkY = 85;  
+    drawText('WAARMERK', 115, watermarkY, { 
       font: fontBold,
       size: 12,
       color: { r: 0.5, g: 0.5, b: 0.5 }
     });
     
-    drawText('KAMER VAN KOOPHANDEL', 155, bottomMargin + 12, {
+    drawText('KAMER VAN KOOPHANDEL', 115, watermarkY - 13, {
       size: 8,
       color: { r: 0.5, g: 0.5, b: 0.5 }
     });
     
-    // Add certification text on the right side
+    // Add certification text at the bottom right
+    const certY = 95;
     const certText1 = "This extract has been certified with a digital signature and is an official proof of registration in the Business";
     const certText2 = "Register. You can check the integrity of this document and validate the signature in Adobe at the top of your";
     const certText3 = "screen. The Chamber of Commerce recommends that this document be viewed in digital form so that its";
     const certText4 = "integrity is safeguarded and the signature remains verifiable.";
 
-    // Draw certification text paragraphs with positive y values
-    drawText(certText1, 325, bottomMargin + 35, { size: 8, color: { r: 0.5, g: 0.5, b: 0.5 } });
-    drawText(certText2, 325, bottomMargin + 25, { size: 8, color: { r: 0.5, g: 0.5, b: 0.5 } });
-    drawText(certText3, 325, bottomMargin + 15, { size: 8, color: { r: 0.5, g: 0.5, b: 0.5 } });
-    drawText(certText4, 325, bottomMargin + 5, { size: 8, color: { r: 0.5, g: 0.5, b: 0.5 } });
-
-    // Date stamp on the right side of the page - rotated vertically
-    drawText(`${dateStr} ${hours}.${minutes}`, 580, 90, {
-      size: 7,
-      align: 'right',
-      color: { r: 0.5, g: 0.5, b: 0.5 }
-    });
+    // Draw certification text paragraphs
+    drawText(certText1, 310, certY, { size: 8, color: { r: 0.5, g: 0.5, b: 0.5 } });
+    drawText(certText2, 310, certY - 13, { size: 8, color: { r: 0.5, g: 0.5, b: 0.5 } });
+    drawText(certText3, 310, certY - 26, { size: 8, color: { r: 0.5, g: 0.5, b: 0.5 } });
+    drawText(certText4, 310, certY - 39, { size: 8, color: { r: 0.5, g: 0.5, b: 0.5 } });
     
     // Save the PDF
     const pdfBytes = await pdfDoc.save();
