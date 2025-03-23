@@ -21,11 +21,8 @@ const nextConfig = {
   webpack: (config) => {
     return config;
   },
-  // Ensure we can use the PDF template in public directory
-  experimental: {
-    // External packages that should be handled by the server
-    serverComponentsExternalPackages: ["pdf-lib"]
-  }
+  // External packages that should be handled by the server
+  serverComponentsExternalPackages: ["pdf-lib"]
 };
 
 module.exports = nextConfig; 
