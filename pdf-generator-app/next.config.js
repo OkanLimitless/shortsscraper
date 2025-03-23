@@ -17,6 +17,15 @@ const nextConfig = {
       },
     ];
   },
+  // Explicitly set webpack config to resolve aliases
+  webpack: (config) => {
+    return config;
+  },
+  // Ensure we can use the PDF template in public directory
+  experimental: {
+    appDir: true,
+    serverComponentsExternalPackages: ["pdf-lib"]
+  }
 };
 
 module.exports = nextConfig; 

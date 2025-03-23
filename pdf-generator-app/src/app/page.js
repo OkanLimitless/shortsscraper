@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import PDFPreview from '@/components/PDFPreview';
+import PDFPreview from '../components/PDFPreview';
 
 export default function Home() {
   const router = useRouter();
