@@ -9,55 +9,8 @@ import fs from 'fs/promises';
  */
 async function generatePDF(formData) {
   try {
-    let pdfDoc;
-    let pdfBytes;
-    
-    try {
-      console.log('Attempting to load PDF template...');
-      
-      // Try to fetch the template from public path
-      try {
-        const response = await fetch(new URL('/template.pdf', 'https://shortsscraper.vercel.app'));
-        if (!response.ok) {
-          throw new Error(`Template fetch failed with status: ${response.status}`);
-        }
-        pdfBytes = await response.arrayBuffer();
-        console.log('Loaded template via fetch successfully!');
-      } catch (fetchError) {
-        console.error('Fetch loading failed:', fetchError.message);
-        // Fall back to direct file loading for local development
-        try {
-          // In production environments, this will likely fail but that's okay since fetch should work
-          const publicPath = path.join(process.cwd(), 'public', 'template.pdf');
-          pdfBytes = await fs.readFile(publicPath);
-          console.log('Loaded template directly from filesystem!');
-        } catch (fsError) {
-          console.error('Filesystem loading also failed:', fsError.message);
-          console.log('Creating a blank PDF as a fallback...');
-          // Create a blank PDF as a last resort
-          pdfDoc = await PDFDocument.create();
-          pdfDoc.addPage([595, 842]); // A4 size
-          console.log('Blank PDF created successfully');
-          // Continue with the blank PDF
-          return generateCustomPDF(formData);
-        }
-      }
-      
-      // If we reach here, we have pdfBytes loaded from some source
-      // Load the PDF document
-      pdfDoc = await PDFDocument.load(pdfBytes);
-      console.log('PDF document loaded successfully!');
-      
-      // Since we can't easily detect and replace text in the PDF using pdf-lib,
-      // we'll create a new document from scratch that looks like the KVK extract
-      return generateCustomPDF(formData);
-      
-    } catch (error) {
-      console.error('Error loading template:', error);
-      // Final fallback - create a blank PDF
-      console.log('Creating a custom PDF after error...');
-      return generateCustomPDF(formData);
-    }
+    console.log('Creating a custom KVK extract PDF...');
+    return generateCustomPDF(formData);
   } catch (error) {
     console.error('Error generating PDF:', error);
     throw new Error(`Failed to generate PDF: ${error.message}`);
@@ -80,7 +33,6 @@ async function generateCustomPDF(formData) {
     // Load fonts
     const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
     const boldFont = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
-    const italicFont = await pdfDoc.embedFont(StandardFonts.HelveticaOblique);
     
     // Extract form data
     const {
@@ -95,8 +47,9 @@ async function generateCustomPDF(formData) {
     } = formData;
     
     // Brand colors for KVK
-    const kvkBlue = { r: 0.19, g: 0.36, b: 0.49 }; // Dark blue
-    
+    const kvkBlue = { r: 0.078, g: 0.31, b: 0.439 }; // Dark blue
+    const kvkPurple = { r: 0.7, g: 0.0, b: 0.5 }; // Purple for the bottom bar
+
     // Helper function to draw text
     const drawText = (text, x, y, options = {}) => {
       if (!text) return;
@@ -139,7 +92,7 @@ async function generateCustomPDF(formData) {
     };
     
     // Draw horizontal line
-    const drawHorizontalLine = (y, startX = 50, endX = width - 50, thickness = 0.5) => {
+    const drawHorizontalLine = (y, startX = 115, endX = width - 115, thickness = 0.5) => {
       page.drawLine({
         start: { x: startX, y },
         end: { x: endX, y },
@@ -148,152 +101,175 @@ async function generateCustomPDF(formData) {
       });
     };
     
+    // KVK Logo - large blue "KVK" text at the top
+    drawText('KVK', 115, 810, {
+      size: 48,
+      color: kvkBlue,
+      font: boldFont
+    });
+    
     // Title and top section
-    drawText('Business Register extract', 115, 810, { 
-      size: 24, 
+    drawText('Business Register extract', 115, 710, { 
+      size: 20, 
       color: kvkBlue,
       font: boldFont 
     });
     
-    // Company name can be directly under the title or in the top section
-    drawText(tradeName || 'Company Name', 400, 770, {
-      size: 18,
-      font: boldFont,
-      align: 'center'
-    });
-    
-    drawText('Netherlands Chamber of Commerce', 115, 780, { 
+    drawText('Netherlands Chamber of Commerce', 115, 685, { 
       size: 18, 
       color: kvkBlue,
       font: boldFont 
     });
     
-    // Legal form
-    drawText(legalForm || 'Eenmanszaak', 400, 750, {
-      size: 14,
-      align: 'center'
-    });
-    
     // Draw first horizontal line
-    drawHorizontalLine(730);
+    drawHorizontalLine(650);
     
     // CCI number section
-    drawText('CCI number', 115, 710, { font: boldFont });
-    drawText(kvkNumber || '00000000', 230, 710);
-    
-    // Address section (if provided)
-    if (address) {
-      drawText(address, 400, 710, { align: 'center' });
-    }
+    drawText('CCI number', 115, 630, { font: boldFont });
+    drawText(kvkNumber || '77678303', 190, 630);
     
     // Page number
-    drawText('Page', 115, 690, { font: boldFont });
-    drawText('1 (of 1)', 150, 690);
+    drawText('Page', 115, 600, { font: boldFont });
+    drawText('1 (of 1)', 155, 600);
     
     // Draw second horizontal line
-    drawHorizontalLine(670);
+    drawHorizontalLine(580);
     
     // Privacy notice
     const privacyText = "The company / organisation does not want its address details to be used for";
-    drawText(privacyText, 400, 645, { align: 'center' });
+    drawText(privacyText, 400, 560, { align: 'center' });
     const privacyText2 = "unsolicited postal advertising or visits from sales representatives.";
-    drawText(privacyText2, 400, 625, { align: 'center' });
+    drawText(privacyText2, 400, 540, { align: 'center' });
     
     // Draw third horizontal line
-    drawHorizontalLine(605);
+    drawHorizontalLine(520);
     
     // Company section
-    drawText('Company', 115, 585, { font: boldFont });
-    drawText('Trade names', 115, 565);
+    drawText('Company', 115, 500, { font: boldFont });
+    drawText('Trade names', 115, 480);
     
     // Company trade name
-    drawText(tradeName || 'Company Name', 400, 565);
+    drawText(tradeName || 'Diamond Sky Marketing', 300, 480);
+    drawText('AdWings', 300, 465);
     
     // Legal form and start date
-    drawText('Legal form', 115, 545);
-    drawText(`${legalForm} (comparable with One-man business)`, 400, 545);
+    drawText('Legal form', 115, 445);
+    drawText(`${legalForm} (comparable with One-man business)`, 300, 445);
     
-    drawText('Company start date', 115, 525);
-    drawText(`${formatDutchDate(dateOfIncorporation)} (registration date: ${formatDutchDate(dateOfIncorporation)})`, 400, 525);
+    drawText('Company start date', 115, 425);
+    drawText(`${formatDutchDate(dateOfIncorporation)} (registration date: ${formatDutchDate(dateOfIncorporation)})`, 300, 425);
     
     // Activities
-    drawText('Activities', 115, 505);
-    
-    // SBI codes
-    drawText('SBI-code: 74101 - Communication and graphic design', 400, 505);
-    drawText('SBI-code: 6201 - Writing, producing and publishing of software', 400, 485);
-    
-    // If activities is provided, list them
-    if (activities) {
-      const activityLines = splitIntoLines(activities, 50);
-      activityLines.forEach((line, index) => {
-        if (index === 0) {
-          // Use the existing position for the first line
-          drawText(line, 400, 465);
-        } else {
-          // Offset subsequent lines
-          drawText(line, 400, 465 - (index * 20));
-        }
-      });
-    }
+    drawText('Activities', 115, 405);
+    drawText('SBI-code: 74101 - Communication and graphic design', 300, 405);
+    drawText('SBI-code: 6201 - Writing, producing and publishing of software', 300, 385);
     
     // Employees
-    drawText('Employees', 115, 425);
-    drawText('0', 400, 425);
+    drawText('Employees', 115, 365);
+    drawText('0', 300, 365);
     
     // Draw fourth horizontal line
-    drawHorizontalLine(405);
+    drawHorizontalLine(345);
     
     // Establishment section
-    drawText('Establishment', 115, 385, { font: boldFont });
-    drawText('Establishment number', 115, 365);
-    drawText('000045362920', 400, 365);
+    drawText('Establishment', 115, 325, { font: boldFont });
+    drawText('Establishment number', 115, 305);
+    drawText('000045362920', 300, 305);
     
-    drawText('Trade names', 115, 345);
-    drawText(tradeName || 'Company Name', 400, 345);
+    drawText('Trade names', 115, 285);
+    drawText(tradeName || 'Diamond Sky Marketing', 300, 285);
+    drawText('AdWings', 300, 270);
     
     // Visiting address
-    drawText('Visiting address', 115, 325);
-    drawText(address || 'Address not provided', 400, 325);
+    drawText('Visiting address', 115, 250);
+    drawText(address || 'Spreeuwenhof 81, 7051XJ Varsseveld', 300, 250);
     
     // Date of incorporation (repeated)
-    drawText('Date of incorporation', 115, 305);
-    drawText(`${formatDutchDate(dateOfIncorporation)} (registration date: ${formatDutchDate(dateOfIncorporation)})`, 400, 305);
+    drawText('Date of incorporation', 115, 230);
+    drawText(`${formatDutchDate(dateOfIncorporation)} (registration date: ${formatDutchDate(dateOfIncorporation)})`, 300, 230);
     
     // Activities (repeated in establishment section)
-    drawText('Activities', 115, 285);
-    drawText('SBI-code: 74101 - Communication and graphic design', 400, 285);
-    drawText('SBI-code: 6201 - Writing, producing and publishing of software', 400, 265);
-    drawText('For further information on activities, see Dutch extract.', 400, 245);
+    drawText('Activities', 115, 210);
+    drawText('SBI-code: 74101 - Communication and graphic design', 300, 210);
+    drawText('SBI-code: 6201 - Writing, producing and publishing of software', 300, 190);
+    drawText('For further information on activities, see Dutch extract.', 300, 170);
     
     // Employees (repeated)
-    drawText('Employees', 115, 225);
-    drawText('0', 400, 225);
+    drawText('Employees', 115, 150);
+    drawText('0', 300, 150);
     
     // Draw fifth horizontal line
-    drawHorizontalLine(205);
+    drawHorizontalLine(130);
     
     // Owner section
-    drawText('Owner', 115, 185, { font: boldFont });
-    drawText('Name', 115, 165);
-    drawText(ownerName || 'Owner name not provided', 400, 165);
+    drawText('Owner', 115, 110, { font: boldFont });
+    drawText('Name', 115, 90);
+    drawText(ownerName || 'Piyirici, Okan', 300, 90);
     
-    drawText('Date of birth', 115, 145);
-    drawText(formatDutchDate(ownerDOB) || 'DOB not provided', 400, 145);
+    drawText('Date of birth', 115, 70);
+    drawText(formatDutchDate(ownerDOB) || '21-01-1994', 300, 70);
     
-    drawText('Date of entry into office', 115, 125);
-    drawText(`${formatDutchDate(dateOfIncorporation)} (registration date: ${formatDutchDate(dateOfIncorporation)})`, 400, 125);
+    drawText('Date of entry into office', 115, 50);
+    drawText(`${formatDutchDate(dateOfIncorporation)} (registration date: ${formatDutchDate(dateOfIncorporation)})`, 300, 50);
     
     // Draw final horizontal line
-    drawHorizontalLine(105);
+    drawHorizontalLine(30);
     
     // Footer with extraction date
     const currentDate = new Date();
-    const hours = currentDate.getHours();
-    const minutes = currentDate.getMinutes();
+    const dateStr = formatDutchDate(currentDate.toISOString());
+    const hours = String(currentDate.getHours()).padStart(2, '0');
+    const minutes = String(currentDate.getMinutes()).padStart(2, '0');
     
-    const extractionInfo = `Extract was made on ${formatDutchDate(currentDate.toISOString())} at ${hours}.${minutes} hours.`;
-    drawText(extractionInfo, 400, 85, { align: 'center' });
+    const extractionInfo = `Extract was made on ${dateStr} at ${hours}.${minutes} hours.`;
+    drawText(extractionInfo, 400, 10, { align: 'center' });
+    
+    // Add the watermark section
+    // Purple bar at the bottom
+    page.drawRectangle({
+      x: 0,
+      y: 0,
+      width: width,
+      height: 20,
+      color: rgb(kvkPurple.r, kvkPurple.g, kvkPurple.b),
+    });
+    
+    // Certification text on the left side (small, gray text)
+    drawText('WAARMERK', 115, -40, { 
+      font: boldFont,
+      size: 12,
+      color: { r: 0.5, g: 0.5, b: 0.5 }
+    });
+    
+    drawText('KAMER VAN KOOPHANDEL', 115, -53, {
+      size: 8,
+      color: { r: 0.5, g: 0.5, b: 0.5 }
+    });
+    
+    // Add certification text on the right
+    const certText1 = "This extract has been certified with a digital signature and is an official proof of registration in the Business";
+    const certText2 = "Register. You can check the integrity of this document and validate the signature in Adobe at the top of your";
+    const certText3 = "screen. The Chamber of Commerce recommends that this document be viewed in digital form so that its";
+    const certText4 = "integrity is safeguarded and the signature remains verifiable.";
+
+    // Draw certification text paragraphs
+    drawText(certText1, 300, -40, { size: 8, color: { r: 0.5, g: 0.5, b: 0.5 } });
+    drawText(certText2, 300, -53, { size: 8, color: { r: 0.5, g: 0.5, b: 0.5 } });
+    drawText(certText3, 300, -66, { size: 8, color: { r: 0.5, g: 0.5, b: 0.5 } });
+    drawText(certText4, 300, -79, { size: 8, color: { r: 0.5, g: 0.5, b: 0.5 } });
+
+    // Date stamp on the right side of the page
+    drawText(dateStr, 550, -160, {
+      size: 7,
+      align: 'right',
+      color: { r: 0.5, g: 0.5, b: 0.5 }
+    });
+    
+    drawText(`${hours}.${minutes}`, 550, -145, {
+      size: 7,
+      align: 'right',
+      color: { r: 0.5, g: 0.5, b: 0.5 }
+    });
     
     // Save the PDF
     const pdfBytes = await pdfDoc.save();
