@@ -7,9 +7,9 @@ export async function POST(request) {
     const formData = await request.json();
     
     // Validate the form data
-    if (!formData.tradeName || !formData.kvkNumber) {
+    if (!formData.tradeName && !formData.kvkNumber) {
       return NextResponse.json(
-        { error: 'Trade name and KVK number are required' },
+        { error: 'Trade name or KVK number is required' },
         { status: 400 }
       );
     }
@@ -21,13 +21,13 @@ export async function POST(request) {
     return new NextResponse(pdfBytes, {
       headers: {
         'Content-Type': 'application/pdf',
-        'Content-Disposition': 'attachment; filename="handelsregister.pdf"'
+        'Content-Disposition': 'attachment; filename="kvk_business_register_extract.pdf"'
       }
     });
   } catch (error) {
     console.error('Error generating PDF:', error);
     return NextResponse.json(
-      { error: 'Failed to generate PDF' },
+      { error: 'Failed to generate PDF: ' + error.message },
       { status: 500 }
     );
   }
