@@ -255,8 +255,8 @@ async function generateCustomPDF(formData) {
     const formattedDateStr = currentDate.toISOString().split('T')[0].split('-').reverse().join('-');
     const verticalDateStr = `${formattedDateStr} ${hours}.${minutes}`;
     page.drawText(verticalDateStr, {
-      x: 870,
-      y: 150,
+      x: 880,
+      y: 90,
       size: 7,
       color: rgb(0.5, 0.5, 0.5),
       rotate: {
@@ -277,13 +277,13 @@ async function generateCustomPDF(formData) {
     
     // Bottom section with certified text
     // WAARMERK text on the bottom left, just above the watermark
-    drawText('WAARMERK', 115, 55, { 
+    drawText('WAARMERK', 105, 65, { 
       font: fontBold,
       size: 12,
       color: { r: 0.5, g: 0.5, b: 0.5 }
     });
     
-    drawText('KAMER VAN KOOPHANDEL', 115, 42, {
+    drawText('KAMER VAN KOOPHANDEL', 105, 52, {
       size: 8,
       color: { r: 0.5, g: 0.5, b: 0.5 }
     });
@@ -295,10 +295,10 @@ async function generateCustomPDF(formData) {
     const certText4 = "integrity is safeguarded and the signature remains verifiable.";
 
     // Draw certification text paragraphs - positioned just above the purple bar
-    drawText(certText1, 300, 55, { size: 8, color: { r: 0.5, g: 0.5, b: 0.5 } });
-    drawText(certText2, 300, 42, { size: 8, color: { r: 0.5, g: 0.5, b: 0.5 } });
-    drawText(certText3, 300, 29, { size: 8, color: { r: 0.5, g: 0.5, b: 0.5 } });
-    drawText(certText4, 300, 16, { size: 8, color: { r: 0.5, g: 0.5, b: 0.5 } });
+    drawText(certText1, 280, 65, { size: 8, color: { r: 0.5, g: 0.5, b: 0.5 } });
+    drawText(certText2, 280, 52, { size: 8, color: { r: 0.5, g: 0.5, b: 0.5 } });
+    drawText(certText3, 280, 39, { size: 8, color: { r: 0.5, g: 0.5, b: 0.5 } });
+    drawText(certText4, 280, 26, { size: 8, color: { r: 0.5, g: 0.5, b: 0.5 } });
     
     // Save the PDF
     const pdfBytes = await pdfDoc.save();
