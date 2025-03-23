@@ -74,7 +74,7 @@ async function generateCustomPDF(formData) {
       
       try {
         const { 
-          size = 10, 
+          size = 9, // Default smaller font size to match example
           color = { r: 0, g: 0, b: 0 }, 
           font = fontRegular,
           align = 'left',
@@ -145,14 +145,14 @@ async function generateCustomPDF(formData) {
     // Title and top section - center aligned
     const titleX = width / 2;
     drawText('Business Register extract', titleX, 680, { 
-      size: 20, 
+      size: 18, // Reduced from 20
       color: kvkBlue,
       font: fontBold,
       align: 'center'
     });
     
     drawText('Netherlands Chamber of Commerce', titleX, 655, { 
-      size: 18, 
+      size: 16, // Reduced from 18
       color: kvkBlue,
       font: fontBold,
       align: 'center'
@@ -236,6 +236,12 @@ async function generateCustomPDF(formData) {
     // Draw fifth horizontal line
     drawHorizontalLine(125, leftMargin, width - rightMargin);
     
+    // Extraction date below the line after Owner section
+    const currentDate = new Date();
+    const dateStr = formatDutchDate(currentDate.toISOString());
+    const hours = String(currentDate.getHours()).padStart(2, '0');
+    const minutes = String(currentDate.getMinutes()).padStart(2, '0');
+    
     // Owner section
     drawText('Owner', leftMargin, 105, { font: fontBold });
     drawText('Name', leftMargin, 85);
@@ -250,15 +256,9 @@ async function generateCustomPDF(formData) {
     // Draw final horizontal line
     drawHorizontalLine(25, leftMargin, width - rightMargin);
     
-    // Add extraction date at the bottom
-    const currentDate = new Date();
-    const dateStr = formatDutchDate(currentDate.toISOString());
-    const hours = String(currentDate.getHours()).padStart(2, '0');
-    const minutes = String(currentDate.getMinutes()).padStart(2, '0');
-    
-    // Extraction date is above Owner section
+    // Extraction date text appears between Owner and the final line
     const extractionInfo = `Extract was made on ${dateStr} at ${hours}.${minutes} hours.`;
-    drawText(extractionInfo, width/2, 105, { align: 'center' }); 
+    drawText(extractionInfo, leftMargin, 30, { align: 'left' });
     
     // Date stamp on the right side of the page - vertical, near the bottom
     const formattedDateStr = currentDate.toISOString().split('T')[0].split('-').reverse().join('-');
