@@ -465,23 +465,94 @@ export async function generatePDF(formData) {
       color: rgb(0, 0, 0),
     });
     
-    // Add OWNER section
-    drawSeparatorLine(height - 720);
+    // Date of incorporation (for establishment)
+    page.drawText('Date of incorporation', {
+      x: labelIndent,
+      y: height - 720,
+      size: labelFontSize,
+      font: boldFont,
+      color: rgb(0, 0, 0),
+    });
+    
+    const establishmentStartDate = formData.dateOfIncorporation ? 
+      formatDutchDate(formData.dateOfIncorporation) : 
+      generateRandomStartDate();
+      
+    page.drawText(establishmentStartDate, {
+      x: valueIndent,
+      y: height - 720,
+      size: valueFontSize,
+      font: regularFont,
+      color: rgb(0, 0, 0),
+    });
+    
+    // Activities (repeated for establishment)
+    page.drawText('Activities', {
+      x: labelIndent,
+      y: height - 740,
+      size: labelFontSize,
+      font: boldFont,
+      color: rgb(0, 0, 0),
+    });
+    
+    page.drawText(activity1, {
+      x: valueIndent,
+      y: height - 740,
+      size: valueFontSize,
+      font: regularFont,
+      color: rgb(0, 0, 0),
+    });
+    
+    page.drawText(activity2, {
+      x: valueIndent,
+      y: height - 755,
+      size: valueFontSize,
+      font: regularFont,
+      color: rgb(0, 0, 0),
+    });
+    
+    // For further information note
+    page.drawText('For further information on activities, see Dutch extract.', {
+      x: valueIndent,
+      y: height - 770,
+      size: noteFontSize,
+      font: italicFont,
+      color: rgb(0, 0, 0),
+    });
+    
+    // Employees (repeated for establishment)
+    page.drawText('Employees', {
+      x: labelIndent,
+      y: height - 790,
+      size: labelFontSize,
+      font: boldFont,
+      color: rgb(0, 0, 0),
+    });
+    page.drawText(employees, {
+      x: valueIndent,
+      y: height - 790,
+      size: valueFontSize,
+      font: regularFont,
+      color: rgb(0, 0, 0),
+    });
+    
+    // Add OWNER section (positioned much lower to match original)
+    drawSeparatorLine(height - 810);
     
     page.drawText('Owner', {
       x: leftMargin,
-      y: height - 750,
+      y: height - 840,
       size: sectionTitleFontSize,
       font: boldFont,
       color: rgb(0.125, 0.29, 0.388),
     });
     
-    drawSeparatorLine(height - 765);
+    drawSeparatorLine(height - 855);
     
     // Name
     page.drawText('Name', {
       x: labelIndent,
-      y: height - 785,
+      y: height - 875,
       size: labelFontSize,
       font: boldFont,
       color: rgb(0, 0, 0),
@@ -492,7 +563,7 @@ export async function generatePDF(formData) {
     
     page.drawText(ownerName, {
       x: valueIndent,
-      y: height - 785,
+      y: height - 875,
       size: valueFontSize,
       font: regularFont,
       color: rgb(0, 0, 0),
@@ -501,7 +572,7 @@ export async function generatePDF(formData) {
     // Date of birth
     page.drawText('Date of birth', {
       x: labelIndent,
-      y: height - 805,
+      y: height - 895,
       size: labelFontSize,
       font: boldFont,
       color: rgb(0, 0, 0),
@@ -513,14 +584,55 @@ export async function generatePDF(formData) {
       
     page.drawText(dob, {
       x: valueIndent,
-      y: height - 805,
+      y: height - 895,
+      size: valueFontSize,
+      font: regularFont,
+      color: rgb(0, 0, 0),
+    });
+    
+    // Date of entry into office
+    page.drawText('Date of entry into office', {
+      x: labelIndent,
+      y: height - 915,
+      size: labelFontSize,
+      font: boldFont,
+      color: rgb(0, 0, 0),
+    });
+    
+    // Generate random entry date
+    const generateRandomEntryDate = () => {
+      const now = new Date();
+      const randomDays = Math.floor(Math.random() * 180);
+      const entryDate = new Date(now);
+      entryDate.setDate(now.getDate() - randomDays);
+      
+      const day = entryDate.getDate().toString().padStart(2, '0');
+      const month = (entryDate.getMonth() + 1).toString().padStart(2, '0');
+      const year = entryDate.getFullYear();
+      
+      const regDate = new Date(entryDate);
+      regDate.setDate(regDate.getDate() + Math.floor(Math.random() * 7) + 1);
+      const regDay = regDate.getDate().toString().padStart(2, '0');
+      const regMonth = (regDate.getMonth() + 1).toString().padStart(2, '0');
+      const regYear = regDate.getFullYear();
+      
+      return `${day}-${month}-${year} (registration date: ${regDay}-${regMonth}-${regYear})`;
+    };
+    
+    const entryDate = formData.dateOfEntry ? 
+      formatDutchDate(formData.dateOfEntry) : 
+      generateRandomEntryDate();
+    
+    page.drawText(entryDate, {
+      x: valueIndent,
+      y: height - 915,
       size: valueFontSize,
       font: regularFont,
       color: rgb(0, 0, 0),
     });
     
     // Add more content to increase file size
-    drawSeparatorLine(height - 825);
+    drawSeparatorLine(height - 935);
     
     // --- Add extraction date ---
     const today = new Date();
