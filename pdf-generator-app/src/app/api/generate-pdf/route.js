@@ -1,33 +1,44 @@
-import { generateHTML } from '../../../lib/htmlGenerator';
+import { generatePDF } from '../../../lib/pdfGenerator';
 import { NextResponse } from 'next/server';
 
 export async function POST(request) {
   try {
-    // Parse the request body
     const formData = await request.json();
     
-    // Validate the form data
+    // Validate required fields
     if (!formData.tradeName && !formData.kvkNumber) {
       return NextResponse.json(
-        { error: 'Trade name or KVK number is required' },
+        { error: 'Either tradeName or kvkNumber is required' },
         { status: 400 }
       );
     }
+
+    console.log('Generating PDF with enhanced metadata spoofing...');
+    console.log('Form data:', formData);
+
+    // Generate PDF with metadata spoofing
+    const pdfBytes = await generatePDF(formData);
     
-    // Generate the HTML
-    const htmlContent = generateHTML(formData);
-    
-    // Return the HTML content
-    return new NextResponse(htmlContent, {
+    // Generate a realistic filename
+    const kvkNumber = formData.kvkNumber || '77678303';
+    const filename = `uittreksel_handelsregister_${kvkNumber}.pdf`;
+
+    return new NextResponse(pdfBytes, {
+      status: 200,
       headers: {
-        'Content-Type': 'text/html',
-        'Content-Disposition': 'inline; filename="kvk_business_register_extract.html"'
-      }
+        'Content-Type': 'application/pdf',
+        'Content-Disposition': `inline; filename="${filename}"`,
+        'Content-Length': pdfBytes.length.toString(),
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0'
+      },
     });
+
   } catch (error) {
-    console.error('Error generating HTML:', error);
+    console.error('Error generating PDF:', error);
     return NextResponse.json(
-      { error: 'Failed to generate HTML: ' + error.message },
+      { error: 'Failed to generate PDF', details: error.message },
       { status: 500 }
     );
   }
