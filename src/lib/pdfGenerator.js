@@ -159,14 +159,14 @@ export async function generatePDF(formData) {
     if (kvkLogoImage) {
       page.drawImage(kvkLogoImage, {
         x: leftMargin,
-        y: height - 115,
+        y: height - 80,
         width: 60,
         height: 20,
       });
     } else {
       page.drawText('KVK', {
         x: leftMargin,
-        y: height - 95,
+        y: height - 70,
         size: 34,
         font: boldFont,
         color: rgb(0.125, 0.29, 0.388),
@@ -176,7 +176,7 @@ export async function generatePDF(formData) {
     // --- Add title and subtitle ---
     page.drawText('Business Register extract', {
       x: leftMargin,
-      y: height - 187,
+      y: height - 110,
       size: 16,
       font: boldFont,
       color: rgb(0.125, 0.29, 0.388),
@@ -184,18 +184,18 @@ export async function generatePDF(formData) {
     
     page.drawText('Netherlands Chamber of Commerce', {
       x: leftMargin,
-      y: height - 212,
+      y: height - 130,
       size: 16,
       font: boldFont,
       color: rgb(0.125, 0.29, 0.388),
     });
     
-    drawSeparatorLine(height - 232);
+    drawSeparatorLine(height - 145);
     
     // --- Add CCI number ---
     page.drawText('CCI number', {
       x: leftMargin,
-      y: height - 255,
+      y: height - 165,
       size: labelFontSize,
       font: boldFont,
       color: rgb(0, 0, 0),
@@ -204,23 +204,23 @@ export async function generatePDF(formData) {
     const kvkNumber = formData.kvkNumber || '77678303';
     page.drawText(kvkNumber, {
       x: valueIndent,
-      y: height - 255,
+      y: height - 165,
       size: valueFontSize,
       font: regularFont,
       color: rgb(0, 0, 0),
     });
     
-    drawSeparatorLine(height - 275);
+    drawSeparatorLine(height - 180);
     
     page.drawText('Page 1 (of 1)', {
       x: leftMargin,
-      y: height - 305,
+      y: height - 200,
       size: valueFontSize,
       font: regularFont,
       color: rgb(0, 0, 0),
     });
     
-    drawSeparatorLine(height - 325);
+    drawSeparatorLine(height - 215);
     
     // --- Add disclaimer ---
     const disclaimerText1 = 'The company / organisation does not want its address details to be used for';
@@ -228,7 +228,7 @@ export async function generatePDF(formData) {
     
     page.drawText(disclaimerText1, {
       x: width / 2 - 200,
-      y: height - 362,
+      y: height - 240,
       size: noteFontSize,
       font: italicFont,
       color: rgb(0, 0, 0),
@@ -236,29 +236,29 @@ export async function generatePDF(formData) {
     
     page.drawText(disclaimerText2, {
       x: width / 2 - 200,
-      y: height - 377,
+      y: height - 252,
       size: noteFontSize,
       font: italicFont,
       color: rgb(0, 0, 0),
     });
     
-    drawSeparatorLine(height - 400);
+    drawSeparatorLine(height - 270);
     
     // --- COMPANY section ---
     page.drawText('Company', {
       x: leftMargin,
-      y: height - 430,
+      y: height - 290,
       size: sectionTitleFontSize,
       font: boldFont,
       color: rgb(0.125, 0.29, 0.388),
     });
     
-    drawSeparatorLine(height - 445);
+    drawSeparatorLine(height - 300);
     
     // Trade names
     page.drawText('Trade names', {
       x: labelIndent,
-      y: height - 465,
+      y: height - 318,
       size: labelFontSize,
       font: boldFont,
       color: rgb(0, 0, 0),
@@ -267,7 +267,7 @@ export async function generatePDF(formData) {
     const tradeName = formData.tradeName || 'Diamond Sky Marketing';
     page.drawText(tradeName, {
       x: valueIndent,
-      y: height - 465,
+      y: height - 318,
       size: valueFontSize,
       font: regularFont,
       color: rgb(0, 0, 0),
@@ -277,7 +277,7 @@ export async function generatePDF(formData) {
     if (formData.tradeNameAlias && formData.tradeNameAlias.trim() !== '') {
       page.drawText(formData.tradeNameAlias, {
         x: valueIndent,
-        y: height - 480,
+        y: height - 330,
         size: valueFontSize,
         font: regularFont,
         color: rgb(0, 0, 0),
@@ -287,7 +287,7 @@ export async function generatePDF(formData) {
     // Legal form
     page.drawText('Legal form', {
       x: labelIndent,
-      y: height - 490,
+      y: height - 335,
       size: labelFontSize,
       font: boldFont,
       color: rgb(0, 0, 0),
@@ -296,7 +296,7 @@ export async function generatePDF(formData) {
     const legalFormText = formData.legalForm || 'Eenmanszaak (comparable with One-man business)';
     page.drawText(legalFormText, {
       x: valueIndent,
-      y: height - 490,
+      y: height - 335,
       size: valueFontSize,
       font: regularFont,
       color: rgb(0, 0, 0),
@@ -325,7 +325,7 @@ export async function generatePDF(formData) {
     // Company start date
     page.drawText('Company start date', {
       x: labelIndent,
-      y: height - 510,
+      y: height - 352,
       size: labelFontSize,
       font: boldFont,
       color: rgb(0, 0, 0),
@@ -337,7 +337,7 @@ export async function generatePDF(formData) {
       
     page.drawText(startDate, {
       x: valueIndent,
-      y: height - 510,
+      y: height - 352,
       size: valueFontSize,
       font: regularFont,
       color: rgb(0, 0, 0),
@@ -346,7 +346,7 @@ export async function generatePDF(formData) {
     // Activities
     page.drawText('Activities', {
       x: labelIndent,
-      y: height - 530,
+      y: height - 369,
       size: labelFontSize,
       font: boldFont,
       color: rgb(0, 0, 0),
@@ -357,7 +357,7 @@ export async function generatePDF(formData) {
     
     page.drawText(activity1, {
       x: valueIndent,
-      y: height - 530,
+      y: height - 369,
       size: valueFontSize,
       font: regularFont,
       color: rgb(0, 0, 0),
@@ -365,7 +365,7 @@ export async function generatePDF(formData) {
     
     page.drawText(activity2, {
       x: valueIndent,
-      y: height - 545,
+      y: height - 381,
       size: valueFontSize,
       font: regularFont,
       color: rgb(0, 0, 0),
@@ -374,7 +374,7 @@ export async function generatePDF(formData) {
     // Employees
     page.drawText('Employees', {
       x: labelIndent,
-      y: height - 565,
+      y: height - 398,
       size: labelFontSize,
       font: boldFont,
       color: rgb(0, 0, 0),
@@ -383,29 +383,29 @@ export async function generatePDF(formData) {
     const employees = formData.employees || (Math.floor(Math.random() * 3) + 1).toString(); // 1-3 employees
     page.drawText(employees, {
       x: valueIndent,
-      y: height - 565,
+      y: height - 398,
       size: valueFontSize,
       font: regularFont,
       color: rgb(0, 0, 0),
     });
     
     // Add ESTABLISHMENT section
-    drawSeparatorLine(height - 585);
+    drawSeparatorLine(height - 415);
     
     page.drawText('Establishment', {
       x: leftMargin,
-      y: height - 615,
+      y: height - 435,
       size: sectionTitleFontSize,
       font: boldFont,
       color: rgb(0.125, 0.29, 0.388),
     });
     
-    drawSeparatorLine(height - 630);
+    drawSeparatorLine(height - 445);
     
     // Establishment number
     page.drawText('Establishment number', {
       x: labelIndent,
-      y: height - 650,
+      y: height - 463,
       size: labelFontSize,
       font: boldFont,
       color: rgb(0, 0, 0),
@@ -414,7 +414,7 @@ export async function generatePDF(formData) {
     const establishmentNumber = formData.establishmentNumber || '000045362920';
     page.drawText(establishmentNumber, {
       x: valueIndent,
-      y: height - 650,
+      y: height - 463,
       size: valueFontSize,
       font: regularFont,
       color: rgb(0, 0, 0),
@@ -423,7 +423,7 @@ export async function generatePDF(formData) {
     // Trade names (repeated for establishment)
     page.drawText('Trade names', {
       x: labelIndent,
-      y: height - 670,
+      y: height - 480,
       size: labelFontSize,
       font: boldFont,
       color: rgb(0, 0, 0),
@@ -431,7 +431,7 @@ export async function generatePDF(formData) {
     
     page.drawText(tradeName, {
       x: valueIndent,
-      y: height - 670,
+      y: height - 480,
       size: valueFontSize,
       font: regularFont,
       color: rgb(0, 0, 0),
@@ -440,7 +440,7 @@ export async function generatePDF(formData) {
     if (formData.tradeNameAlias && formData.tradeNameAlias.trim() !== '') {
       page.drawText(formData.tradeNameAlias, {
         x: valueIndent,
-        y: height - 685,
+        y: height - 492,
         size: valueFontSize,
         font: regularFont,
         color: rgb(0, 0, 0),
@@ -450,7 +450,7 @@ export async function generatePDF(formData) {
     // Visiting address
     page.drawText('Visiting address', {
       x: labelIndent,
-      y: height - 700,
+      y: height - 497,
       size: labelFontSize,
       font: boldFont,
       color: rgb(0, 0, 0),
@@ -459,7 +459,7 @@ export async function generatePDF(formData) {
     const address = formData.address || 'Spreeuwenhof 81, 7051XJ Varsseveld';
     page.drawText(address, {
       x: valueIndent,
-      y: height - 700,
+      y: height - 497,
       size: valueFontSize,
       font: regularFont,
       color: rgb(0, 0, 0),
@@ -468,7 +468,7 @@ export async function generatePDF(formData) {
     // Date of incorporation (for establishment)
     page.drawText('Date of incorporation', {
       x: labelIndent,
-      y: height - 720,
+      y: height - 514,
       size: labelFontSize,
       font: boldFont,
       color: rgb(0, 0, 0),
@@ -480,7 +480,7 @@ export async function generatePDF(formData) {
       
     page.drawText(establishmentStartDate, {
       x: valueIndent,
-      y: height - 720,
+      y: height - 514,
       size: valueFontSize,
       font: regularFont,
       color: rgb(0, 0, 0),
@@ -489,7 +489,7 @@ export async function generatePDF(formData) {
     // Activities (repeated for establishment)
     page.drawText('Activities', {
       x: labelIndent,
-      y: height - 740,
+      y: height - 531,
       size: labelFontSize,
       font: boldFont,
       color: rgb(0, 0, 0),
@@ -497,7 +497,7 @@ export async function generatePDF(formData) {
     
     page.drawText(activity1, {
       x: valueIndent,
-      y: height - 740,
+      y: height - 531,
       size: valueFontSize,
       font: regularFont,
       color: rgb(0, 0, 0),
@@ -505,7 +505,7 @@ export async function generatePDF(formData) {
     
     page.drawText(activity2, {
       x: valueIndent,
-      y: height - 755,
+      y: height - 543,
       size: valueFontSize,
       font: regularFont,
       color: rgb(0, 0, 0),
@@ -514,7 +514,7 @@ export async function generatePDF(formData) {
     // For further information note
     page.drawText('For further information on activities, see Dutch extract.', {
       x: valueIndent,
-      y: height - 770,
+      y: height - 555,
       size: noteFontSize,
       font: italicFont,
       color: rgb(0, 0, 0),
@@ -523,36 +523,36 @@ export async function generatePDF(formData) {
     // Employees (repeated for establishment)
     page.drawText('Employees', {
       x: labelIndent,
-      y: height - 790,
+      y: height - 572,
       size: labelFontSize,
       font: boldFont,
       color: rgb(0, 0, 0),
     });
     page.drawText(employees, {
       x: valueIndent,
-      y: height - 790,
+      y: height - 572,
       size: valueFontSize,
       font: regularFont,
       color: rgb(0, 0, 0),
     });
     
     // Add OWNER section (positioned much lower to match original)
-    drawSeparatorLine(height - 820);
+    drawSeparatorLine(height - 590);
     
     page.drawText('Owner', {
       x: leftMargin,
-      y: height - 850,
+      y: height - 610,
       size: sectionTitleFontSize,
       font: boldFont,
       color: rgb(0.125, 0.29, 0.388),
     });
     
-    drawSeparatorLine(height - 865);
+    drawSeparatorLine(height - 620);
     
     // Name
     page.drawText('Name', {
       x: labelIndent,
-      y: height - 885,
+      y: height - 638,
       size: labelFontSize,
       font: boldFont,
       color: rgb(0, 0, 0),
@@ -563,7 +563,7 @@ export async function generatePDF(formData) {
     
     page.drawText(ownerName, {
       x: valueIndent,
-      y: height - 885,
+      y: height - 638,
       size: valueFontSize,
       font: regularFont,
       color: rgb(0, 0, 0),
@@ -572,7 +572,7 @@ export async function generatePDF(formData) {
     // Date of birth
     page.drawText('Date of birth', {
       x: labelIndent,
-      y: height - 905,
+      y: height - 655,
       size: labelFontSize,
       font: boldFont,
       color: rgb(0, 0, 0),
@@ -584,7 +584,7 @@ export async function generatePDF(formData) {
       
     page.drawText(dob, {
       x: valueIndent,
-      y: height - 905,
+      y: height - 655,
       size: valueFontSize,
       font: regularFont,
       color: rgb(0, 0, 0),
@@ -593,7 +593,7 @@ export async function generatePDF(formData) {
     // Date of entry into office
     page.drawText('Date of entry into office', {
       x: labelIndent,
-      y: height - 925,
+      y: height - 672,
       size: labelFontSize,
       font: boldFont,
       color: rgb(0, 0, 0),
@@ -625,14 +625,14 @@ export async function generatePDF(formData) {
     
     page.drawText(entryDate, {
       x: valueIndent,
-      y: height - 925,
+      y: height - 672,
       size: valueFontSize,
       font: regularFont,
       color: rgb(0, 0, 0),
     });
     
     // Add more content to increase file size
-    drawSeparatorLine(height - 945);
+    drawSeparatorLine(height - 690);
     
     // --- Add extraction date ---
     const today = new Date();
