@@ -91,51 +91,7 @@ export async function generatePDF(formData) {
     pdfDoc.setCreationDate(dates.creation);
     pdfDoc.setModificationDate(dates.modification);
     
-    // Try to set PDF version to 1.4 to match original
-    try {
-      // Note: pdf-lib may not support setVersion, but we'll try
-      if (typeof pdfDoc.setVersion === 'function') {
-        pdfDoc.setVersion(1, 4);
-      }
-    } catch (error) {
-      console.log('Could not set PDF version to 1.4:', error.message);
-    }
-    
-    // Add custom metadata entries to mimic StreamServe properties
-    try {
-      const catalog = pdfDoc.catalog;
-      if (catalog) {
-        // Add StructTreeRoot for Tagged PDF
-        const structTreeRoot = pdfDoc.context.obj({
-          Type: 'StructTreeRoot',
-          K: pdfDoc.context.obj({
-            Type: 'StructElem',
-            S: 'Document',
-            P: null,
-            K: []
-          })
-        });
-        catalog.set('StructTreeRoot', structTreeRoot);
-        catalog.set('MarkInfo', pdfDoc.context.obj({
-          Marked: true,
-          UserProperties: false,
-          Suspects: false
-        }));
-        
-        // Add metadata stream
-        const metadataStream = pdfDoc.context.obj({
-          Type: 'Metadata',
-          Subtype: 'XML',
-          Length: 0
-        });
-        catalog.set('Metadata', metadataStream);
-        
-        console.log('Tagged PDF structure added');
-      }
-    } catch (error) {
-      console.log('Could not add Tagged PDF structure:', error.message);
-    }
-    
+    // Note: pdf-lib doesn't support setVersion, so we'll skip that
     console.log('Enhanced metadata set');
     
     const page = pdfDoc.addPage([595.44, 841.68]); // Exact A4 size from original
@@ -703,13 +659,11 @@ export async function generatePDF(formData) {
       addDefaultPage: false,
       objectsPerTick: 25, // Smaller chunks for more objects
       updateFieldAppearances: true,
-      preserveStructure: true
     });
     
     console.log(`Generated PDF with enhanced metadata spoofing:`);
     console.log(`- Producer: StreamServe Communication Server 23.3`);
     console.log(`- Creator: [REMOVED]`);
-    console.log(`- Tagged PDF: Attempted`);
     console.log(`- Font prefixes: ${fontPrefixes.regular}Roboto-Regular, ${fontPrefixes.bold}Roboto-Bold`);
     console.log(`- Document ID: ${documentId}`);
     console.log(`- Instance ID: ${instanceId}`);
