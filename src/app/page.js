@@ -13,7 +13,7 @@ export default function Home() {
       <div className={styles.header}>
         <h1 className={styles.title}>KVK Document Generator</h1>
         <p className={styles.description}>
-          Create accurate KVK business register extracts that perfectly match the official format
+          Generate authentic KVK business register extracts with advanced metadata spoofing
         </p>
       </div>
       
@@ -21,7 +21,7 @@ export default function Home() {
       
       <footer className={styles.footer}>
         <p>
-          This tool creates HTML documents matching the format of KVK Business Register extracts.
+          This tool creates PDF documents with authentic metadata matching official KVK Business Register extracts.
           For educational and design purposes only.
         </p>
       </footer>

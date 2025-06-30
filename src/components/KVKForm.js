@@ -7,7 +7,7 @@ export default function KVKForm() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(false);
-  const [generatedHtml, setGeneratedHtml] = useState(null);
+
   const [validationErrors, setValidationErrors] = useState({});
   
   const [formData, setFormData] = useState({
@@ -92,14 +92,27 @@ export default function KVKForm() {
         throw new Error('Failed to generate PDF');
       }
       
-      const htmlContent = await response.text();
-      setGeneratedHtml(htmlContent);
+      // Get PDF blob from response
+      const pdfBlob = await response.blob();
       setSuccess(true);
       
-      // Open the HTML content in a new window
-      const newWindow = window.open();
-      newWindow.document.write(htmlContent);
-      newWindow.document.close();
+      // Create object URL for the PDF
+      const pdfUrl = URL.createObjectURL(pdfBlob);
+      
+      // Open PDF in new window
+      window.open(pdfUrl, '_blank');
+      
+      // Optional: Download the PDF automatically
+      const kvkNumber = formData.kvkNumber || '77678303';
+      const link = document.createElement('a');
+      link.href = pdfUrl;
+      link.download = `uittreksel_handelsregister_${kvkNumber}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      
+      // Clean up the object URL after a delay
+      setTimeout(() => URL.revokeObjectURL(pdfUrl), 1000);
       
     } catch (err) {
       setError(err.message || 'An error occurred while generating the PDF');
@@ -108,15 +121,7 @@ export default function KVKForm() {
     }
   };
   
-  // Open HTML-to-PDF converter
-  const convertToPDF = () => {
-    if (!generatedHtml) return;
-    
-    // Encode the HTML content
-    const encodedHtml = encodeURIComponent(generatedHtml);
-    // Open a converter in a new window
-    window.open(`https://htmlpdfapi.com/export-to-pdf?html=${encodedHtml}`, '_blank');
-  };
+
   
   return (
     <div className={styles.formContainer}>

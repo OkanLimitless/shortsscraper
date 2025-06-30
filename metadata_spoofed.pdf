@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>KVK Business Register Extract</title>
+  <style>
+    /* Reset and base styles */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    @page {
+      size: A4;
+      margin: 0;
+    }
+    
+    body {
+      font-family: Arial, Helvetica, sans-serif;
+      width: 210mm; /* A4 width */
+      height: 297mm; /* A4 height */
+      position: relative;
+      background-color: white;
+      color: black;
+      margin: 0;
+      padding: 0;
+    }
+    
+    /* Header section - removed to match example */
+    
+    /* KVK Logo */
+    .kvk-logo {
+      position: absolute;
+      top: 82px;
+      left: 112px;
+      width: 120px; /* Adjust based on actual logo size */
+      height: auto;
+    }
+    
+    /* Title section */
+    .title {
+      position: absolute;
+      top: 188px;
+      left: 112px;
+      font-size: 16px;
+      font-weight: bold;
+      color: #204a63; /* Dark blue color */
+    }
+    
+    .subtitle {
+      position: absolute;
+      top: 228px;
+      left: 112px;
+      font-size: 16px;
+      font-weight: bold;
+      color: #204a63; /* Dark blue color */
+    }
+    
+    /* Main content */
+    .content {
+      position: absolute;
+      top: 280px;
+      left: 112px;
+      width: calc(100% - 224px);
+    }
+    
+    /* Table styles */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      border: none;
+    }
+    
+    tr.header-row td {
+      border-top: 1px solid #e0e0e0;
+      border-bottom: 1px solid #e0e0e0;
+      padding: 5px 0;
+    }
+    
+    tr.header-row h2 {
+      font-size: 11px;
+      font-weight: bold;
+      margin: 0;
+      text-transform: uppercase;
+    }
+    
+    tr.data-row td {
+      vertical-align: top;
+      padding: 4px 0;
+      font-size: 9px;
+    }
+    
+    tr.data-row td:first-child {
+      width: 180px;
+      font-weight: bold;
+    }
+    
+    tr.spacer-row td {
+      height: 12px;
+    }
+    
+    tr.separator-row td {
+      border-top: 1px solid #e0e0e0;
+      height: 1px;
+      padding: 0;
+    }
+    
+    tr.disclaimer-row td {
+      text-align: center;
+      font-style: italic;
+      font-size: 9px;
+      padding: 15px 0;
+    }
+    
+    tr.extract-date-row td {
+      text-align: center;
+      font-size: 9px;
+      padding-top: 30px;
+    }
+    
+    .italic-note {
+      font-style: italic;
+      margin-top: 3px;
+    }
+    
+    /* Footer elements - adjusted to reduce whitespace */
+    .waarmerk {
+      position: absolute;
+      bottom: 74px; /* Reduced from 84px */
+      left: 112px;
+      font-weight: bold;
+      font-size: 14px;
+      color: rgba(128, 128, 128, 0.4);
+      z-index: 1;
+    }
+    
+    .kvk-subtitle {
+      position: absolute;
+      bottom: 58px; /* Reduced from 68px */
+      left: 112px;
+      font-size: 8px;
+      color: rgba(128, 128, 128, 0.4);
+      z-index: 1;
+    }
+    
+    .footer-text {
+      position: absolute;
+      bottom: 74px; /* Reduced from 84px */
+      left: 230px;
+      font-size: 7px;
+      line-height: 1.4;
+      width: 55%;
+      z-index: 1;
+    }
+    
+    .timestamp {
+      position: absolute;
+      bottom: 120px; /* Reduced from 140px */
+      right: 15px;
+      transform: rotate(90deg);
+      transform-origin: right bottom;
+      font-size: 8px;
+      color: #555;
+      z-index: 1;
+    }
+    
+    .bottom-bar {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      z-index: 0;
+    }
+    
+    /* Print button */
+    .print-button {
+      position: fixed;
+      top: 10px;
+      right: 10px;
+      background-color: #204a63;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      padding: 8px 12px;
+      cursor: pointer;
+      z-index: 9999;
+    }
+    
+    .instructions-box {
+      position: fixed;
+      top: 50px;
+      right: 10px;
+      width: 250px;
+      background: #f8f9fa;
+      padding: 10px;
+      border-radius: 4px;
+      font-size: 12px;
+      z-index: 9998;
+      border: 1px solid #ddd;
+    }
+    
+    .instructions-box ol {
+      margin-left: 20px;
+    }
+    
+    /* For print */
+    @media print {
+      body {
+        margin: 0;
+        width: 100%;
+      }
+      
+      .print-button,
+      .instructions-box {
+        display: none;
+      }
+    }
+  </style>
+  <script>
+    function setupPrintButton() {
+      const printBtn = document.createElement('button');
+      printBtn.innerText = 'Print/Save as PDF';
+      printBtn.classList.add('print-button');
+      
+      printBtn.onclick = function() {
+        this.style.display = 'none';
+        document.querySelector('.instructions-box').style.display = 'none';
+        window.print();
+        setTimeout(() => {
+          this.style.display = 'block';
+          document.querySelector('.instructions-box').style.display = 'block';
+        }, 1000);
+      };
+      
+      document.body.appendChild(printBtn);
+      
+      const instructions = document.createElement('div');
+      instructions.classList.add('instructions-box');
+      instructions.innerHTML = 
+        '<p><strong>To save as PDF:</strong></p>' +
+        '<ol>' +
+        '<li>Click the Print/Save button above</li>' +
+        '<li>In the print dialog, select "Save as PDF" as the destination</li>' +
+        '<li>Set paper size to A4</li>' +
+        '<li>Set margins to "None"</li>' +
+        '<li>Disable headers and footers</li>' +
+        '<li>Click Save</li>' +
+        '</ol>';
+      
+      document.body.appendChild(instructions);
+    }
+    
+    window.onload = setupPrintButton;
+  </script>
+</head>
+<body>
+  <!-- We're removing the header info to match the example -->
+  
+  <!-- KVK Logo -->
+  <img src="/images/kvklogo.png" alt="KVK Logo" class="kvk-logo">
+  
+  <!-- Title section -->
+  <div class="title">Business Register extract</div>
+  <div class="subtitle">Netherlands Chamber of Commerce</div>
+  
+  <!-- Main content -->
+  <div class="content">
+    <table>
+      <!-- Header data section -->
+      <tr>
+        <td style="font-weight: bold; font-size: 9px; padding-top: 0;">CCI number</td>
+        <td style="font-size: 9px; padding-top: 0;">77678303</td>
+      </tr>
+      <tr class="separator-row">
+        <td colspan="2"></td>
+      </tr>
+      <tr>
+        <td style="font-size: 9px; padding: 4px 0;">Page 1 (of 1)</td>
+        <td></td>
+      </tr>
+      <tr class="separator-row">
+        <td colspan="2"></td>
+      </tr>
+      
+      <!-- Disclaimer -->
+      <tr class="disclaimer-row">
+        <td colspan="2">
+          The company / organisation does not want its address details to be used for<br>
+          unsolicited postal advertising or visits from sales representatives.
+        </td>
+      </tr>
+      <tr class="separator-row">
+        <td colspan="2"></td>
+      </tr>
+      
+      <!-- Company section - note that we're keeping uppercase in h2 because that's how it appears in the actual document -->
+      <tr class="header-row">
+        <td colspan="2">
+          <h2>Company</h2>
+        </td>
+      </tr>
+      <tr class="data-row">
+        <td>Trade names</td>
+        <td>
+          Diamond Sky Marketing
+          
+        </td>
+      </tr>
+      <tr class="data-row">
+        <td>Legal form</td>
+        <td>Eenmanszaak (comparable with One-man business)</td>
+      </tr>
+      <tr class="data-row">
+        <td>Company start date</td>
+        <td>30-01-2025 (registration date: 07-02-2025)</td>
+      </tr>
+      <tr class="data-row">
+        <td>Activities</td>
+        <td>
+          SBI-code: 74101 - Communication and graphic design<br>
+          SBI-code: 6201 - Writing, producing and publishing of software
+        </td>
+      </tr>
+      <tr class="data-row">
+        <td>Employees</td>
+        <td>2</td>
+      </tr>
+      <tr class="separator-row">
+        <td colspan="2"></td>
+      </tr>
+      
+      <!-- ESTABLISHMENT section -->
+      <tr class="header-row">
+        <td colspan="2">
+          <h2>Establishment</h2>
+        </td>
+      </tr>
+      <tr class="data-row">
+        <td>Establishment number</td>
+        <td>000045362920</td>
+      </tr>
+      <tr class="data-row">
+        <td>Trade names</td>
+        <td>
+          Diamond Sky Marketing
+          
+        </td>
+      </tr>
+      <tr class="data-row">
+        <td>Visiting address</td>
+        <td>Spreeuwenhof 81, 7051XJ Varsseveld</td>
+      </tr>
+      <tr class="data-row">
+        <td>Date of incorporation</td>
+        <td>30-01-2025 (registration date: 07-02-2025)</td>
+      </tr>
+      <tr class="data-row">
+        <td>Activities</td>
+        <td>
+          SBI-code: 74101 - Communication and graphic design<br>
+          SBI-code: 6201 - Writing, producing and publishing of software<br>
+          <span class="italic-note">For further information on activities, see Dutch extract.</span>
+        </td>
+      </tr>
+      <tr class="data-row">
+        <td>Employees</td>
+        <td>2</td>
+      </tr>
+      <tr class="separator-row">
+        <td colspan="2"></td>
+      </tr>
+      
+      <!-- OWNER section - updated to match screenshot -->
+      <tr class="header-row">
+        <td colspan="2">
+          <h2>Owner</h2>
+        </td>
+      </tr>
+      <tr class="data-row">
+        <td>Name</td>
+        <td>Piyirci, Okan</td>
+      </tr>
+      <tr class="data-row">
+        <td>Date of birth</td>
+        <td>12-03-1994</td>
+      </tr>
+      <tr class="data-row">
+        <td>Date of entry into office</td>
+        <td>18-02-2025 (registration date: 21-02-2025)</td>
+      </tr>
+      <tr class="separator-row">
+        <td colspan="2"></td>
+      </tr>
+      
+      <!-- Extract date -->
+      <tr class="extract-date-row">
+        <td colspan="2">Extract was made on 30-06-2025 at 08.55 hours.</td>
+      </tr>
+    </table>
+  </div>
+  
+  <!-- WAARMERK watermark -->
+  <div class="waarmerk">WAARMERK</div>
+  <div class="kvk-subtitle">KAMER VAN KOOPHANDEL</div>
+  
+  <!-- Footer text -->
+  <div class="footer-text">
+    This extract has been certified with a digital signature and is an official proof of registration in the Business<br>
+    Register. You can check the integrity of this document and validate the signature in Adobe at the top of your<br>
+    screen. The Chamber of Commerce recommends that this document be viewed in digital form so that its<br>
+    integrity is safeguarded and the signature remains verifiable.
+  </div>
+  
+  <!-- Timestamp -->
+  <div class="timestamp">2025-06-30 08:55:01</div>
+  
+  <!-- Bottom Bar Image - replaces the CSS magenta bar -->
+  <img src="/images/bottombar.png" alt="Bottom Bar" class="bottom-bar">
+</body>
+</html>
