@@ -380,7 +380,7 @@ export async function generatePDF(formData) {
       color: rgb(0, 0, 0),
     });
     
-    const employees = formData.employees || Math.floor(Math.random() * 5).toString();
+    const employees = formData.employees || (Math.floor(Math.random() * 3) + 1).toString(); // 1-3 employees
     page.drawText(employees, {
       x: valueIndent,
       y: height - 565,
@@ -537,22 +537,22 @@ export async function generatePDF(formData) {
     });
     
     // Add OWNER section (positioned much lower to match original)
-    drawSeparatorLine(height - 810);
+    drawSeparatorLine(height - 820);
     
     page.drawText('Owner', {
       x: leftMargin,
-      y: height - 840,
+      y: height - 850,
       size: sectionTitleFontSize,
       font: boldFont,
       color: rgb(0.125, 0.29, 0.388),
     });
     
-    drawSeparatorLine(height - 855);
+    drawSeparatorLine(height - 865);
     
     // Name
     page.drawText('Name', {
       x: labelIndent,
-      y: height - 875,
+      y: height - 885,
       size: labelFontSize,
       font: boldFont,
       color: rgb(0, 0, 0),
@@ -563,7 +563,7 @@ export async function generatePDF(formData) {
     
     page.drawText(ownerName, {
       x: valueIndent,
-      y: height - 875,
+      y: height - 885,
       size: valueFontSize,
       font: regularFont,
       color: rgb(0, 0, 0),
@@ -572,7 +572,7 @@ export async function generatePDF(formData) {
     // Date of birth
     page.drawText('Date of birth', {
       x: labelIndent,
-      y: height - 895,
+      y: height - 905,
       size: labelFontSize,
       font: boldFont,
       color: rgb(0, 0, 0),
@@ -584,7 +584,7 @@ export async function generatePDF(formData) {
       
     page.drawText(dob, {
       x: valueIndent,
-      y: height - 895,
+      y: height - 905,
       size: valueFontSize,
       font: regularFont,
       color: rgb(0, 0, 0),
@@ -593,7 +593,7 @@ export async function generatePDF(formData) {
     // Date of entry into office
     page.drawText('Date of entry into office', {
       x: labelIndent,
-      y: height - 915,
+      y: height - 925,
       size: labelFontSize,
       font: boldFont,
       color: rgb(0, 0, 0),
@@ -625,14 +625,14 @@ export async function generatePDF(formData) {
     
     page.drawText(entryDate, {
       x: valueIndent,
-      y: height - 915,
+      y: height - 925,
       size: valueFontSize,
       font: regularFont,
       color: rgb(0, 0, 0),
     });
     
     // Add more content to increase file size
-    drawSeparatorLine(height - 935);
+    drawSeparatorLine(height - 945);
     
     // --- Add extraction date ---
     const today = new Date();
