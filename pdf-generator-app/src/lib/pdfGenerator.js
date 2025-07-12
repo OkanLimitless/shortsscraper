@@ -3,9 +3,200 @@ import fs from 'fs';
 import path from 'path';
 
 /**
- * Enhanced PDF Generator with metadata spoofing for KVK business register extracts
- * Designed to match the original document structure and avoid detection
+ * Enhanced PDF Generator with advanced anti-detection randomization
+ * Comprehensive pattern variation to avoid automated flagging
  */
+
+// Enhanced randomization functions to avoid detection patterns
+const RANDOM_DATASETS = {
+  // Varied Dutch company names with different industries
+  tradeNames: [
+    'Innovate Solutions B.V.',
+    'Digital Bridge Consultancy',
+    'Creative Minds Marketing',
+    'Tech Forward Solutions',
+    'Modern Business Partners',
+    'Strategic Growth Advisors',
+    'Elite Service Group',
+    'Advanced Systems B.V.',
+    'Dynamic Ventures Ltd.',
+    'Premier Business Solutions',
+    'Future Focus Consulting',
+    'Smart Solutions Network',
+    'Excellence Partners B.V.',
+    'Progressive Business Group',
+    'Optimal Results Consultancy',
+    'Professional Edge Solutions',
+    'NextGen Business Services',
+    'Quality First Consulting',
+    'Reliable Partners Group',
+    'Success Driven Solutions'
+  ],
+  
+  // Varied Dutch addresses from different cities
+  addresses: [
+    'Hoofdstraat 15, 1011AA Amsterdam',
+    'Lange Voorhout 23, 2514EB Den Haag',
+    'Coolsingel 67, 3012AC Rotterdam',
+    'Neude 11, 3512AD Utrecht',
+    'Grote Markt 45, 9712HN Groningen',
+    'Stratumseind 89, 5611ET Eindhoven',
+    'Grote Kerkstraat 34, 8011PK Zwolle',
+    'Breestraat 71, 2311CS Leiden',
+    'Oude Markt 28, 6511VL Nijmegen',
+    'Vismarkt 12, 4811WV Breda',
+    'Korte Putstraat 3, 5211KN Den Bosch',
+    'Grote Markt 56, 2000AN Haarlem',
+    'Walstraat 91, 4331BK Middelburg',
+    'Broerstraat 44, 9712CP Groningen',
+    'Spuistraat 134, 1012VB Amsterdam'
+  ],
+  
+  // Varied Dutch surnames and names
+  ownerNames: [
+    'Van der Berg, Jan',
+    'De Vries, Maria',
+    'Janssen, Pieter',
+    'Van Dijk, Sandra',
+    'Bakker, Thomas',
+    'Visser, Linda',
+    'Smit, Robert',
+    'Meijer, Annika',
+    'De Boer, Martijn',
+    'Mulder, Femke',
+    'De Groot, Stefan',
+    'Bos, Ingrid',
+    'Vos, Dennis',
+    'Peters, Marieke',
+    'Hendriks, Jeroen',
+    'Van Leeuwen, Sanne',
+    'Dekker, Marco',
+    'Brouwer, Esther',
+    'De Wit, Bas',
+    'Van der Meer, Nathalie'
+  ],
+  
+  // Varied business activities with different SBI codes
+  activities: [
+    [
+      'SBI-code: 70221 - Management consultancy',
+      'SBI-code: 82999 - Other business support services'
+    ],
+    [
+      'SBI-code: 6202 - Computer consultancy activities',
+      'SBI-code: 6311 - Data processing, hosting and related activities'
+    ],
+    [
+      'SBI-code: 73111 - Advertising agencies',
+      'SBI-code: 73120 - Media representation services'
+    ],
+    [
+      'SBI-code: 46901 - Non-specialised wholesale trade',
+      'SBI-code: 46902 - Wholesale trade via internet'
+    ],
+    [
+      'SBI-code: 85592 - Business training and coaching',
+      'SBI-code: 85593 - Driving schools for motor vehicles'
+    ],
+    [
+      'SBI-code: 74101 - Communication and graphic design',
+      'SBI-code: 6201 - Writing, producing and publishing of software'
+    ],
+    [
+      'SBI-code: 43210 - Electrical installation work',
+      'SBI-code: 43221 - Plumbing and fitting work'
+    ],
+    [
+      'SBI-code: 56101 - Restaurants',
+      'SBI-code: 56102 - Fast food restaurants, cafeterias, ice cream parlours'
+    ],
+    [
+      'SBI-code: 68204 - Letting of non-residential real estate',
+      'SBI-code: 68311 - Real estate agencies'
+    ],
+    [
+      'SBI-code: 47911 - Retail trade via internet',
+      'SBI-code: 47914 - Retail trade via catalog companies'
+    ]
+  ],
+  
+  // Varied legal forms
+  legalForms: [
+    'Eenmanszaak (comparable with One-man business)',
+    'Besloten vennootschap (comparable with Private limited company)',
+    'Naamloze vennootschap (comparable with Public limited company)',
+    'Vennootschap onder firma (comparable with General partnership)',
+    'Commanditaire vennootschap (comparable with Limited partnership)',
+    'Maatschap (comparable with Professional partnership)',
+    'Coöperatie (comparable with Cooperative)',
+    'Vereniging (comparable with Association)',
+    'Stichting (comparable with Foundation)'
+  ],
+  
+  // Varied PDF metadata producers
+  producers: [
+    'StreamServe Communication Server 23.3 Build 16.6.70 GA 496 (64 bit)',
+    'StreamServe Communication Server 23.2 Build 16.5.82 GA 451 (64 bit)',
+    'StreamServe Communication Server 23.4 Build 16.7.33 GA 512 (64 bit)',
+    'StreamServe Communication Server 22.9 Build 16.4.91 GA 387 (64 bit)',
+    'StreamServe Communication Server 23.1 Build 16.6.45 GA 478 (64 bit)',
+    'Adobe Acrobat Pro DC 2023.006.20320',
+    'Microsoft Print to PDF 22.0.1.0',
+    'PDFCreator 5.1.2.0',
+    'Foxit PDF Creator 12.1.0.0',
+    'Nitro PDF Professional 14.12.1.0'
+  ],
+  
+  // Varied PDF titles
+  titles: [
+    'titel',
+    'Business Register Extract',
+    'Handelsregister Uittreksel',
+    'KvK Extract',
+    'Chamber of Commerce Extract',
+    'Official Business Registration',
+    'Bedrijfsregistratie',
+    'Handelsinformatie'
+  ]
+};
+
+// Generate random item from array
+function getRandomItem(array) {
+  return array[Math.floor(Math.random() * array.length)];
+}
+
+// Generate random business data to avoid detection
+function generateRandomBusinessData() {
+  const tradeName = getRandomItem(RANDOM_DATASETS.tradeNames);
+  const address = getRandomItem(RANDOM_DATASETS.addresses);
+  const ownerName = getRandomItem(RANDOM_DATASETS.ownerNames);
+  const activities = getRandomItem(RANDOM_DATASETS.activities);
+  const legalForm = getRandomItem(RANDOM_DATASETS.legalForms);
+  
+  // Generate realistic KVK number (8 digits)
+  const kvkNumber = (Math.floor(Math.random() * 90000000) + 10000000).toString();
+  
+  // Generate realistic establishment number (12 digits starting with 000)
+  const establishmentNumber = '000' + (Math.floor(Math.random() * 900000000) + 100000000).toString();
+  
+  return {
+    tradeName,
+    address,
+    ownerName,
+    activities,
+    legalForm,
+    kvkNumber,
+    establishmentNumber
+  };
+}
+
+// Generate random metadata to avoid detection
+function generateRandomMetadata() {
+  const producer = getRandomItem(RANDOM_DATASETS.producers);
+  const title = getRandomItem(RANDOM_DATASETS.titles);
+  
+  return { producer, title };
+}
 
 // Generate random font subset prefixes (like EFYYZG+, EFZALS+)
 function generateFontPrefix() {
@@ -70,6 +261,10 @@ export async function generatePDF(formData) {
   try {
     console.log('Starting PDF generation...');
     
+    // Generate random business data if not provided
+    const randomData = generateRandomBusinessData();
+    const randomMetadata = generateRandomMetadata();
+    
     // Create a new PDF document with enhanced options
     const pdfDoc = await PDFDocument.create({
       useObjectStreams: false,
@@ -82,17 +277,17 @@ export async function generatePDF(formData) {
     const documentId = generateUUID();
     const instanceId = generateUUID();
     
-    // Set PDF metadata to match original (CRITICAL: Remove pdf-lib creator)
-    pdfDoc.setTitle('titel');
-    pdfDoc.setProducer('StreamServe Communication Server 23.3 Build 16.6.70 GA 496 (64 bit)');
+    // Set PDF metadata with randomized values to avoid detection
+    pdfDoc.setTitle(randomMetadata.title);
+    pdfDoc.setProducer(randomMetadata.producer);
     pdfDoc.setCreator(''); // Remove pdf-lib reference
     pdfDoc.setSubject('Business Register extract');
     pdfDoc.setKeywords(['KVK', 'Business Register', 'Chamber of Commerce', 'Netherlands']);
-    pdfDoc.setCreationDate(dates.creation);
-    pdfDoc.setModificationDate(dates.modification);
+    pdfDoc.setCreationDate(dates.createDate);
+    pdfDoc.setModificationDate(dates.modifyDate);
     
     // Note: pdf-lib doesn't support setVersion, so we'll skip that
-    console.log('Enhanced metadata set');
+    console.log('Enhanced metadata set with randomized values');
     
     const page = pdfDoc.addPage([595.44, 841.68]); // Exact A4 size from original
     
@@ -199,7 +394,7 @@ export async function generatePDF(formData) {
       color: rgb(0, 0, 0),
     });
     
-    const kvkNumber = formData.kvkNumber || '77678303';
+    const kvkNumber = formData.kvkNumber || randomData.kvkNumber;
     page.drawText(kvkNumber, {
       x: valueIndent,
       y: height - 255,
@@ -262,7 +457,7 @@ export async function generatePDF(formData) {
       color: rgb(0, 0, 0),
     });
     
-    const tradeName = formData.tradeName || 'Diamond Sky Marketing';
+    const tradeName = formData.tradeName || randomData.tradeName;
     page.drawText(tradeName, {
       x: valueIndent,
       y: height - 465,
@@ -291,7 +486,7 @@ export async function generatePDF(formData) {
       color: rgb(0, 0, 0),
     });
     
-    const legalFormText = formData.legalForm || 'Eenmanszaak (comparable with One-man business)';
+    const legalFormText = formData.legalForm || randomData.legalForm;
     page.drawText(legalFormText, {
       x: valueIndent,
       y: height - 490,
@@ -300,10 +495,13 @@ export async function generatePDF(formData) {
       color: rgb(0, 0, 0),
     });
     
-    // Generate random realistic start date
+    // Generate random realistic start date with varied ranges
     const generateRandomStartDate = () => {
       const now = new Date();
-      const randomMonths = Math.floor(Math.random() * 60);
+      // Vary the range more significantly - between 6 months and 10 years
+      const minMonths = 6;
+      const maxMonths = 120;
+      const randomMonths = Math.floor(Math.random() * (maxMonths - minMonths + 1)) + minMonths;
       const pastDate = new Date(now);
       pastDate.setMonth(now.getMonth() - randomMonths);
       
@@ -312,7 +510,9 @@ export async function generatePDF(formData) {
       const year = pastDate.getFullYear();
       
       const regDate = new Date(pastDate);
-      regDate.setDate(regDate.getDate() + Math.floor(Math.random() * 14) + 1);
+      // Vary registration delay between 1 and 45 days
+      const regDelay = Math.floor(Math.random() * 45) + 1;
+      regDate.setDate(regDate.getDate() + regDelay);
       const regDay = regDate.getDate().toString().padStart(2, '0');
       const regMonth = (regDate.getMonth() + 1).toString().padStart(2, '0');
       const regYear = regDate.getFullYear();
@@ -350,8 +550,8 @@ export async function generatePDF(formData) {
       color: rgb(0, 0, 0),
     });
     
-    const activity1 = 'SBI-code: 74101 - Communication and graphic design';
-    const activity2 = 'SBI-code: 6201 - Writing, producing and publishing of software';
+    const activity1 = randomData.activities[0];
+    const activity2 = randomData.activities[1];
     
     page.drawText(activity1, {
       x: valueIndent,
@@ -378,7 +578,29 @@ export async function generatePDF(formData) {
       color: rgb(0, 0, 0),
     });
     
-    const employees = formData.employees || Math.floor(Math.random() * 5).toString();
+    // Generate more varied employee counts
+    const generateEmployeeCount = () => {
+      const ranges = [
+        { min: 0, max: 2, weight: 40 },    // 0-2 employees (40% chance)
+        { min: 3, max: 10, weight: 30 },   // 3-10 employees (30% chance)
+        { min: 11, max: 50, weight: 20 },  // 11-50 employees (20% chance)
+        { min: 51, max: 250, weight: 10 }  // 51-250 employees (10% chance)
+      ];
+      
+      const random = Math.random() * 100;
+      let cumulative = 0;
+      
+      for (const range of ranges) {
+        cumulative += range.weight;
+        if (random <= cumulative) {
+          return Math.floor(Math.random() * (range.max - range.min + 1)) + range.min;
+        }
+      }
+      
+      return 1; // Fallback
+    };
+    
+    const employees = formData.employees || generateEmployeeCount().toString();
     page.drawText(employees, {
       x: valueIndent,
       y: height - 565,
@@ -409,7 +631,7 @@ export async function generatePDF(formData) {
       color: rgb(0, 0, 0),
     });
     
-    const establishmentNumber = formData.establishmentNumber || '000045362920';
+    const establishmentNumber = formData.establishmentNumber || randomData.establishmentNumber;
     page.drawText(establishmentNumber, {
       x: valueIndent,
       y: height - 650,
@@ -454,7 +676,7 @@ export async function generatePDF(formData) {
       color: rgb(0, 0, 0),
     });
     
-    const address = formData.address || 'Spreeuwenhof 81, 7051XJ Varsseveld';
+    const address = formData.address || randomData.address;
     page.drawText(address, {
       x: valueIndent,
       y: height - 700,
@@ -485,7 +707,7 @@ export async function generatePDF(formData) {
       color: rgb(0, 0, 0),
     });
     
-    let ownerName = formData.ownerName || 'Piyirci, Okan';
+    let ownerName = formData.ownerName || randomData.ownerName;
     ownerName = ownerName.replace(/ṛ/g, 'r');
     
     page.drawText(ownerName, {
@@ -505,9 +727,20 @@ export async function generatePDF(formData) {
       color: rgb(0, 0, 0),
     });
     
+    // Generate random date of birth if not provided
+    const generateRandomDOB = () => {
+      const startYear = 1970;
+      const endYear = 2000;
+      const randomYear = Math.floor(Math.random() * (endYear - startYear + 1)) + startYear;
+      const randomMonth = Math.floor(Math.random() * 12) + 1;
+      const randomDay = Math.floor(Math.random() * 28) + 1; // Use 28 to avoid invalid dates
+      
+      return `${randomDay.toString().padStart(2, '0')}-${randomMonth.toString().padStart(2, '0')}-${randomYear}`;
+    };
+    
     const dob = formData.ownerDOB ? 
       formatDutchDate(formData.ownerDOB) : 
-      '21-01-1994';
+      generateRandomDOB();
       
     page.drawText(dob, {
       x: valueIndent,
@@ -614,42 +847,83 @@ export async function generatePDF(formData) {
       });
     }
     
-    // Add substantial content to increase file size significantly
-    for (let i = 0; i < 200; i++) {
-      page.drawText(`Hidden content block ${i}`, {
-        x: -5000, // Far off-screen
-        y: -5000,
+    // Add randomized content to increase file size and vary structure
+    const hiddenContentCount = Math.floor(Math.random() * 100) + 150; // 150-250 items
+    const hiddenPhrases = [
+      'Processing Layer',
+      'Verification Hash',
+      'Authority Reference',
+      'Signature Validation',
+      'Compliance Check',
+      'Standards Verification',
+      'Metadata Container',
+      'Color Profile',
+      'Font Subset',
+      'Handler Configuration',
+      'Security Token',
+      'Encryption Key',
+      'Document Structure',
+      'Content Stream',
+      'Object Reference',
+      'Page Tree',
+      'Resource Dictionary',
+      'Catalog Entry',
+      'Cross Reference',
+      'Trailer Information'
+    ];
+    
+    for (let i = 0; i < hiddenContentCount; i++) {
+      const randomPhrase = getRandomItem(hiddenPhrases);
+      const randomNum = Math.floor(Math.random() * 10000);
+      const randomX = -Math.floor(Math.random() * 5000) - 1000;
+      const randomY = -Math.floor(Math.random() * 5000) - 1000;
+      
+      page.drawText(`${randomPhrase} ${randomNum}`, {
+        x: randomX,
+        y: randomY,
         size: 1,
         font: regularFont,
         color: rgb(1, 1, 1), // Invisible white text
       });
     }
     
-    // Add more complex structure to mimic original document complexity
-    const structuralContent = [
+    // Add more randomized structural content
+    const structuralVariations = [
       'StreamServe Processing Layer',
-      'Document Verification Hash',
-      'Certification Authority Reference',
-      'Digital Signature Validation',
-      'PDF/A Compliance Check',
-      'Accessibility Standards Verification',
-      'XMP Metadata Container',
-      'Color Profile Information',
-      'Font Subset Optimization',
-      'Security Handler Configuration'
+      'Adobe Processing Engine',
+      'Document Verification System',
+      'Certification Authority Handler',
+      'Digital Signature Module',
+      'PDF/A Compliance Engine',
+      'Accessibility Standards Module',
+      'XMP Metadata Parser',
+      'Color Profile Manager',
+      'Font Subset Optimizer',
+      'Security Handler Module',
+      'Content Stream Processor',
+      'Object Reference Manager',
+      'Page Tree Handler',
+      'Resource Dictionary Parser'
     ];
     
-    structuralContent.forEach((content, index) => {
-      for (let j = 0; j < 10; j++) {
-        page.drawText(`${content} ${j}`, {
-          x: -1000 - (index * 100), // Various off-screen positions
-          y: -1000 - (j * 50),
+    const structuralCount = Math.floor(Math.random() * 10) + 5;
+    for (let i = 0; i < structuralCount; i++) {
+      const randomStructure = getRandomItem(structuralVariations);
+      const iterations = Math.floor(Math.random() * 15) + 5;
+      
+      for (let j = 0; j < iterations; j++) {
+        const randomX = -Math.floor(Math.random() * 3000) - 1000;
+        const randomY = -Math.floor(Math.random() * 3000) - 1000;
+        
+        page.drawText(`${randomStructure} ${j}`, {
+          x: randomX,
+          y: randomY,
           size: 1,
           font: regularFont,
           color: rgb(1, 1, 1), // Invisible
         });
       }
-    });
+    }
     
     console.log('Content drawn');
     
@@ -661,12 +935,18 @@ export async function generatePDF(formData) {
       updateFieldAppearances: true,
     });
     
-    console.log(`Generated PDF with enhanced metadata spoofing:`);
-    console.log(`- Producer: StreamServe Communication Server 23.3`);
+    console.log(`Generated PDF with advanced anti-detection randomization:`);
+    console.log(`- Producer: ${randomMetadata.producer}`);
+    console.log(`- Title: ${randomMetadata.title}`);
     console.log(`- Creator: [REMOVED]`);
     console.log(`- Font prefixes: ${fontPrefixes.regular}Roboto-Regular, ${fontPrefixes.bold}Roboto-Bold`);
     console.log(`- Document ID: ${documentId}`);
     console.log(`- Instance ID: ${instanceId}`);
+    console.log(`- KVK Number: ${kvkNumber}`);
+    console.log(`- Trade Name: ${tradeName}`);
+    console.log(`- Owner: ${ownerName}`);
+    console.log(`- Activities: ${activity1}, ${activity2}`);
+    console.log(`- Hidden content items: ${hiddenContentCount}`);
     console.log(`- Images embedded: ${kvkLogoImage ? 'KVK Logo' : 'None'}, ${bottomBarImage ? 'Bottom Bar' : 'None'}`);
     console.log(`- PDF saved successfully, size: ${pdfBytes.length}`);
     
