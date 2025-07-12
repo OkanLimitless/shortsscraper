@@ -9,6 +9,7 @@ export default function KVKForm() {
   const [success, setSuccess] = useState(false);
   const [generatedHtml, setGeneratedHtml] = useState(null);
   const [validationErrors, setValidationErrors] = useState({});
+  const [pdfMethod, setPdfMethod] = useState('puppeteer'); // Default to Puppeteer for better anti-detection
   
   const [formData, setFormData] = useState({
     tradeName: '',
@@ -80,7 +81,8 @@ export default function KVKForm() {
     setSuccess(false);
     
     try {
-      const response = await fetch('/api/generate-pdf', {
+      // Use selected method for PDF generation
+      const response = await fetch(`/api/generate-pdf?method=${pdfMethod}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -89,17 +91,24 @@ export default function KVKForm() {
       });
       
       if (!response.ok) {
-        throw new Error('Failed to generate PDF');
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to generate PDF');
       }
       
-      const htmlContent = await response.text();
-      setGeneratedHtml(htmlContent);
-      setSuccess(true);
+      // Get the PDF as a blob
+      const pdfBlob = await response.blob();
       
-      // Open the HTML content in a new window
-      const newWindow = window.open();
-      newWindow.document.write(htmlContent);
-      newWindow.document.close();
+      // Create download link
+      const url = window.URL.createObjectURL(pdfBlob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `kvk_business_extract_${Date.now()}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      window.URL.revokeObjectURL(url);
+      
+      setSuccess(true);
       
     } catch (err) {
       setError(err.message || 'An error occurred while generating the PDF');
@@ -121,6 +130,38 @@ export default function KVKForm() {
   return (
     <div className={styles.formContainer}>
       <h1 className={styles.formTitle}>KVK Business Register Extract Generator</h1>
+      
+      {/* PDF Generation Method Selection */}
+      <div className={styles.methodSelector}>
+        <h3>PDF Generation Method</h3>
+        <div className={styles.methodOptions}>
+          <label className={styles.radioLabel}>
+            <input
+              type="radio"
+              name="pdfMethod"
+              value="puppeteer"
+              checked={pdfMethod === 'puppeteer'}
+              onChange={(e) => setPdfMethod(e.target.value)}
+            />
+            <span>Puppeteer (Chrome Engine) - Recommended for anti-detection</span>
+          </label>
+          <label className={styles.radioLabel}>
+            <input
+              type="radio"
+              name="pdfMethod"
+              value="pdf-lib"
+              checked={pdfMethod === 'pdf-lib'}
+              onChange={(e) => setPdfMethod(e.target.value)}
+            />
+            <span>PDF-lib (Legacy) - Traditional method</span>
+          </label>
+        </div>
+        <p className={styles.methodNote}>
+          <strong>Puppeteer method</strong> uses Chrome's native PDF engine to avoid JavaScript library fingerprints.
+          <br />
+          <strong>PDF-lib method</strong> uses the pdf-lib library (may be more easily detected by automated systems).
+        </p>
+      </div>
       
       <form onSubmit={generatePDF} className={styles.form}>
         {/* Company Information Section */}

@@ -1,10 +1,11 @@
 import { PDFDocument, rgb, StandardFonts } from 'pdf-lib';
 import fs from 'fs';
 import path from 'path';
+import puppeteer from 'puppeteer';
 
 /**
- * Enhanced PDF Generator with advanced anti-detection randomization
- * Comprehensive pattern variation to avoid automated flagging
+ * Enhanced PDF Generator with multiple generation methods to avoid fingerprinting
+ * Uses both pdf-lib and Puppeteer approaches with randomization
  */
 
 // Enhanced randomization functions to avoid detection patterns
@@ -956,6 +957,485 @@ export async function generatePDF(formData) {
     console.error('Error in generatePDF:', error);
     throw new Error(`Failed to generate PDF: ${error.message}`);
   }
+}
+
+// NEW: Puppeteer-based PDF generation to avoid pdf-lib fingerprints
+export async function generatePDFWithPuppeteer(formData) {
+  let browser;
+  
+  try {
+    console.log('Starting Puppeteer PDF generation...');
+    
+    // Generate random business data if not provided
+    const randomData = generateRandomBusinessData();
+    
+    // Launch browser with randomized user agent and viewport
+    const userAgents = [
+      'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+      'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+      'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+      'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.1 Safari/605.1.15',
+      'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:121.0) Gecko/20100101 Firefox/121.0'
+    ];
+    
+    const randomUserAgent = userAgents[Math.floor(Math.random() * userAgents.length)];
+    
+    browser = await puppeteer.launch({
+      headless: 'new',
+      args: [
+        '--no-sandbox',
+        '--disable-setuid-sandbox',
+        '--disable-dev-shm-usage',
+        '--disable-accelerated-2d-canvas',
+        '--no-first-run',
+        '--no-zygote',
+        '--single-process',
+        '--disable-gpu',
+        '--disable-features=VizDisplayCompositor',
+        `--user-agent=${randomUserAgent}`
+      ]
+    });
+    
+    const page = await browser.newPage();
+    
+    // Set random viewport to vary PDF characteristics
+    const viewports = [
+      { width: 1920, height: 1080 },
+      { width: 1366, height: 768 },
+      { width: 1440, height: 900 },
+      { width: 1536, height: 864 },
+      { width: 1280, height: 720 }
+    ];
+    
+    const randomViewport = viewports[Math.floor(Math.random() * viewports.length)];
+    await page.setViewport(randomViewport);
+    
+    // Generate enhanced HTML with anti-detection features
+    const htmlContent = generateEnhancedHTML(formData, randomData);
+    
+    // Set content and wait for resources to load
+    await page.setContent(htmlContent, {
+      waitUntil: ['networkidle0', 'domcontentloaded']
+    });
+    
+    // Add random delay to simulate human behavior
+    await page.waitForTimeout(Math.floor(Math.random() * 2000) + 1000);
+    
+    // Generate PDF with randomized settings
+    const randomMargin = Math.floor(Math.random() * 5) + 10; // 10-15mm
+    const randomScale = 0.95 + Math.random() * 0.1; // 0.95-1.05
+    
+    const pdfOptions = {
+      format: 'A4',
+      printBackground: true,
+      margin: {
+        top: `${randomMargin}mm`,
+        bottom: `${randomMargin}mm`,
+        left: `${randomMargin}mm`,
+        right: `${randomMargin}mm`
+      },
+      scale: randomScale,
+      preferCSSPageSize: false,
+      displayHeaderFooter: false,
+      // Add random metadata to PDF
+      tagged: Math.random() > 0.5,
+      outline: Math.random() > 0.7
+    };
+    
+    const pdfBuffer = await page.pdf(pdfOptions);
+    
+    console.log(`Generated PDF with Puppeteer - Size: ${pdfBuffer.length} bytes`);
+    console.log(`- User Agent: ${randomUserAgent}`);
+    console.log(`- Viewport: ${randomViewport.width}x${randomViewport.height}`);
+    console.log(`- Margin: ${randomMargin}mm`);
+    console.log(`- Scale: ${randomScale}`);
+    console.log(`- Business Data: ${randomData.tradeName}, ${randomData.kvkNumber}`);
+    
+    await browser.close();
+    return pdfBuffer;
+    
+  } catch (error) {
+    console.error('Error in Puppeteer PDF generation:', error);
+    if (browser) await browser.close();
+    throw new Error(`Failed to generate PDF with Puppeteer: ${error.message}`);
+  }
+}
+
+// Enhanced HTML generator with anti-detection features
+function generateEnhancedHTML(formData, randomData) {
+  // Use randomized data if not provided
+  const tradeName = formData.tradeName || randomData.tradeName;
+  const kvkNumber = formData.kvkNumber || randomData.kvkNumber;
+  const ownerName = formData.ownerName || randomData.ownerName;
+  const address = formData.address || randomData.address;
+  const establishmentNumber = formData.establishmentNumber || randomData.establishmentNumber;
+  const legalForm = formData.legalForm || randomData.legalForm;
+  const activities = randomData.activities;
+  
+  // Generate random dates
+  const generateRandomDate = (minDays, maxDays) => {
+    const now = new Date();
+    const randomDays = Math.floor(Math.random() * (maxDays - minDays + 1)) + minDays;
+    const date = new Date(now.getTime() - (randomDays * 24 * 60 * 60 * 1000));
+    
+    const day = date.getDate().toString().padStart(2, '0');
+    const month = (date.getMonth() + 1).toString().padStart(2, '0');
+    const year = date.getFullYear();
+    
+    const regDate = new Date(date.getTime() + (Math.floor(Math.random() * 30) + 1) * 24 * 60 * 60 * 1000);
+    const regDay = regDate.getDate().toString().padStart(2, '0');
+    const regMonth = (regDate.getMonth() + 1).toString().padStart(2, '0');
+    const regYear = regDate.getFullYear();
+    
+    return `${day}-${month}-${year} (registration date: ${regDay}-${regMonth}-${regYear})`;
+  };
+  
+  const startDate = generateRandomDate(30, 1800); // 30 days to 5 years
+  const entryDate = generateRandomDate(1, 365); // 1 day to 1 year
+  
+  // Generate proper date of birth (24-50 years old)
+  const generateDOB = () => {
+    const now = new Date();
+    const minAge = 24;
+    const maxAge = 50;
+    const age = Math.floor(Math.random() * (maxAge - minAge + 1)) + minAge;
+    const birthYear = now.getFullYear() - age;
+    const birthMonth = Math.floor(Math.random() * 12) + 1;
+    const birthDay = Math.floor(Math.random() * 28) + 1; // Use 28 to avoid invalid dates
+    
+    return `${birthDay.toString().padStart(2, '0')}-${birthMonth.toString().padStart(2, '0')}-${birthYear}`;
+  };
+  
+  const dob = generateDOB();
+  
+  // Generate random employee count with weighted distribution
+  const generateEmployeeCount = () => {
+    const rand = Math.random();
+    if (rand < 0.4) return Math.floor(Math.random() * 3); // 0-2 (40%)
+    if (rand < 0.7) return Math.floor(Math.random() * 8) + 3; // 3-10 (30%)
+    if (rand < 0.9) return Math.floor(Math.random() * 40) + 11; // 11-50 (20%)
+    return Math.floor(Math.random() * 200) + 51; // 51-250 (10%)
+  };
+  
+  const employees = generateEmployeeCount();
+  
+  // Current date formatting
+  const today = new Date();
+  const extractionDate = `${today.getDate().toString().padStart(2, '0')}-${(today.getMonth() + 1).toString().padStart(2, '0')}-${today.getFullYear()}`;
+  const extractionTime = `${today.getHours().toString().padStart(2, '0')}.${today.getMinutes().toString().padStart(2, '0')}`;
+  const timestamp = today.toISOString().slice(0, 19).replace('T', ' ');
+  
+  // Generate random CSS variations to avoid fingerprinting
+  const fontVariations = [
+    'font-family: Arial, Helvetica, sans-serif;',
+    'font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;',
+    'font-family: system-ui, -apple-system, sans-serif;',
+    'font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;'
+  ];
+  
+  const randomFont = fontVariations[Math.floor(Math.random() * fontVariations.length)];
+  const randomSpacing = Math.floor(Math.random() * 3) + 1; // 1-3px
+  
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Business Register Extract</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    @page {
+      size: A4;
+      margin: 15mm;
+    }
+    
+    body {
+      ${randomFont}
+      font-size: 10px;
+      line-height: 1.3;
+      color: #000;
+      background: #fff;
+      width: 210mm;
+      min-height: 297mm;
+      padding: 20px;
+      letter-spacing: ${randomSpacing * 0.1}px;
+    }
+    
+    .header {
+      margin-bottom: 25px;
+    }
+    
+    .logo {
+      font-size: 28px;
+      font-weight: bold;
+      color: #204a63;
+      margin-bottom: 20px;
+    }
+    
+    .title {
+      font-size: 16px;
+      font-weight: bold;
+      color: #204a63;
+      margin-bottom: 5px;
+    }
+    
+    .subtitle {
+      font-size: 16px;
+      font-weight: bold;
+      color: #204a63;
+      margin-bottom: 20px;
+    }
+    
+    .separator {
+      height: 1px;
+      background: #ccc;
+      margin: 10px 0;
+    }
+    
+    .section {
+      margin-bottom: 20px;
+    }
+    
+    .section-title {
+      font-size: 11px;
+      font-weight: bold;
+      color: #204a63;
+      text-transform: uppercase;
+      margin-bottom: 10px;
+      padding: 5px 0;
+      border-top: 1px solid #ccc;
+      border-bottom: 1px solid #ccc;
+    }
+    
+    .field {
+      display: flex;
+      margin-bottom: 8px;
+      align-items: flex-start;
+    }
+    
+    .field-label {
+      font-weight: bold;
+      min-width: 180px;
+      margin-right: 20px;
+    }
+    
+    .field-value {
+      flex: 1;
+    }
+    
+    .disclaimer {
+      text-align: center;
+      font-style: italic;
+      margin: 20px 0;
+      padding: 15px;
+    }
+    
+    .footer {
+      margin-top: 40px;
+      position: relative;
+    }
+    
+    .extract-info {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+    
+    .watermark {
+      position: absolute;
+      bottom: 80px;
+      left: 0;
+      font-size: 14px;
+      font-weight: bold;
+      color: rgba(128, 128, 128, 0.3);
+    }
+    
+    .kvk-sub {
+      position: absolute;
+      bottom: 65px;
+      left: 0;
+      font-size: 8px;
+      color: rgba(128, 128, 128, 0.3);
+    }
+    
+    .footer-text {
+      position: absolute;
+      bottom: 60px;
+      left: 120px;
+      right: 0;
+      font-size: 7px;
+      line-height: 1.4;
+    }
+    
+    .timestamp {
+      position: absolute;
+      bottom: 100px;
+      right: 20px;
+      font-size: 8px;
+      color: #666;
+      transform: rotate(90deg);
+      transform-origin: right center;
+    }
+    
+    .bottom-bar {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 20px;
+      background: #d90080;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div class="logo">KVK</div>
+    <div class="title">Business Register extract</div>
+    <div class="subtitle">Netherlands Chamber of Commerce</div>
+  </div>
+  
+  <div class="separator"></div>
+  
+  <div class="field">
+    <div class="field-label">CCI number</div>
+    <div class="field-value">${kvkNumber}</div>
+  </div>
+  
+  <div class="separator"></div>
+  
+  <div class="field">
+    <div class="field-label">Page 1 (of 1)</div>
+    <div class="field-value"></div>
+  </div>
+  
+  <div class="separator"></div>
+  
+  <div class="disclaimer">
+    The company / organisation does not want its address details to be used for<br>
+    unsolicited postal advertising or visits from sales representatives.
+  </div>
+  
+  <div class="separator"></div>
+  
+  <div class="section">
+    <div class="section-title">Company</div>
+    
+    <div class="field">
+      <div class="field-label">Trade names</div>
+      <div class="field-value">${tradeName}</div>
+    </div>
+    
+    <div class="field">
+      <div class="field-label">Legal form</div>
+      <div class="field-value">${legalForm}</div>
+    </div>
+    
+    <div class="field">
+      <div class="field-label">Company start date</div>
+      <div class="field-value">${startDate}</div>
+    </div>
+    
+    <div class="field">
+      <div class="field-label">Activities</div>
+      <div class="field-value">
+        ${activities[0]}<br>
+        ${activities[1]}
+      </div>
+    </div>
+    
+    <div class="field">
+      <div class="field-label">Employees</div>
+      <div class="field-value">${employees}</div>
+    </div>
+  </div>
+  
+  <div class="separator"></div>
+  
+  <div class="section">
+    <div class="section-title">Establishment</div>
+    
+    <div class="field">
+      <div class="field-label">Establishment number</div>
+      <div class="field-value">${establishmentNumber}</div>
+    </div>
+    
+    <div class="field">
+      <div class="field-label">Trade names</div>
+      <div class="field-value">${tradeName}</div>
+    </div>
+    
+    <div class="field">
+      <div class="field-label">Visiting address</div>
+      <div class="field-value">${address}</div>
+    </div>
+    
+    <div class="field">
+      <div class="field-label">Date of incorporation</div>
+      <div class="field-value">${startDate}</div>
+    </div>
+    
+    <div class="field">
+      <div class="field-label">Activities</div>
+      <div class="field-value">
+        ${activities[0]}<br>
+        ${activities[1]}<br>
+        <em>For further information on activities, see Dutch extract.</em>
+      </div>
+    </div>
+    
+    <div class="field">
+      <div class="field-label">Employees</div>
+      <div class="field-value">${employees}</div>
+    </div>
+  </div>
+  
+  <div class="separator"></div>
+  
+  <div class="section">
+    <div class="section-title">Owner</div>
+    
+    <div class="field">
+      <div class="field-label">Name</div>
+      <div class="field-value">${ownerName}</div>
+    </div>
+    
+    <div class="field">
+      <div class="field-label">Date of birth</div>
+      <div class="field-value">${dob}</div>
+    </div>
+    
+    <div class="field">
+      <div class="field-label">Date of entry into office</div>
+      <div class="field-value">${entryDate}</div>
+    </div>
+  </div>
+  
+  <div class="separator"></div>
+  
+  <div class="footer">
+    <div class="extract-info">
+      Extract was made on ${extractionDate} at ${extractionTime} hours.
+    </div>
+    
+    <div class="watermark">WAARMERK</div>
+    <div class="kvk-sub">KAMER VAN KOOPHANDEL</div>
+    
+    <div class="footer-text">
+      This extract has been certified with a digital signature and is an official proof of registration in the Business
+      Register. You can check the integrity of this document and validate the signature in Adobe at the top of your
+      screen. The Chamber of Commerce recommends that this document be viewed in digital form so that its
+      integrity is safeguarded and the signature remains verifiable.
+    </div>
+    
+    <div class="timestamp">${timestamp}</div>
+    <div class="bottom-bar"></div>
+  </div>
+</body>
+</html>`;
 }
 
 // Helper function to format date in Dutch format (DD-MM-YYYY)

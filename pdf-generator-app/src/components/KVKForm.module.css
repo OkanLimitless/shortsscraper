@@ -176,6 +176,63 @@
   background-color: #b10069;
 }
 
+/* Method Selector Styles */
+.methodSelector {
+  margin-bottom: 30px;
+  padding: 20px;
+  background-color: #ffffff;
+  border-radius: 8px;
+  border: 2px solid #e0e0e0;
+}
+
+.methodSelector h3 {
+  margin-bottom: 15px;
+  color: #204a63;
+  font-size: 18px;
+}
+
+.methodOptions {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 15px;
+}
+
+.radioLabel {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  padding: 10px;
+  border-radius: 6px;
+  border: 1px solid #ddd;
+  transition: all 0.2s ease;
+}
+
+.radioLabel:hover {
+  background-color: #f5f5f5;
+  border-color: #204a63;
+}
+
+.radioLabel input[type="radio"] {
+  margin-right: 10px;
+  transform: scale(1.2);
+}
+
+.radioLabel span {
+  font-weight: 500;
+  color: #555;
+}
+
+.methodNote {
+  font-size: 14px;
+  color: #666;
+  line-height: 1.5;
+  background-color: #f8f9fa;
+  padding: 12px;
+  border-radius: 4px;
+  border-left: 4px solid #204a63;
+}
+
 @media (max-width: 768px) {
   .formContainer {
     padding: 20px;
