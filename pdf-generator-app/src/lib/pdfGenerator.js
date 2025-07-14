@@ -560,9 +560,9 @@ export async function generatePDF(formData) {
       color: rgb(0, 0, 0),
     });
 
-    currentY -= 60; // Much more space before WAARMERK to position it just above the bottom image
+    currentY -= 80; // Even more space before WAARMERK to position it closer to the bottom image
 
-    // Watermark section - positioned much lower, just above the bottom image
+    // Watermark section - positioned very close to the bottom image
     page.drawText('WAARMERK', {
       x: 50,
       y: currentY,

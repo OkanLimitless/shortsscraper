@@ -12,14 +12,10 @@ export default function KVKForm() {
   
   const [formData, setFormData] = useState({
     tradeName: '',
-    tradeNameAlias: '',
     legalForm: 'Eenmanszaak (comparable with One-man business)', // Default value
     kvkNumber: '',
     address: '',
     establishmentNumber: '',
-    employees: '0', // Default value
-    dateOfIncorporation: '',
-    activities: '',
     ownerName: '',
     ownerDOB: '',
   });
@@ -41,11 +37,20 @@ export default function KVKForm() {
     }
   };
   
-  // Format date for display
+  // Format date for display - stable across server/client
   const formatDate = (dateString) => {
     if (!dateString) return '';
-    const date = new Date(dateString);
-    return date.toISOString().split('T')[0]; // YYYY-MM-DD format
+    // Return the date string as-is if it's already in YYYY-MM-DD format
+    if (typeof dateString === 'string' && dateString.match(/^\d{4}-\d{2}-\d{2}$/)) {
+      return dateString;
+    }
+    // For other formats, use a stable conversion
+    try {
+      const date = new Date(dateString);
+      return date.toISOString().split('T')[0]; // YYYY-MM-DD format
+    } catch (e) {
+      return '';
+    }
   };
 
   // Basic form validation
@@ -154,20 +159,7 @@ export default function KVKForm() {
               />
             </div>
             
-            <div className={styles.inputGroup}>
-              <label htmlFor="tradeNameAlias" className={styles.label}>
-                Trade Name Alias
-              </label>
-              <input
-                type="text"
-                id="tradeNameAlias"
-                name="tradeNameAlias"
-                value={formData.tradeNameAlias}
-                onChange={handleInputChange}
-                className={styles.input}
-                placeholder="Alternative trade name (optional)"
-              />
-            </div>
+
           </div>
 
           <div className={styles.row}>
@@ -227,22 +219,7 @@ export default function KVKForm() {
               </select>
             </div>
             
-            <div className={styles.inputGroup}>
-              <label htmlFor="employees" className={styles.label}>
-                Number of Employees
-              </label>
-              <input
-                type="number"
-                id="employees"
-                name="employees"
-                value={formData.employees}
-                onChange={handleInputChange}
-                className={styles.input}
-                min="0"
-                max="10000"
-                placeholder="Number of employees"
-              />
-            </div>
+
           </div>
 
           <div className={styles.inputGroup}>
@@ -260,34 +237,7 @@ export default function KVKForm() {
             />
           </div>
 
-          <div className={styles.inputGroup}>
-            <label htmlFor="activities" className={styles.label}>
-              Business Activities
-            </label>
-            <textarea
-              id="activities"
-              name="activities"
-              value={formData.activities}
-              onChange={handleInputChange}
-              className={styles.textarea}
-              placeholder="Describe business activities and SBI codes"
-              rows="3"
-            />
-          </div>
 
-          <div className={styles.inputGroup}>
-            <label htmlFor="dateOfIncorporation" className={styles.label}>
-              Date of Incorporation
-            </label>
-            <input
-              type="date"
-              id="dateOfIncorporation"
-              name="dateOfIncorporation"
-              value={formatDate(formData.dateOfIncorporation)}
-              onChange={handleInputChange}
-              className={styles.input}
-            />
-          </div>
         </div>
 
         {/* Owner Information Section */}
@@ -321,27 +271,28 @@ export default function KVKForm() {
                 value={formatDate(formData.ownerDOB)}
                 onChange={handleInputChange}
                 className={styles.input}
+                suppressHydrationWarning={true}
               />
             </div>
           </div>
         </div>
 
-        {/* Error Display */}
+                {/* Error Display */}
         {validationErrors.general && (
-          <div className={styles.error}>
+          <div className={styles.error} suppressHydrationWarning={true}>
             {validationErrors.general}
           </div>
         )}
         
         {error && (
-          <div className={styles.error}>
+          <div className={styles.error} suppressHydrationWarning={true}>
             Error: {error}
           </div>
         )}
-
+        
         {/* Success Message */}
         {success && (
-          <div className={styles.success}>
+          <div className={styles.success} suppressHydrationWarning={true}>
             PDF generated successfully and downloaded!
           </div>
         )}
@@ -351,6 +302,7 @@ export default function KVKForm() {
           type="submit"
           disabled={loading}
           className={`${styles.button} ${loading ? styles.buttonLoading : ''}`}
+          suppressHydrationWarning={true}
         >
           {loading ? 'Generating PDF...' : 'Generate KVK Extract PDF'}
         </button>
