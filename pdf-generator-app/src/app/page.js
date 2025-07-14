@@ -1,11 +1,5 @@
-import dynamic from 'next/dynamic';
+import KVKForm from '../components/KVKForm';
 import styles from './page.module.css';
-
-// Dynamically import the KVKForm component with client-side rendering
-const KVKForm = dynamic(() => import('../components/KVKForm'), { 
-  ssr: false, // Disable server-side rendering
-  loading: () => <p className={styles.loading}>Loading form...</p>
-});
 
 export default function Home() {
   return (

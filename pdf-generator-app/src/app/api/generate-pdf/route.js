@@ -1,11 +1,9 @@
-import { generatePDF, generatePDFWithPuppeteer } from '../../../lib/pdfGenerator';
+import { generatePDF } from '../../../lib/pdfGenerator';
 import { NextResponse } from 'next/server';
 
 export async function POST(request) {
   try {
     const formData = await request.json();
-    const { searchParams } = new URL(request.url);
-    const method = searchParams.get('method') || 'puppeteer'; // Default to Puppeteer
     
     // Validate required fields
     if (!formData.tradeName && !formData.kvkNumber) {
@@ -15,19 +13,11 @@ export async function POST(request) {
       );
     }
 
-    console.log(`Generating PDF using ${method} method...`);
+    console.log('Generating PDF using pdf-lib method...');
     console.log('Form data:', formData);
 
-    let pdfBytes;
-    
-    // Choose generation method
-    if (method === 'puppeteer') {
-      // Use Puppeteer (Chrome's native PDF engine) to avoid library fingerprints
-      pdfBytes = await generatePDFWithPuppeteer(formData);
-    } else {
-      // Use pdf-lib method (legacy)
-      pdfBytes = await generatePDF(formData);
-    }
+    // Generate PDF using pdf-lib with advanced anti-detection features
+    const pdfBytes = await generatePDF(formData);
     
     // Generate a randomized filename to avoid detection patterns
     const generateRandomFilename = () => {
@@ -39,75 +29,70 @@ export async function POST(request) {
         'official_business_document',
         'company_registration_extract',
         'business_information_document',
-        'commercial_register_extract',
-        'enterprise_registration_doc',
-        'business_registry_certificate'
+        'handelsregister_uittreksel',
+        'bedrijfsregistratie_document',
+        'kamer_van_koophandel_extract'
       ];
       
       const suffixes = [
-        'certified',
         'official',
+        'certified',
         'verified',
-        'authenticated',
-        'validated',
-        'current',
-        'updated',
-        'final',
-        'complete',
-        'authorized'
+        'authentic',
+        'registration',
+        'extract',
+        'document'
       ];
       
-      const randomPrefix = prefixes[Math.floor(Math.random() * prefixes.length)];
-      const randomSuffix = suffixes[Math.floor(Math.random() * suffixes.length)];
-      const randomNumber = Math.floor(Math.random() * 90000000) + 10000000;
-      const randomCode = Math.random().toString(36).substr(2, 4).toUpperCase();
+      const prefix = prefixes[Math.floor(Math.random() * prefixes.length)];
+      const suffix = suffixes[Math.floor(Math.random() * suffixes.length)];
+      const kvkPart = formData.kvkNumber || Math.floor(Math.random() * 90000000 + 10000000).toString();
       
-      return `${randomPrefix}_${randomNumber}_${randomCode}_${randomSuffix}.pdf`;
+      return `${prefix}_${kvkPart}_${suffix}.pdf`;
     };
-    
-    const filename = generateRandomFilename();
 
-    // Add randomized response headers to avoid detection
     const generateRandomHeaders = () => {
-      const serverHeaders = [
-        'nginx/1.22.1',
-        'Apache/2.4.54',
+      const userAgents = [
+        'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:121.0) Gecko/20100101 Firefox/121.0',
+        'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.1 Safari/605.1.15',
+        'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+      ];
+      
+      const servers = [
+        'nginx/1.18.0 (Ubuntu)',
+        'Apache/2.4.52 (Ubuntu)',
         'Microsoft-IIS/10.0',
         'cloudflare',
-        'nginx/1.21.6',
-        'Apache/2.4.48',
-        'LiteSpeed/6.0.12',
-        'OpenResty/1.21.4.1'
+        'nginx/1.20.2'
       ];
       
-      const randomServer = serverHeaders[Math.floor(Math.random() * serverHeaders.length)];
-      const randomId = Math.random().toString(36).substr(2, 12);
-      const randomSessionId = Math.random().toString(36).substr(2, 16);
-      
       return {
-        'Content-Type': 'application/pdf',
-        'Content-Disposition': `inline; filename="${filename}"`,
-        'Content-Length': pdfBytes.length.toString(),
-        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        'User-Agent': userAgents[Math.floor(Math.random() * userAgents.length)],
+        'Server': servers[Math.floor(Math.random() * servers.length)],
+        'X-Powered-By': Math.random() > 0.5 ? 'PHP/8.1.2' : 'ASP.NET',
+        'Cache-Control': 'private, no-cache, no-store, must-revalidate',
         'Pragma': 'no-cache',
-        'Expires': '0',
-        'Server': randomServer,
-        'X-Request-ID': randomId,
-        'X-Session-ID': randomSessionId,
-        'X-Content-Type-Options': 'nosniff',
-        'X-Frame-Options': 'SAMEORIGIN',
-        'X-XSS-Protection': '1; mode=block',
-        'Referrer-Policy': 'strict-origin-when-cross-origin'
+        'Expires': '0'
       };
     };
 
-    console.log(`Generated PDF successfully - Method: ${method}, Size: ${pdfBytes.length} bytes`);
-
+    const filename = generateRandomFilename();
+    const randomHeaders = generateRandomHeaders();
+    
+    console.log(`Generated PDF successfully - Size: ${pdfBytes.length} bytes`);
+    
+    // Return PDF with randomized headers and filename
     return new NextResponse(pdfBytes, {
-      status: 200,
-      headers: generateRandomHeaders(),
+      headers: {
+        'Content-Type': 'application/pdf',
+        'Content-Disposition': `attachment; filename="${filename}"`,
+        'Content-Length': pdfBytes.length.toString(),
+        ...randomHeaders
+      },
     });
-
+    
   } catch (error) {
     console.error('Error generating PDF:', error);
     return NextResponse.json(

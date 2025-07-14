@@ -1,4 +1,4 @@
-.formContainer {
+.container {
   background-color: #ffffff;
   border-radius: 8px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
@@ -8,10 +8,17 @@
   margin: 0 auto;
 }
 
-.formTitle {
+.title {
   font-size: 28px;
   color: #204a63; /* KVK blue */
   margin-bottom: 20px;
+  text-align: center;
+}
+
+.subtitle {
+  font-size: 16px;
+  color: #666;
+  margin-bottom: 30px;
   text-align: center;
 }
 
@@ -37,13 +44,21 @@
   gap: 20px;
 }
 
-.formGroup {
+.row {
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.inputGroup {
   display: flex;
   flex-direction: column;
   margin-bottom: 15px;
+  flex: 1;
+  min-width: 250px;
 }
 
-.formGroup label {
+.label {
   font-weight: 600;
   margin-bottom: 6px;
   color: #333;
@@ -57,9 +72,9 @@
   margin-left: 4px;
 }
 
-.formGroup input,
-.formGroup select,
-.formGroup textarea {
+.inputGroup input,
+.inputGroup select,
+.inputGroup textarea {
   padding: 10px 12px;
   border: 1px solid #ddd;
   border-radius: 4px;
@@ -67,9 +82,9 @@
   transition: border-color 0.3s ease;
 }
 
-.formGroup input:focus,
-.formGroup select:focus,
-.formGroup textarea:focus {
+.inputGroup input:focus,
+.inputGroup select:focus,
+.inputGroup textarea:focus {
   border-color: #204a63;
   outline: none;
   box-shadow: 0 0 0 2px rgba(32, 74, 99, 0.1);
@@ -91,150 +106,146 @@
   margin-top: 10px;
 }
 
-.submitButton {
+.button {
   background-color: #204a63; /* KVK blue */
   color: white;
   border: none;
   border-radius: 4px;
   padding: 12px 24px;
   font-size: 16px;
-  font-weight: 600;
   cursor: pointer;
   transition: background-color 0.3s ease;
-  min-width: 200px;
 }
 
-.submitButton:hover {
-  background-color: #17384c;
+.button:hover {
+  background-color: #183a4f;
 }
 
-.submitButton:disabled {
-  background-color: #cccccc;
+.button:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+}
+
+.buttonLoading {
+  background-color: #ccc;
   cursor: not-allowed;
 }
 
 .note {
-  text-align: center;
+  background-color: #f0f8ff;
+  border: 1px solid #b0d4ff;
+  border-radius: 4px;
+  padding: 15px;
+  margin-bottom: 20px;
   font-size: 14px;
-  color: #666;
-  margin-top: 15px;
-  font-style: italic;
+  color: #333;
 }
 
 .errorMessage {
   background-color: #ffebee;
-  color: #c62828;
-  padding: 12px;
+  border: 1px solid #ffcdd2;
   border-radius: 4px;
-  margin-top: 20px;
-  font-size: 14px;
-  border-left: 4px solid #e53935;
+  padding: 15px;
+  margin-bottom: 20px;
+  color: #c62828;
 }
 
 .successMessage {
-  background-color: #e8f5e9;
-  border-left: 4px solid #43a047;
-  padding: 15px;
+  background-color: #e8f5e8;
+  border: 1px solid #c8e6c9;
   border-radius: 4px;
-  margin-top: 20px;
+  padding: 20px;
+  margin-bottom: 20px;
+  color: #2e7d32;
 }
 
 .successMessage h3 {
-  color: #2e7d32;
   margin-top: 0;
   margin-bottom: 10px;
+  color: #1b5e20;
 }
 
 .successMessage p {
-  color: #333;
-  font-size: 14px;
-  margin-bottom: 15px;
+  margin-bottom: 10px;
 }
 
 .successMessage ol {
-  margin-left: 18px;
-  margin-bottom: 15px;
+  margin-bottom: 10px;
+  padding-left: 20px;
 }
 
 .successMessage li {
-  margin-bottom: 6px;
-  color: #555;
+  margin-bottom: 5px;
 }
 
 .convertButton {
-  background-color: #d90080; /* KVK magenta */
+  background-color: #28a745;
   color: white;
   border: none;
   border-radius: 4px;
-  padding: 10px 16px;
-  font-size: 14px;
+  padding: 12px 24px;
+  font-size: 16px;
   cursor: pointer;
   transition: background-color 0.3s ease;
+  margin-top: 15px;
 }
 
 .convertButton:hover {
-  background-color: #b10069;
+  background-color: #218838;
 }
 
-/* Method Selector Styles */
 .methodSelector {
-  margin-bottom: 30px;
-  padding: 20px;
-  background-color: #ffffff;
+  background-color: #f8f9fa;
+  border: 1px solid #dee2e6;
   border-radius: 8px;
-  border: 2px solid #e0e0e0;
+  padding: 20px;
+  margin-bottom: 20px;
 }
 
 .methodSelector h3 {
+  margin-top: 0;
   margin-bottom: 15px;
   color: #204a63;
-  font-size: 18px;
+  font-size: 16px;
 }
 
 .methodOptions {
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  margin-bottom: 15px;
+  gap: 10px;
 }
 
 .radioLabel {
   display: flex;
   align-items: center;
-  cursor: pointer;
   padding: 10px;
-  border-radius: 6px;
   border: 1px solid #ddd;
-  transition: all 0.2s ease;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
 }
 
 .radioLabel:hover {
-  background-color: #f5f5f5;
-  border-color: #204a63;
+  background-color: #f8f9fa;
 }
 
 .radioLabel input[type="radio"] {
   margin-right: 10px;
-  transform: scale(1.2);
 }
 
 .radioLabel span {
   font-weight: 500;
-  color: #555;
 }
 
 .methodNote {
-  font-size: 14px;
+  font-size: 12px;
   color: #666;
-  line-height: 1.5;
-  background-color: #f8f9fa;
-  padding: 12px;
-  border-radius: 4px;
-  border-left: 4px solid #204a63;
+  margin-top: 5px;
+  font-style: italic;
 }
 
 @media (max-width: 768px) {
-  .formContainer {
+  .container {
     padding: 20px;
   }
   
@@ -242,7 +253,16 @@
     padding: 15px;
   }
   
-  .submitButton {
+  .button {
     width: 100%;
+  }
+
+  .row {
+    flex-direction: column;
+    gap: 0;
+  }
+  
+  .inputGroup {
+    min-width: unset;
   }
 } 
