@@ -7,9 +7,6 @@ node_modules
 *.log
 *.tmp
 
-# PDF-generator app subdirectory (since we moved it to root)
-pdf-generator-app/
-
 # Backup directory
 backup_root/
 
