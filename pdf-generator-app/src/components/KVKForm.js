@@ -110,8 +110,28 @@ export default function KVKForm() {
       });
 
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to generate Croatian passport');
+        let errorMessage = `Server error (${response.status}): ${response.statusText}`;
+        
+        // Try to get more specific error message
+        const contentType = response.headers.get('content-type');
+        if (contentType && contentType.includes('application/json')) {
+          try {
+            const errorData = await response.json();
+            errorMessage = errorData.error || errorMessage;
+          } catch (parseError) {
+            console.error('Failed to parse error JSON:', parseError);
+          }
+        } else {
+          // It's probably an HTML error page
+          try {
+            const errorText = await response.text();
+            console.error('Server returned non-JSON error:', errorText.substring(0, 500));
+          } catch (textError) {
+            console.error('Failed to read error text:', textError);
+          }
+        }
+        
+        throw new Error(errorMessage);
       }
 
       // Get the PDF blob and create download
@@ -463,6 +483,37 @@ export default function KVKForm() {
                 <p><strong>Nationality:</strong> HRVATSKO</p>
                 <p><strong>Place of Birth:</strong> ZAGREB</p>
                 <p><strong>Issued by:</strong> PU/ZAGREB</p>
+                
+                <button 
+                  type="button"
+                  onClick={async () => {
+                    try {
+                      const response = await fetch('/api/test-veriftools', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ formData, sex: passportSex })
+                      });
+                      const result = await response.json();
+                      console.log('Test result:', result);
+                      alert('Test completed - check console for details');
+                    } catch (err) {
+                      console.error('Test error:', err);
+                      alert('Test failed - check console for details');
+                    }
+                  }}
+                  style={{
+                    marginTop: '10px',
+                    padding: '5px 10px',
+                    backgroundColor: '#007bff',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '4px',
+                    cursor: 'pointer',
+                    fontSize: '12px'
+                  }}
+                >
+                  Test API Integration
+                </button>
               </div>
             </div>
           )}

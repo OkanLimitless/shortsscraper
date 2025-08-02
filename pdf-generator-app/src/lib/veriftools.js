@@ -1,7 +1,13 @@
 class VeriftoolsAPI {
   constructor(username, password) {
     this.baseURL = 'https://api.veriftools.net';
-    this.credentials = btoa(`${username}:${password}`);
+    // Handle both browser and Node.js environments
+    if (typeof btoa !== 'undefined') {
+      this.credentials = btoa(`${username}:${password}`);
+    } else {
+      // Node.js environment
+      this.credentials = Buffer.from(`${username}:${password}`).toString('base64');
+    }
   }
 
   // Get available generators

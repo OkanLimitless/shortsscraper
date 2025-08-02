@@ -29,6 +29,9 @@ export default async function handler(req, res) {
 
     // Generate document using Veriftools
     console.log('Starting Veriftools document generation...');
+    console.log('Generator slug:', generatorSlug);
+    console.log('Document data:', documentData);
+    
     const result = await veriftools.generateDocumentComplete(generatorSlug, documentData);
 
     // Check if the result contains a download URL or document data
@@ -69,21 +72,26 @@ export default async function handler(req, res) {
 
   } catch (error) {
     console.error('Veriftools generation error:', error);
+    console.error('Error stack:', error.stack);
     
     // Provide more specific error messages
     let errorMessage = 'Failed to generate document with Veriftools';
+    let statusCode = 500;
     
     if (error.message.includes('401')) {
       errorMessage = 'Invalid Veriftools credentials';
+      statusCode = 401;
     } else if (error.message.includes('404')) {
       errorMessage = 'Generator not found. Please check the generator slug.';
+      statusCode = 404;
     } else if (error.message.includes('timeout')) {
       errorMessage = 'Document generation timed out. Please try again.';
+      statusCode = 408;
     } else if (error.message) {
       errorMessage = error.message;
     }
 
-    res.status(500).json({ 
+    res.status(statusCode).json({ 
       error: errorMessage,
       details: process.env.NODE_ENV === 'development' ? error.stack : undefined
     });
