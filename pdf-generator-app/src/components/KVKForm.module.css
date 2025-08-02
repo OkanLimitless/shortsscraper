@@ -265,4 +265,43 @@
   .inputGroup {
     min-width: unset;
   }
+}
+
+/* Veriftools specific styles */
+.checkboxLabel {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 500;
+  color: #333;
+  cursor: pointer;
+}
+
+.checkbox {
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+}
+
+.description {
+  font-size: 14px;
+  color: #666;
+  margin-top: 5px;
+  line-height: 1.4;
+}
+
+.verriftoolsConfig {
+  margin-top: 20px;
+  padding: 20px;
+  background-color: #f0f8ff;
+  border: 1px solid #cce7ff;
+  border-radius: 6px;
+}
+
+.verriftoolsConfig .inputGroup {
+  margin-bottom: 15px;
+}
+
+.verriftoolsConfig .inputGroup:last-child {
+  margin-bottom: 0;
 } 

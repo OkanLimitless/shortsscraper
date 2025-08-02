@@ -19,6 +19,14 @@ export default function KVKForm() {
     ownerName: '',
     ownerDOB: '',
   });
+
+  // Veriftools state
+  const [useVeriftools, setUseVeriftools] = useState(false);
+  const [verriftoolsCredentials, setVeriftoolsCredentials] = useState({
+    username: '',
+    password: '',
+    generatorSlug: 'kvk-extract' // Default slug, can be changed
+  });
   
   // Handle input change
   const handleInputChange = (e) => {
@@ -65,6 +73,35 @@ export default function KVKForm() {
     return Object.keys(errors).length === 0;
   };
 
+  // Handle Veriftools credentials change
+  const handleVeriftoolsCredentialsChange = (e) => {
+    const { name, value } = e.target;
+    setVeriftoolsCredentials(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  // Generate document with Veriftools
+  const generateWithVeriftools = async () => {
+    const response = await fetch('/api/generate-veriftools', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        formData,
+        generatorSlug: verriftoolsCredentials.generatorSlug,
+        credentials: {
+          username: verriftoolsCredentials.username,
+          password: verriftoolsCredentials.password
+        }
+      }),
+    });
+
+    return response;
+  };
+
   // Handle form submission
   const generatePDF = async (e) => {
     e.preventDefault();
@@ -73,19 +110,34 @@ export default function KVKForm() {
       return;
     }
 
+    // Additional validation for Veriftools
+    if (useVeriftools) {
+      if (!verriftoolsCredentials.username || !verriftoolsCredentials.password) {
+        setError('Please provide Veriftools credentials');
+        return;
+      }
+    }
+
     setLoading(true);
     setError(null);
     setSuccess(false);
 
     try {
-      // Generate PDF using pdf-lib method with advanced anti-detection
-      const response = await fetch('/api/generate-pdf', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(formData),
-      });
+      let response;
+      
+      if (useVeriftools) {
+        // Use Veriftools API
+        response = await generateWithVeriftools();
+      } else {
+        // Generate PDF using existing pdf-lib method with advanced anti-detection
+        response = await fetch('/api/generate-pdf', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(formData),
+        });
+      }
 
       if (!response.ok) {
         const errorData = await response.json();
@@ -98,9 +150,10 @@ export default function KVKForm() {
       
       // Get filename from response headers
       const contentDisposition = response.headers.get('Content-Disposition');
+      const defaultFilename = useVeriftools ? 'kvk_extract_veriftools.pdf' : 'kvk_extract.pdf';
       const filename = contentDisposition 
         ? contentDisposition.split('filename=')[1]?.replace(/"/g, '') 
-        : 'kvk_extract.pdf';
+        : defaultFilename;
 
       // Create download link
       const a = document.createElement('a');
@@ -275,6 +328,80 @@ export default function KVKForm() {
               />
             </div>
           </div>
+        </div>
+
+        {/* Veriftools Integration Section */}
+        <div className={styles.section}>
+          <h2 className={styles.sectionTitle}>Document Generation Options</h2>
+          
+          <div className={styles.inputGroup}>
+            <label className={styles.checkboxLabel}>
+              <input
+                type="checkbox"
+                checked={useVeriftools}
+                onChange={(e) => setUseVeriftools(e.target.checked)}
+                className={styles.checkbox}
+              />
+              Use Veriftools API for enhanced document generation
+            </label>
+            <p className={styles.description}>
+              Veriftools provides professional-grade document generation with additional verification features.
+            </p>
+          </div>
+
+          {useVeriftools && (
+            <div className={styles.verriftoolsConfig}>
+              <div className={styles.row}>
+                <div className={styles.inputGroup}>
+                  <label htmlFor="verriftoolsUsername" className={styles.label}>
+                    Veriftools Username *
+                  </label>
+                  <input
+                    type="text"
+                    id="verriftoolsUsername"
+                    name="username"
+                    value={verriftoolsCredentials.username}
+                    onChange={handleVeriftoolsCredentialsChange}
+                    className={styles.input}
+                    placeholder="Your Veriftools username"
+                  />
+                </div>
+                
+                <div className={styles.inputGroup}>
+                  <label htmlFor="verriftoolsPassword" className={styles.label}>
+                    Veriftools Password *
+                  </label>
+                  <input
+                    type="password"
+                    id="verriftoolsPassword"
+                    name="password"
+                    value={verriftoolsCredentials.password}
+                    onChange={handleVeriftoolsCredentialsChange}
+                    className={styles.input}
+                    placeholder="Your Veriftools password"
+                  />
+                </div>
+              </div>
+              
+              <div className={styles.inputGroup}>
+                <label htmlFor="generatorSlug" className={styles.label}>
+                  Generator Slug
+                </label>
+                <input
+                  type="text"
+                  id="generatorSlug"
+                  name="generatorSlug"
+                  value={verriftoolsCredentials.generatorSlug}
+                  onChange={handleVeriftoolsCredentialsChange}
+                  className={styles.input}
+                  placeholder="kvk-extract"
+                />
+                <p className={styles.description}>
+                  The specific generator to use for KVK documents. Contact Veriftools support if unsure.
+                </p>
+              </div>
+            </div>
+          )}
         </div>
 
                 {/* Error Display */}
