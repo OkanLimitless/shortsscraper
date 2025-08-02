@@ -1,6 +1,6 @@
 class VeriftoolsAPI {
   constructor(username, password) {
-    this.baseURL = 'https://api.veriftools.net';
+    this.baseURL = 'https://api.veriftools.com';
     // Handle both browser and Node.js environments
     if (typeof btoa !== 'undefined') {
       this.credentials = btoa(`${username}:${password}`);

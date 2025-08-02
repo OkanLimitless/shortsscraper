@@ -53,14 +53,100 @@ export default async function handler(req, res) {
       }
     }
 
-    // Test 1: Try to get generator info first
-    console.log('=== TEST 1: GET GENERATOR INFO ===');
+    // Test 1: First, let's try to get a list of available generators
+    console.log('=== TEST 1: LIST AVAILABLE GENERATORS ===');
     try {
-      // Try different API base URLs
-      const apiUrls = [
-        `https://api.veriftools.com/api/integration/generator-information/${generatorSlug}/`,
-        `https://api.veriftools.net/api/integration/generator-information/${generatorSlug}/`
+      // Try to get list of generators or any endpoint that shows available options
+      const listUrls = [
+        'https://api.veriftools.com/api/integration/generators/',
+        'https://api.veriftools.com/api/integration/generator-list/',
+        'https://api.veriftools.com/api/integration/',
+        'https://api.veriftools.com/api/'
       ];
+
+      for (const url of listUrls) {
+        console.log(`Trying list URL: ${url}`);
+        try {
+          const listResponse = await fetch(url, {
+            method: 'GET',
+            headers: {
+              'Authorization': `Basic ${credentials}`,
+              'Content-Type': 'application/json',
+              'User-Agent': 'KVK-Generator/1.0'
+            }
+          });
+
+          console.log(`${url} - Status:`, listResponse.status);
+          console.log(`${url} - Content-Type:`, listResponse.headers.get('content-type'));
+          
+          if (listResponse.headers.get('content-type')?.includes('application/json')) {
+            const data = await listResponse.text();
+            console.log(`${url} - JSON Response:`, data.substring(0, 1000));
+          }
+        } catch (error) {
+          console.log(`${url} - Error:`, error.message);
+        }
+      }
+    } catch (error) {
+      console.error('List generators failed:', error);
+    }
+
+    // Test 2: Try to get generator info with different Croatian passport slugs
+    console.log('=== TEST 2: GET GENERATOR INFO ===');
+    try {
+      // Try different possible Croatian passport slugs
+      const possibleSlugs = [
+        'croatia-passport',
+        'croatian-passport', 
+        'croatia_passport',
+        'croatian_passport',
+        'hr-passport',
+        'hr_passport',
+        'passport-croatia',
+        'passport_croatia'
+      ];
+
+      let foundSlug = null;
+      const baseUrl = 'https://api.veriftools.com/api/integration/generator-information/';
+
+      for (const slug of possibleSlugs) {
+        console.log(`Trying generator slug: ${slug}`);
+        try {
+          const response = await fetch(`${baseUrl}${slug}/`, {
+            method: 'GET',
+            headers: {
+              'Authorization': `Basic ${credentials}`,
+              'Content-Type': 'application/json',
+              'User-Agent': 'KVK-Generator/1.0'
+            }
+          });
+
+          console.log(`${slug} - Status:`, response.status);
+          
+          if (response.status === 200) {
+            const data = await response.json();
+            console.log(`SUCCESS: Found working slug "${slug}":`, JSON.stringify(data, null, 2));
+            foundSlug = slug;
+            break;
+          } else if (response.status === 404) {
+            console.log(`${slug} - Not found (404)`);
+          } else {
+            const errorText = await response.text();
+            console.log(`${slug} - Error ${response.status}:`, errorText.substring(0, 200));
+          }
+        } catch (error) {
+          console.log(`${slug} - Request failed:`, error.message);
+        }
+      }
+
+      if (!foundSlug) {
+        console.log('No working Croatian passport generator slug found');
+        
+        // Try the original slug one more time for detailed error
+        const apiUrls = [
+          `https://api.veriftools.com/api/integration/generator-information/${generatorSlug}/`,
+          `https://api.veriftools.net/api/integration/generator-information/${generatorSlug}/`
+        ];
 
       let infoResponse;
       let successUrl;
@@ -137,7 +223,7 @@ export default async function handler(req, res) {
       formData.append('issued_by', 'PU/ZAGREB');
 
       console.log('Making generate request...');
-      const generateResponse = await fetch('https://api.veriftools.net/api/integration/generate/', {
+      const generateResponse = await fetch('https://api.veriftools.com/api/integration/generate/', {
         method: 'POST',
         headers: {
           'Authorization': `Basic ${credentials}`,
