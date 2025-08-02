@@ -57,6 +57,11 @@ class VeriftoolsAPI {
   // Generate document
   async generateDocument(generatorSlug, documentData) {
     try {
+      console.log('=== VERIFTOOLS API CALL DEBUG ===');
+      console.log('URL:', `${this.baseURL}/api/integration/generate/`);
+      console.log('Generator slug:', generatorSlug);
+      console.log('Document data:', documentData);
+      
       const formData = new FormData();
       
       // Add generator slug
@@ -65,10 +70,12 @@ class VeriftoolsAPI {
       // Add document data (this will depend on what the specific generator expects)
       Object.keys(documentData).forEach(key => {
         if (documentData[key] !== null && documentData[key] !== undefined) {
+          console.log(`Adding form field: ${key} = ${documentData[key]}`);
           formData.append(key, documentData[key]);
         }
       });
 
+      console.log('Making API request...');
       const response = await fetch(`${this.baseURL}/api/integration/generate/`, {
         method: 'POST',
         headers: {
@@ -78,11 +85,17 @@ class VeriftoolsAPI {
         body: formData
       });
 
+      console.log('Response status:', response.status);
+      console.log('Response headers:', Object.fromEntries(response.headers.entries()));
+
       if (!response.ok) {
-        throw new Error(`Failed to generate document: ${response.status}`);
+        const errorText = await response.text();
+        console.log('Error response body:', errorText.substring(0, 1000));
+        throw new Error(`Failed to generate document: ${response.status} - ${errorText.substring(0, 200)}`);
       }
 
       const result = await response.json();
+      console.log('Success response:', result);
       return result; // Should contain task_id for status checking
     } catch (error) {
       console.error('Error generating document:', error);
@@ -93,6 +106,7 @@ class VeriftoolsAPI {
   // Check generation status
   async checkGenerationStatus(taskId) {
     try {
+      console.log('=== CHECKING STATUS FOR TASK:', taskId, '===');
       const response = await fetch(`${this.baseURL}/api/integration/generation-status/${taskId}/`, {
         method: 'GET',
         headers: {
@@ -101,11 +115,17 @@ class VeriftoolsAPI {
         }
       });
 
+      console.log('Status check response:', response.status);
+
       if (!response.ok) {
-        throw new Error(`Failed to check status: ${response.status}`);
+        const errorText = await response.text();
+        console.log('Status check error:', errorText.substring(0, 500));
+        throw new Error(`Failed to check status: ${response.status} - ${errorText.substring(0, 200)}`);
       }
 
-      return await response.json();
+      const result = await response.json();
+      console.log('Status result:', result);
+      return result;
     } catch (error) {
       console.error('Error checking generation status:', error);
       throw error;

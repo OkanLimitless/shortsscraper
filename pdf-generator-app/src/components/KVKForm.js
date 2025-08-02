@@ -484,36 +484,75 @@ export default function KVKForm() {
                 <p><strong>Place of Birth:</strong> ZAGREB</p>
                 <p><strong>Issued by:</strong> PU/ZAGREB</p>
                 
-                <button 
-                  type="button"
-                  onClick={async () => {
-                    try {
-                      const response = await fetch('/api/test-veriftools', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ formData, sex: passportSex })
-                      });
-                      const result = await response.json();
-                      console.log('Test result:', result);
-                      alert('Test completed - check console for details');
-                    } catch (err) {
-                      console.error('Test error:', err);
-                      alert('Test failed - check console for details');
-                    }
-                  }}
-                  style={{
-                    marginTop: '10px',
-                    padding: '5px 10px',
-                    backgroundColor: '#007bff',
-                    color: 'white',
-                    border: 'none',
-                    borderRadius: '4px',
-                    cursor: 'pointer',
-                    fontSize: '12px'
-                  }}
-                >
-                  Test API Integration
-                </button>
+                <div style={{ marginTop: '10px', display: 'flex', gap: '10px' }}>
+                  <button 
+                    type="button"
+                    onClick={async () => {
+                      try {
+                        const response = await fetch('/api/test-veriftools', {
+                          method: 'POST',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify({ formData, sex: passportSex })
+                        });
+                        const result = await response.json();
+                        console.log('Test result:', result);
+                        alert('Test completed - check console for details');
+                      } catch (err) {
+                        console.error('Test error:', err);
+                        alert('Test failed - check console for details');
+                      }
+                    }}
+                    style={{
+                      padding: '5px 10px',
+                      backgroundColor: '#007bff',
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: '4px',
+                      cursor: 'pointer',
+                      fontSize: '12px'
+                    }}
+                  >
+                    Test API Integration
+                  </button>
+                  
+                  <button 
+                    type="button"
+                    onClick={async () => {
+                      if (!verriftoolsCredentials.username || !verriftoolsCredentials.password) {
+                        alert('Please enter Veriftools credentials first');
+                        return;
+                      }
+                      try {
+                        const response = await fetch('/api/test-veriftools-direct', {
+                          method: 'POST',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify({
+                            username: verriftoolsCredentials.username,
+                            password: verriftoolsCredentials.password,
+                            generatorSlug: verriftoolsCredentials.generatorSlug
+                          })
+                        });
+                        const result = await response.json();
+                        console.log('Direct test result:', result);
+                        alert('Direct test completed - check console and server logs');
+                      } catch (err) {
+                        console.error('Direct test error:', err);
+                        alert('Direct test failed - check console for details');
+                      }
+                    }}
+                    style={{
+                      padding: '5px 10px',
+                      backgroundColor: '#28a745',
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: '4px',
+                      cursor: 'pointer',
+                      fontSize: '12px'
+                    }}
+                  >
+                    Test Direct API
+                  </button>
+                </div>
               </div>
             </div>
           )}
