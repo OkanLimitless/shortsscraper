@@ -20,38 +20,84 @@ export default async function handler(req, res) {
     const credentials = Buffer.from(`${username}:${password}`).toString('base64');
     console.log('Credentials created');
 
-    // Test 0: Basic connectivity test
+    // Test 0: Basic connectivity test - try different base URLs
     console.log('=== TEST 0: BASIC CONNECTIVITY ===');
-    try {
-      const baseResponse = await fetch('https://api.veriftools.net/', {
-        method: 'GET',
-        headers: {
-          'User-Agent': 'KVK-Generator/1.0'
+    const baseUrls = [
+      'https://api.veriftools.net/',
+      'https://api.veriftools.com/',
+      'https://veriftools.net/api/',
+      'https://veriftools.com/api/',
+      'https://api.veriftools.com/api/schema/swagger-ui/'
+    ];
+
+    for (const baseUrl of baseUrls) {
+      try {
+        console.log(`Testing base URL: ${baseUrl}`);
+        const baseResponse = await fetch(baseUrl, {
+          method: 'GET',
+          headers: {
+            'User-Agent': 'KVK-Generator/1.0'
+          }
+        });
+        console.log(`${baseUrl} - Status:`, baseResponse.status);
+        console.log(`${baseUrl} - Content-Type:`, baseResponse.headers.get('content-type'));
+        
+        const baseText = await baseResponse.text();
+        if (baseText.includes('API') || baseText.includes('swagger') || baseText.includes('openapi')) {
+          console.log(`${baseUrl} - Looks like API documentation:`, baseText.substring(0, 300));
+        } else {
+          console.log(`${baseUrl} - Regular website:`, baseText.substring(0, 200));
         }
-      });
-      console.log('Base API response status:', baseResponse.status);
-      console.log('Base API response headers:', Object.fromEntries(baseResponse.headers.entries()));
-      
-      const baseText = await baseResponse.text();
-      console.log('Base API response:', baseText.substring(0, 500));
-    } catch (baseError) {
-      console.error('Base API connectivity failed:', baseError);
+      } catch (baseError) {
+        console.error(`${baseUrl} - Failed:`, baseError.message);
+      }
     }
 
     // Test 1: Try to get generator info first
     console.log('=== TEST 1: GET GENERATOR INFO ===');
     try {
-      const infoResponse = await fetch(`https://api.veriftools.net/api/integration/generator-information/${generatorSlug}/`, {
-        method: 'GET',
-        headers: {
-          'Authorization': `Basic ${credentials}`,
-          'Content-Type': 'application/json',
-          'User-Agent': 'KVK-Generator/1.0'
-        }
-      });
+      // Try different API base URLs
+      const apiUrls = [
+        `https://api.veriftools.com/api/integration/generator-information/${generatorSlug}/`,
+        `https://api.veriftools.net/api/integration/generator-information/${generatorSlug}/`
+      ];
 
-      console.log('Info response status:', infoResponse.status);
-      console.log('Info response headers:', Object.fromEntries(infoResponse.headers.entries()));
+      let infoResponse;
+      let successUrl;
+      
+      for (const url of apiUrls) {
+        console.log(`Trying API URL: ${url}`);
+        try {
+                     infoResponse = await fetch(url, {
+            method: 'GET',
+            headers: {
+              'Authorization': `Basic ${credentials}`,
+              'Content-Type': 'application/json',
+              'User-Agent': 'KVK-Generator/1.0'
+            }
+          });
+
+          console.log(`${url} - Status:`, infoResponse.status);
+          console.log(`${url} - Content-Type:`, infoResponse.headers.get('content-type'));
+          
+          if (infoResponse.headers.get('content-type')?.includes('application/json')) {
+            console.log(`SUCCESS: ${url} returned JSON!`);
+            successUrl = url;
+            break;
+          } else {
+            console.log(`${url} returned HTML, trying next...`);
+          }
+        } catch (urlError) {
+          console.log(`${url} failed:`, urlError.message);
+        }
+      }
+
+      if (!successUrl) {
+        console.log('All API URLs failed, using last response for debugging...');
+      }
+
+      console.log('Final response status:', infoResponse.status);
+      console.log('Final response headers:', Object.fromEntries(infoResponse.headers.entries()));
 
              if (infoResponse.ok) {
          const contentType = infoResponse.headers.get('content-type');
@@ -62,7 +108,9 @@ export default async function handler(req, res) {
            console.log('Generator info success:', infoData);
          } else {
            const textData = await infoResponse.text();
-           console.log('Generator info returned non-JSON:', textData.substring(0, 500));
+           console.log('Generator info returned non-JSON (HTML page):');
+           console.log('HTML content:', textData.substring(0, 1000));
+           console.log('HTML title check:', textData.includes('<title>') ? textData.match(/<title>(.*?)<\/title>/)?.[1] : 'No title found');
          }
        } else {
          const errorText = await infoResponse.text();
