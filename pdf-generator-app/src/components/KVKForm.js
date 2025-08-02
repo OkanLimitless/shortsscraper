@@ -23,6 +23,8 @@ export default function KVKForm() {
   // Veriftools state for Croatian passport generation
   const [generatePassport, setGeneratePassport] = useState(false);
   const [passportSex, setPassportSex] = useState('M'); // Default to M
+  const [passportPhoto, setPassportPhoto] = useState(null); // Photo file
+  const [passportSignature, setPassportSignature] = useState(null); // Signature file
   const [verriftoolsCredentials, setVeriftoolsCredentials] = useState({
     username: 'multilog24@protonmail.com',
     password: 'K7-pk2Xj8wMvXqR',
@@ -88,25 +90,30 @@ export default function KVKForm() {
 
   // Generate Croatian passport with Veriftools (separate from KVK generation)
   const generateCroatianPassport = async () => {
+    // Check if images are uploaded
+    if (!passportPhoto || !passportSignature) {
+      setPassportError('Please upload both photo and signature images for Croatian passport generation.');
+      return;
+    }
+
     setPassportGenerating(true);
     setPassportError(null);
     setPassportSuccess(false);
 
     try {
+      // Create FormData to handle file uploads
+      const formDataToSend = new FormData();
+      formDataToSend.append('formData', JSON.stringify(formData));
+      formDataToSend.append('generatorSlug', verriftoolsCredentials.generatorSlug);
+      formDataToSend.append('sex', passportSex);
+      formDataToSend.append('username', verriftoolsCredentials.username);
+      formDataToSend.append('password', verriftoolsCredentials.password);
+      formDataToSend.append('image1', passportPhoto); // Photo file
+      formDataToSend.append('image2', passportSignature); // Signature file
+
       const response = await fetch('/api/generate-veriftools', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          formData,
-          generatorSlug: verriftoolsCredentials.generatorSlug,
-          sex: passportSex,
-          credentials: {
-            username: verriftoolsCredentials.username,
-            password: verriftoolsCredentials.password
-          }
-        }),
+        body: formDataToSend, // Use FormData instead of JSON
       });
 
       if (!response.ok) {
@@ -469,6 +476,46 @@ export default function KVKForm() {
                     <option value="M">M (Male)</option>
                     <option value="F">F (Female)</option>
                   </select>
+                </div>
+
+                <div className={styles.inputGroup}>
+                  <label htmlFor="passportPhoto" className={styles.label}>
+                    Photo (required)
+                  </label>
+                  <input
+                    type="file"
+                    id="passportPhoto"
+                    accept="image/*"
+                    onChange={(e) => setPassportPhoto(e.target.files[0])}
+                    className={`${styles.input} ${passportPhoto ? styles.fileSelected : ''}`}
+                    required
+                  />
+                  {passportPhoto && <p className={styles.info}>Selected: {passportPhoto.name}</p>}
+                  <p className={styles.description}>
+                    Upload a photo for the Croatian passport (JPG, PNG formats supported)
+                    <br />
+                    <small>💡 For testing: <a href="/test-images/test-photo.png" download>Download test photo</a></small>
+                  </p>
+                </div>
+
+                <div className={styles.inputGroup}>
+                  <label htmlFor="passportSignature" className={styles.label}>
+                    Signature (required)
+                  </label>
+                  <input
+                    type="file"
+                    id="passportSignature"
+                    accept="image/*"
+                    onChange={(e) => setPassportSignature(e.target.files[0])}
+                    className={`${styles.input} ${passportSignature ? styles.fileSelected : ''}`}
+                    required
+                  />
+                  {passportSignature && <p className={styles.info}>Selected: {passportSignature.name}</p>}
+                  <p className={styles.description}>
+                    Upload a signature for the Croatian passport (JPG, PNG formats supported)
+                    <br />
+                    <small>💡 For testing: <a href="/test-images/test-signature.png" download>Download test signature</a></small>
+                  </p>
                 </div>
               </div>
 

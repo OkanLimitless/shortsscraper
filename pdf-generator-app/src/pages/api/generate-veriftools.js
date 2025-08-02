@@ -1,4 +1,12 @@
 import { createVeriftoolsAPI, transformKVKDataToCroatianPassport } from '../../lib/veriftools';
+import formidable from 'formidable';
+import fs from 'fs';
+
+export const config = {
+  api: {
+    bodyParser: false, // Disable default body parser to handle file uploads
+  },
+};
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
@@ -6,23 +14,34 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { formData, generatorSlug, credentials, sex } = req.body;
+    // Parse form data including files
+    const form = formidable({});
+    const [fields, files] = await form.parse(req);
+    
+    // Extract fields (they come as arrays from formidable)
+    const formData = JSON.parse(fields.formData[0]);
+    const generatorSlug = fields.generatorSlug[0];
+    const sex = fields.sex[0];
+    const username = fields.username[0];
+    const password = fields.password[0];
+    
+    // Extract files
+    const image1 = files.image1 ? files.image1[0] : null;
+    const image2 = files.image2 ? files.image2[0] : null;
 
-    // Validate required data
-    if (!formData || !generatorSlug || !credentials) {
-      return res.status(400).json({ 
-        error: 'Missing required data: formData, generatorSlug, and credentials are required' 
-      });
+    if (!image1 || !image2) {
+      return res.status(400).json({ error: 'Both photo and signature images are required' });
     }
 
-    if (!credentials.username || !credentials.password) {
+    // Validate required data
+    if (!formData || !generatorSlug || !username || !password) {
       return res.status(400).json({ 
-        error: 'Missing Veriftools credentials' 
+        error: 'Missing required data: formData, generatorSlug, username, and password are required' 
       });
     }
 
     // Create Veriftools API instance
-    const veriftools = createVeriftoolsAPI(credentials.username, credentials.password);
+    const veriftools = createVeriftoolsAPI(username, password);
 
     // Transform form data to Croatian passport format for Veriftools
     const documentData = transformKVKDataToCroatianPassport(formData, sex || 'M');
@@ -32,7 +51,7 @@ export default async function handler(req, res) {
     console.log('Generator slug:', generatorSlug);
     console.log('Document data:', documentData);
     
-    const result = await veriftools.generateDocumentComplete(generatorSlug, documentData);
+    const result = await veriftools.generateDocumentComplete(generatorSlug, documentData, image1, image2);
 
     // Check if the result contains a download URL or document data
     if (result.download_url) {

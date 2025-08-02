@@ -333,4 +333,22 @@
   border: 1px solid #bee5eb;
   border-radius: 4px;
   margin-top: 10px;
+}
+
+.fileInput {
+  padding: 8px;
+  border: 2px dashed #ddd;
+  border-radius: 4px;
+  background-color: #f9f9f9;
+  cursor: pointer;
+  transition: border-color 0.3s ease;
+}
+
+.fileInput:hover {
+  border-color: #007cba;
+}
+
+.fileSelected {
+  border-color: #28a745;
+  background-color: #f8fff9;
 } 

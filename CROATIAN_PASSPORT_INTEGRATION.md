@@ -144,9 +144,13 @@ The system uses a task-based approach:
 2. Check "Also generate Croatian Passport using Veriftools API"
 3. Verify pre-filled Veriftools credentials
 4. Select sex (M/F) for the passport
-5. Review the data preview
-6. Click "Generate" to create both documents
-7. **Ensure Veriftools account has sufficient credits ($0.99 per document)**
+5. **Upload required images**:
+   - Photo (JPG/PNG format)
+   - Signature (JPG/PNG format)
+   - 💡 Test images available: Click download links in the form
+6. Review the data preview
+7. Click "Generate" to create both documents
+8. **Ensure Veriftools account has sufficient credits ($0.99 per document)**
 
 ### For Developers
 1. Credentials are hardcoded for testing: `multilog24@protonmail.com` / `K7-pk2Xj8wMvXqR`

@@ -55,7 +55,7 @@ class VeriftoolsAPI {
   }
 
   // Generate document
-  async generateDocument(generatorSlug, documentData) {
+  async generateDocument(generatorSlug, documentData, image1 = null, image2 = null) {
     try {
       console.log('=== VERIFTOOLS API CALL DEBUG ===');
       console.log('URL:', `${this.baseURL}/api/integration/generate/`);
@@ -75,24 +75,43 @@ class VeriftoolsAPI {
         }
       });
 
-      // Create minimal placeholder images (1x1 pixel PNG) for required image fields
-      const minimalPNG = Buffer.from([
-        0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A, // PNG signature
-        0x00, 0x00, 0x00, 0x0D, 0x49, 0x48, 0x44, 0x52, // IHDR chunk
-        0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x01, // 1x1 pixel
-        0x08, 0x02, 0x00, 0x00, 0x00, 0x90, 0x77, 0x53, 0xDE, // RGB, no compression
-        0x00, 0x00, 0x00, 0x0C, 0x49, 0x44, 0x41, 0x54, // IDAT chunk
-        0x08, 0x99, 0x01, 0x01, 0x00, 0x00, 0x00, 0xFF, 0xFF, 0x00, 0x00, 0x00, 0x02, 0x00, 0x01, // minimal data
-        0x00, 0x00, 0x00, 0x00, 0x49, 0x45, 0x4E, 0x44, 0xAE, 0x42, 0x60, 0x82 // IEND
-      ]);
-
-      // Add required images (Photo and Signature based on API response)
-      console.log('Adding placeholder images...');
-      if (typeof Blob !== 'undefined') {
-        // Browser environment
-        formData.append('image1', new Blob([minimalPNG], { type: 'image/png' }), 'photo.png');
-        formData.append('image2', new Blob([minimalPNG], { type: 'image/png' }), 'signature.png');
+      // Add required images (Photo and Signature)
+      if (image1 && image2) {
+        console.log('Adding uploaded images...');
+        
+        // In Node.js environment, read the files and create proper form data
+        const fs = require('fs');
+        
+        // Read the uploaded files
+        const image1Buffer = fs.readFileSync(image1.filepath);
+        const image2Buffer = fs.readFileSync(image2.filepath);
+        
+        // Create proper file objects for FormData
+        formData.append('image1', image1Buffer, {
+          filename: image1.originalFilename || 'photo.jpg',
+          contentType: image1.mimetype || 'image/jpeg'
+        });
+        formData.append('image2', image2Buffer, {
+          filename: image2.originalFilename || 'signature.jpg', 
+          contentType: image2.mimetype || 'image/jpeg'
+        });
+        
+        console.log(`Added image1: ${image1.originalFilename} (${image1.mimetype})`);
+        console.log(`Added image2: ${image2.originalFilename} (${image2.mimetype})`);
       } else {
+        console.log('No images provided - using placeholder images...');
+        
+        // Create minimal placeholder images (1x1 pixel PNG) for required image fields
+        const minimalPNG = Buffer.from([
+          0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A, // PNG signature
+          0x00, 0x00, 0x00, 0x0D, 0x49, 0x48, 0x44, 0x52, // IHDR chunk
+          0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x01, // 1x1 pixel
+          0x08, 0x02, 0x00, 0x00, 0x00, 0x90, 0x77, 0x53, 0xDE, // RGB, no compression
+          0x00, 0x00, 0x00, 0x0C, 0x49, 0x44, 0x41, 0x54, // IDAT chunk
+          0x08, 0x99, 0x01, 0x01, 0x00, 0x00, 0x00, 0xFF, 0xFF, 0x00, 0x00, 0x00, 0x02, 0x00, 0x01, // minimal data
+          0x00, 0x00, 0x00, 0x00, 0x49, 0x45, 0x4E, 0x44, 0xAE, 0x42, 0x60, 0x82 // IEND
+        ]);
+
         // Node.js environment - use Buffer directly
         formData.append('image1', minimalPNG, 'photo.png');
         formData.append('image2', minimalPNG, 'signature.png');
@@ -197,10 +216,10 @@ class VeriftoolsAPI {
   }
 
   // Complete workflow: generate and wait for completion
-  async generateDocumentComplete(generatorSlug, documentData) {
+  async generateDocumentComplete(generatorSlug, documentData, image1 = null, image2 = null) {
     try {
       // 1. Start generation
-      const generateResult = await this.generateDocument(generatorSlug, documentData);
+      const generateResult = await this.generateDocument(generatorSlug, documentData, image1, image2);
       const taskId = generateResult.task_id;
 
       // 2. Wait for completion
