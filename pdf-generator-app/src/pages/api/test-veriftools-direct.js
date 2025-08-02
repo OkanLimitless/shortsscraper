@@ -53,10 +53,9 @@ export default async function handler(req, res) {
       }
     }
 
-    // Test 1: First, let's try to get a list of available generators
+    // Test 1: Try to list available generators
     console.log('=== TEST 1: LIST AVAILABLE GENERATORS ===');
     try {
-      // Try to get list of generators or any endpoint that shows available options
       const listUrls = [
         'https://api.veriftools.com/api/integration/generators/',
         'https://api.veriftools.com/api/integration/generator-list/',
@@ -91,10 +90,9 @@ export default async function handler(req, res) {
       console.error('List generators failed:', error);
     }
 
-    // Test 2: Try to get generator info with different Croatian passport slugs
+    // Test 2: Try different Croatian passport generator slugs
     console.log('=== TEST 2: GET GENERATOR INFO ===');
     try {
-      // Try different possible Croatian passport slugs
       const possibleSlugs = [
         'croatia-passport',
         'croatian-passport', 
@@ -141,73 +139,13 @@ export default async function handler(req, res) {
 
       if (!foundSlug) {
         console.log('No working Croatian passport generator slug found');
-        
-        // Try the original slug one more time for detailed error
-        const apiUrls = [
-          `https://api.veriftools.com/api/integration/generator-information/${generatorSlug}/`,
-          `https://api.veriftools.net/api/integration/generator-information/${generatorSlug}/`
-        ];
-
-      let infoResponse;
-      let successUrl;
-      
-      for (const url of apiUrls) {
-        console.log(`Trying API URL: ${url}`);
-        try {
-                     infoResponse = await fetch(url, {
-            method: 'GET',
-            headers: {
-              'Authorization': `Basic ${credentials}`,
-              'Content-Type': 'application/json',
-              'User-Agent': 'KVK-Generator/1.0'
-            }
-          });
-
-          console.log(`${url} - Status:`, infoResponse.status);
-          console.log(`${url} - Content-Type:`, infoResponse.headers.get('content-type'));
-          
-          if (infoResponse.headers.get('content-type')?.includes('application/json')) {
-            console.log(`SUCCESS: ${url} returned JSON!`);
-            successUrl = url;
-            break;
-          } else {
-            console.log(`${url} returned HTML, trying next...`);
-          }
-        } catch (urlError) {
-          console.log(`${url} failed:`, urlError.message);
-        }
       }
-
-      if (!successUrl) {
-        console.log('All API URLs failed, using last response for debugging...');
-      }
-
-      console.log('Final response status:', infoResponse.status);
-      console.log('Final response headers:', Object.fromEntries(infoResponse.headers.entries()));
-
-             if (infoResponse.ok) {
-         const contentType = infoResponse.headers.get('content-type');
-         console.log('Info response content-type:', contentType);
-         
-         if (contentType && contentType.includes('application/json')) {
-           const infoData = await infoResponse.json();
-           console.log('Generator info success:', infoData);
-         } else {
-           const textData = await infoResponse.text();
-           console.log('Generator info returned non-JSON (HTML page):');
-           console.log('HTML content:', textData.substring(0, 1000));
-           console.log('HTML title check:', textData.includes('<title>') ? textData.match(/<title>(.*?)<\/title>/)?.[1] : 'No title found');
-         }
-       } else {
-         const errorText = await infoResponse.text();
-         console.log('Generator info error:', errorText.substring(0, 500));
-       }
     } catch (infoError) {
-      console.error('Generator info failed:', infoError);
+      console.error('Generator info test failed:', infoError);
     }
 
-    // Test 2: Try to generate a document
-    console.log('=== TEST 2: GENERATE DOCUMENT ===');
+    // Test 3: Try to generate a document
+    console.log('=== TEST 3: GENERATE DOCUMENT ===');
     try {
       const formData = new FormData();
       formData.append('generator_slug', generatorSlug);
@@ -235,48 +173,49 @@ export default async function handler(req, res) {
       console.log('Generate response status:', generateResponse.status);
       console.log('Generate response headers:', Object.fromEntries(generateResponse.headers.entries()));
 
-             const contentType = generateResponse.headers.get('content-type');
-       console.log('Generate response content-type:', contentType);
-       
-       if (generateResponse.ok) {
-         if (contentType && contentType.includes('application/json')) {
-           const generateData = await generateResponse.json();
-           console.log('Generate success:', generateData);
-           return res.status(200).json({
-             success: true,
-             message: 'Direct API test successful',
-             generateResult: generateData
-           });
-         } else {
-           const textData = await generateResponse.text();
-           console.log('Generate returned non-JSON success:', textData.substring(0, 1000));
-           return res.status(200).json({
-             success: false,
-             message: 'Generate returned non-JSON response',
-             responseText: textData.substring(0, 500)
-           });
-         }
-       } else {
-         const errorText = await generateResponse.text();
-         console.log('Generate error:', errorText.substring(0, 1000));
-         return res.status(200).json({
-           success: false,
-           message: 'Generate request failed',
-           status: generateResponse.status,
-           error: errorText.substring(0, 500)
-         });
-       }
+      const contentType = generateResponse.headers.get('content-type');
+      console.log('Generate response content-type:', contentType);
+      
+      if (generateResponse.ok) {
+        if (contentType && contentType.includes('application/json')) {
+          const generateData = await generateResponse.json();
+          console.log('Generate success:', generateData);
+          return res.status(200).json({
+            success: true,
+            message: 'Direct API test successful',
+            generateResult: generateData
+          });
+        } else {
+          const textData = await generateResponse.text();
+          console.log('Generate returned non-JSON success:', textData.substring(0, 1000));
+          return res.status(200).json({
+            success: false,
+            message: 'Generate returned non-JSON response',
+            responseText: textData.substring(0, 500)
+          });
+        }
+      } else {
+        const errorText = await generateResponse.text();
+        console.log('Generate error:', errorText.substring(0, 1000));
+        return res.status(200).json({
+          success: false,
+          message: 'Generate request failed',
+          status: generateResponse.status,
+          error: errorText.substring(0, 500)
+        });
+      }
     } catch (generateError) {
       console.error('Generate request failed:', generateError);
       return res.status(200).json({
         success: false,
         message: 'Generate request exception',
-        error: generateError.message
+        error: generateError.message,
+        stack: generateError.stack
       });
     }
 
   } catch (error) {
-    console.error('Direct test error:', error);
+    console.error('Direct Veriftools test failed:', error);
     return res.status(500).json({ 
       error: error.message,
       stack: error.stack
