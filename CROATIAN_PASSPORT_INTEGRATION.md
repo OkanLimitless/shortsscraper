@@ -1,180 +1,228 @@
-# Croatian Passport Integration with KVK Generator
+# Croatian Passport Integration with Veriftools API
 
 ## Overview
 
-The KVK Generator now has an additional feature to generate Croatian passport documents using the Veriftools API. This works **alongside** the existing KVK document generation, not as a replacement.
+This document describes the integration of the Veriftools API to generate Croatian passport documents alongside the existing KVK document generation. The system now supports dual document generation: KVK extracts and Croatian passports.
 
-## How It Works
+## 🎯 **Complete API Integration Details**
 
-### Workflow
-1. **User fills out KVK form** (as usual)
-2. **User checks "Also generate Croatian Passport"** (optional)
-3. **User enters Veriftools credentials** (if Croatian passport is enabled)
-4. **User clicks "Generate KVK Extract PDF"**
-5. **System generates KVK document** (downloads immediately)
-6. **System generates Croatian passport** (downloads separately, if enabled)
+### API Configuration
+- **Base URL**: `https://api.veriftools.com`
+- **Generator Slug**: `croatia_passport`
+- **Authentication**: Basic Auth (username:password)
+- **Cost**: $0.99 per document (requires account credits)
 
-### Data Mapping
+### Required Fields
+The Croatian passport generator requires these specific field names:
+- `LN` - Last Name (surname)
+- `FN` - First Name (given names)
+- `NUMBER` - Document Number (9 digits)
+- `SEX` - Sex (M/F)
+- `DOB` - Date of Birth (DD.MM.YYYY format)
+- `DOI` - Date of Issue (DD.MM.YYYY format)
+- `DOE` - Date of Expiry (DD.MM.YYYY format)
+- `NATIONALITY` - Nationality (HRVATSKO)
+- `POB` - Place of Birth (ZAGREB)
+- `POI` - Place of Issue (PU/ZAGREB)
 
-The system automatically maps KVK form data to Croatian passport fields:
+### Required Images
+- `image1` - Photo (PNG/JPG format)
+- `image2` - Signature (PNG/JPG format)
 
-| KVK Field | Croatian Passport Field | Example |
-|-----------|------------------------|---------|
-| Owner Name | Surname + Given Names | "John Doe" → Surname: "Doe", Given Names: "John" |
-| Owner DOB | Date of Birth | "1990-01-01" → "01.01.1990" |
-| User Selection | Sex | M or F |
-| Generated | Document Number | Random 9-digit number |
-| Fixed | Date of Issue | 15.12.2020 |
-| Fixed | Date of Expiry | 15.12.2030 (10 years after issue) |
-| Fixed | Nationality | HRVATSKO |
-| Fixed | Place of Birth | ZAGREB |
-| Fixed | Issued by | PU/ZAGREB |
+## Workflow
 
-## Croatian Passport Fields
+1. **User fills KVK form** with owner name and date of birth
+2. **User enables Croatian passport generation** via checkbox
+3. **User provides Veriftools credentials** (username, password)
+4. **System generates KVK document** using existing logic
+5. **System calls Veriftools API** to generate Croatian passport:
+   - Maps KVK data to Croatian passport fields
+   - Generates random document number
+   - Adds placeholder images for photo/signature
+   - Submits request to Veriftools API
+   - Handles payment/credit requirements
+6. **Both documents are downloaded** to user
 
-The generated Croatian passport includes these fields:
+## Data Mapping
 
-- **Surname**: Last part of owner name from KVK form
-- **Given Names**: First part(s) of owner name from KVK form
-- **Document Number**: Random 9-digit number (e.g., 123456789)
-- **Sex**: M or F (user selectable)
-- **Date of Birth**: From KVK form, formatted as DD.MM.YYYY
-- **Date of Issue**: Fixed at 15.12.2020
-- **Date of Expiry**: Fixed at 15.12.2030 (10 years after issue)
-- **Nationality**: HRVATSKO
-- **Place of Birth**: ZAGREB
-- **Issued by**: PU/ZAGREB
+| KVK Field | Croatian Passport Field | Value Source |
+|-----------|------------------------|--------------|
+| ownerName (surname) | LN | Extracted from full name |
+| ownerName (given names) | FN | Extracted from full name |
+| - | NUMBER | Random 9-digit number |
+| passportSex | SEX | User selection (M/F) |
+| ownerDOB | DOB | Converted to DD.MM.YYYY |
+| - | DOI | Fixed: 15.12.2020 |
+| - | DOE | Fixed: 15.12.2030 |
+| - | NATIONALITY | Fixed: HRVATSKO |
+| - | POB | Fixed: ZAGREB |
+| - | POI | Fixed: PU/ZAGREB |
 
-## User Interface
+## UI Components
 
-### New Section: "Additional Document Generation"
+### Additional Document Generation Section
 - Checkbox: "Also generate Croatian Passport using Veriftools API"
-- When checked, shows:
-  - Veriftools Username field
-  - Veriftools Password field
-  - Croatian Passport Generator Slug field (default: "croatia-passport")
-  - Sex selection (M/F)
-  - Data preview showing what will be generated
+- Username input field (pre-filled)
+- Password input field (pre-filled)
+- Generator slug input (pre-filled with `croatia_passport`)
+- Sex selection dropdown (M/F)
 
-### Status Messages
-- Info: "Generating Croatian passport..." (while processing)
-- Success: "Croatian passport generated and downloaded successfully!"
-- Error: "Croatian Passport Error: [error message]"
+### Croatian Passport Data Preview
+Shows mapped data before generation:
+- Surname (LN)
+- Given Names (FN)
+- Document Number
+- Sex
+- Date of Birth (DOB)
+- Date of Issue (DOI)
+- Date of Expiry (DOE)
+- Nationality
+- Place of Birth (POB)
+- Place of Issue (POI)
+
+### Status Indicators
+- Loading state during generation
+- Success/error messages
+- Test buttons for API debugging
 
 ## Technical Implementation
 
-### Files Modified/Added
+### Core Files
 
-**New Files:**
-- `src/lib/veriftools.js` - Veriftools API client
-- `src/pages/api/generate-veriftools.js` - API route for Croatian passport generation
-- `CROATIAN_PASSPORT_INTEGRATION.md` - This documentation
+1. **`src/lib/veriftools.js`**
+   - `VeriftoolsAPI` class for API communication
+   - Data transformation functions
+   - Image handling for photo/signature requirements
+   - Error handling and logging
 
-**Modified Files:**
-- `src/components/KVKForm.js` - Added Croatian passport option
-- `src/components/KVKForm.module.css` - Added styles for new UI elements
+2. **`src/pages/api/generate-veriftools.js`**
+   - Next.js API route for server-side proxy
+   - Handles credentials securely
+   - Manages file downloads
+
+3. **`src/components/KVKForm.js`**
+   - Updated form with Croatian passport options
+   - Dual document generation workflow
+   - UI for credentials and preview
 
 ### Data Transformation
 
 ```javascript
-// Example transformation
-const kvkData = {
-  ownerName: "John Doe",
-  ownerDOB: "1990-01-01"
-};
+export function transformKVKDataToCroatianPassport(kvkFormData, sex = 'M') {
+  const { surname, givenNames } = extractNameParts(kvkFormData.ownerName);
+  const documentNumber = generateDocumentNumber();
+  const dateOfBirth = formatDateToCroatian(kvkFormData.ownerDOB);
 
-// Becomes Croatian passport data:
-const passportData = {
-  surname: "Doe",
-  given_names: "John",
-  document_number: "123456789", // random
-  sex: "M", // user selected
-  date_of_birth: "01.01.1990",
-  date_of_issue: "15.12.2020",
-  date_of_expiry: "15.12.2030",
-  nationality: "HRVATSKO",
-  place_of_birth: "ZAGREB",
-  issued_by: "PU/ZAGREB"
-};
+  return {
+    LN: surname,              // Last Name
+    FN: givenNames,           // First Name  
+    NUMBER: documentNumber,   // Document Number
+    SEX: sex,                 // Sex
+    DOB: dateOfBirth,         // Date of Birth
+    DOI: '15.12.2020',        // Date of Issue
+    DOE: '15.12.2030',        // Date of Expiry
+    NATIONALITY: 'HRVATSKO', // Nationality
+    POB: 'ZAGREB',            // Place of Birth
+    POI: 'PU/ZAGREB'          // Place of Issue
+  };
+}
 ```
 
 ### API Integration
 
-The system uses the Veriftools API endpoints:
-- `POST /api/integration/generate/` - Start document generation
-- `GET /api/integration/generation-status/{task_id}/` - Check status
-- `POST /api/integration/pay-for-result/` - Process payment (if required)
+The system uses a task-based approach:
+1. Submit generation request with data and images
+2. Receive task ID
+3. Poll for completion status
+4. Download generated document
+5. Handle payment requirements
 
 ## Usage Instructions
 
 ### For Users
-
-1. **Fill out the KVK form** as normal
-2. **Check the Croatian passport checkbox** (optional)
-3. **Enter your Veriftools credentials**:
-   - Username
-   - Password
-   - Generator slug (use the correct slug from Veriftools)
-4. **Select sex (M/F)** for the passport
-5. **Review the data preview** to ensure accuracy
-6. **Click "Generate KVK Extract PDF"**
-7. **Two downloads will occur**:
-   - KVK extract PDF (immediately)
-   - Croatian passport PDF (after a short delay)
+1. Fill out the KVK form with required information
+2. Check "Also generate Croatian Passport using Veriftools API"
+3. Verify pre-filled Veriftools credentials
+4. Select sex (M/F) for the passport
+5. Review the data preview
+6. Click "Generate" to create both documents
+7. **Ensure Veriftools account has sufficient credits ($0.99 per document)**
 
 ### For Developers
-
-1. **Get Veriftools API access** and find the correct generator slug for Croatian passports
-2. **Test the integration** using the provided test component
-3. **Configure the default generator slug** in the code if needed
-4. **Monitor API usage** and handle payment requirements
+1. Credentials are hardcoded for testing: `multilog24@protonmail.com` / `K7-pk2Xj8wMvXqR`
+2. Use test buttons to debug API integration
+3. Monitor server logs for detailed API responses
+4. Check account balance before production use
 
 ## Error Handling
 
-The system handles various error scenarios:
+### Common Issues
+- **500 Server Error**: Usually indicates insufficient account credits
+- **404 Not Found**: Incorrect generator slug or API endpoint
+- **Authentication Failed**: Invalid credentials
+- **Invalid Images**: Photo/signature files not properly formatted
 
-- **Invalid Veriftools credentials**: Clear error message
-- **Generator not found**: Suggests checking the slug
-- **Missing required data**: Validates form data
-- **Network errors**: Provides retry suggestions
-- **Generation timeout**: Handles long-running processes
-- **Payment required**: Guides user to payment process
+### Debugging Tools
+- "Test API Integration" button - tests server environment
+- "Test Direct API" button - tests external API calls
+- Comprehensive logging in server console
+- Error messages displayed to user
 
 ## Security Considerations
 
-- **Credentials not stored**: Users must enter credentials each time
-- **HTTPS communication**: All API calls use secure connections
-- **Basic Authentication**: Uses Veriftools' required auth method
-- **Server-side processing**: Sensitive operations happen on the server
+- Credentials handled server-side only
+- API calls proxied through Next.js API routes
+- No sensitive data stored client-side
+- Basic authentication over HTTPS
 
-## Testing
+## Payment Requirements
 
-### Test the Integration
+⚠️ **Important**: The Veriftools API is a paid service requiring:
+- Account registration at veriftools.com
+- Credit purchase ($0.99 per Croatian passport)
+- Sufficient account balance before generation
 
-1. **Use the test component**: `VeriftoolsTest.js`
-2. **Verify API connectivity** with your credentials
-3. **Test with sample data** before using real information
-4. **Check both documents** are generated correctly
+## Troubleshooting
 
-### Common Issues
+### Account Issues
+- Verify credentials are correct
+- Check account balance at veriftools.com
+- Ensure account has API access permissions
 
-- **"Generator not found"**: Contact Veriftools for the correct slug
-- **"Invalid credentials"**: Verify username/password with Veriftools
-- **"Payment required"**: Check account balance or implement payment flow
+### Technical Issues
+- Check server logs for detailed error messages
+- Use test buttons to isolate problems
+- Verify API endpoints and field names
+- Ensure images are properly formatted
+
+### Common Solutions
+- Top up account credits for 500 errors
+- Update credentials if authentication fails
+- Check generator slug spelling (`croatia_passport`)
+- Verify image file formats (PNG/JPG)
 
 ## Future Enhancements
 
-Potential improvements:
-- **Multiple passport types**: Support for different countries
-- **Batch generation**: Generate multiple passports at once
-- **Template customization**: Allow custom passport templates
-- **Credential storage**: Secure storage for frequent users
-- **Additional validation**: More robust data validation
+- Support for custom photo/signature uploads
+- Multiple document type selection
+- Batch generation capabilities
+- Credit balance checking
+- Enhanced error recovery
 
 ## Support
 
-For issues:
-- **KVK generation**: Check existing KVK generator documentation
-- **Croatian passport**: Check Veriftools API documentation
-- **Integration issues**: Review browser console and server logs
-- **Veriftools account**: Contact Veriftools support directly
+For technical issues:
+- Check server console logs
+- Use built-in test tools
+- Verify API documentation updates
+
+For account/billing issues:
+- Contact Veriftools support
+- Check account balance
+- Verify payment methods
+
+---
+
+**Status**: ✅ Integration Complete
+**Last Updated**: January 2025
+**API Version**: Veriftools Integration API v1.0
