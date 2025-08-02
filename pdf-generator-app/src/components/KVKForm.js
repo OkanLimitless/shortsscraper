@@ -20,13 +20,17 @@ export default function KVKForm() {
     ownerDOB: '',
   });
 
-  // Veriftools state
-  const [useVeriftools, setUseVeriftools] = useState(false);
+  // Veriftools state for Croatian passport generation
+  const [generatePassport, setGeneratePassport] = useState(false);
+  const [passportSex, setPassportSex] = useState('M'); // Default to M
   const [verriftoolsCredentials, setVeriftoolsCredentials] = useState({
     username: '',
     password: '',
-    generatorSlug: 'kvk-extract' // Default slug, can be changed
+    generatorSlug: 'croatia-passport' // Croatian passport generator slug
   });
+  const [passportGenerating, setPassportGenerating] = useState(false);
+  const [passportError, setPassportError] = useState(null);
+  const [passportSuccess, setPassportSuccess] = useState(false);
   
   // Handle input change
   const handleInputChange = (e) => {
@@ -82,24 +86,61 @@ export default function KVKForm() {
     }));
   };
 
-  // Generate document with Veriftools
-  const generateWithVeriftools = async () => {
-    const response = await fetch('/api/generate-veriftools', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        formData,
-        generatorSlug: verriftoolsCredentials.generatorSlug,
-        credentials: {
-          username: verriftoolsCredentials.username,
-          password: verriftoolsCredentials.password
-        }
-      }),
-    });
+  // Generate Croatian passport with Veriftools (separate from KVK generation)
+  const generateCroatianPassport = async () => {
+    setPassportGenerating(true);
+    setPassportError(null);
+    setPassportSuccess(false);
 
-    return response;
+    try {
+      const response = await fetch('/api/generate-veriftools', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          formData,
+          generatorSlug: verriftoolsCredentials.generatorSlug,
+          sex: passportSex,
+          credentials: {
+            username: verriftoolsCredentials.username,
+            password: verriftoolsCredentials.password
+          }
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to generate Croatian passport');
+      }
+
+      // Get the PDF blob and create download
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      
+      // Get filename from response headers
+      const contentDisposition = response.headers.get('Content-Disposition');
+      const filename = contentDisposition 
+        ? contentDisposition.split('filename=')[1]?.replace(/"/g, '') 
+        : 'croatian_passport.pdf';
+
+      // Create download link
+      const a = document.createElement('a');
+      a.style.display = 'none';
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+
+      setPassportSuccess(true);
+    } catch (err) {
+      console.error('Croatian passport generation error:', err);
+      setPassportError(err.message || 'Failed to generate Croatian passport');
+    } finally {
+      setPassportGenerating(false);
+    }
   };
 
   // Handle form submission
@@ -110,34 +151,19 @@ export default function KVKForm() {
       return;
     }
 
-    // Additional validation for Veriftools
-    if (useVeriftools) {
-      if (!verriftoolsCredentials.username || !verriftoolsCredentials.password) {
-        setError('Please provide Veriftools credentials');
-        return;
-      }
-    }
-
     setLoading(true);
     setError(null);
     setSuccess(false);
 
     try {
-      let response;
-      
-      if (useVeriftools) {
-        // Use Veriftools API
-        response = await generateWithVeriftools();
-      } else {
-        // Generate PDF using existing pdf-lib method with advanced anti-detection
-        response = await fetch('/api/generate-pdf', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(formData),
-        });
-      }
+      // Always generate KVK PDF using existing method
+      const response = await fetch('/api/generate-pdf', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData),
+      });
 
       if (!response.ok) {
         const errorData = await response.json();
@@ -150,10 +176,9 @@ export default function KVKForm() {
       
       // Get filename from response headers
       const contentDisposition = response.headers.get('Content-Disposition');
-      const defaultFilename = useVeriftools ? 'kvk_extract_veriftools.pdf' : 'kvk_extract.pdf';
       const filename = contentDisposition 
         ? contentDisposition.split('filename=')[1]?.replace(/"/g, '') 
-        : defaultFilename;
+        : 'kvk_extract.pdf';
 
       // Create download link
       const a = document.createElement('a');
@@ -166,6 +191,14 @@ export default function KVKForm() {
       document.body.removeChild(a);
 
       setSuccess(true);
+
+      // Additionally generate Croatian passport if enabled
+      if (generatePassport && verriftoolsCredentials.username && verriftoolsCredentials.password) {
+        // Generate Croatian passport in the background
+        setTimeout(() => {
+          generateCroatianPassport();
+        }, 1000); // Small delay to let KVK download start first
+      }
     } catch (err) {
       console.error('Error:', err);
       setError(err.message || 'An unexpected error occurred');
@@ -330,26 +363,27 @@ export default function KVKForm() {
           </div>
         </div>
 
-        {/* Veriftools Integration Section */}
+        {/* Croatian Passport Generation Section */}
         <div className={styles.section}>
-          <h2 className={styles.sectionTitle}>Document Generation Options</h2>
+          <h2 className={styles.sectionTitle}>Additional Document Generation</h2>
           
           <div className={styles.inputGroup}>
             <label className={styles.checkboxLabel}>
               <input
                 type="checkbox"
-                checked={useVeriftools}
-                onChange={(e) => setUseVeriftools(e.target.checked)}
+                checked={generatePassport}
+                onChange={(e) => setGeneratePassport(e.target.checked)}
                 className={styles.checkbox}
               />
-              Use Veriftools API for enhanced document generation
+              Also generate Croatian Passport using Veriftools API
             </label>
             <p className={styles.description}>
-              Veriftools provides professional-grade document generation with additional verification features.
+              Generate a Croatian passport document using the name and birth date from the KVK form.
+              This will create a separate document with Croatian passport format.
             </p>
           </div>
 
-          {useVeriftools && (
+          {generatePassport && (
             <div className={styles.verriftoolsConfig}>
               <div className={styles.row}>
                 <div className={styles.inputGroup}>
@@ -383,23 +417,72 @@ export default function KVKForm() {
                 </div>
               </div>
               
-              <div className={styles.inputGroup}>
-                <label htmlFor="generatorSlug" className={styles.label}>
-                  Generator Slug
-                </label>
-                <input
-                  type="text"
-                  id="generatorSlug"
-                  name="generatorSlug"
-                  value={verriftoolsCredentials.generatorSlug}
-                  onChange={handleVeriftoolsCredentialsChange}
-                  className={styles.input}
-                  placeholder="kvk-extract"
-                />
-                <p className={styles.description}>
-                  The specific generator to use for KVK documents. Contact Veriftools support if unsure.
-                </p>
+              <div className={styles.row}>
+                <div className={styles.inputGroup}>
+                  <label htmlFor="generatorSlug" className={styles.label}>
+                    Croatian Passport Generator Slug
+                  </label>
+                  <input
+                    type="text"
+                    id="generatorSlug"
+                    name="generatorSlug"
+                    value={verriftoolsCredentials.generatorSlug}
+                    onChange={handleVeriftoolsCredentialsChange}
+                    className={styles.input}
+                    placeholder="croatia-passport"
+                  />
+                  <p className={styles.description}>
+                    The generator slug for Croatian passport documents. Contact Veriftools support for the correct slug.
+                  </p>
+                </div>
+                
+                <div className={styles.inputGroup}>
+                  <label htmlFor="passportSex" className={styles.label}>
+                    Sex
+                  </label>
+                  <select
+                    id="passportSex"
+                    value={passportSex}
+                    onChange={(e) => setPassportSex(e.target.value)}
+                    className={styles.select}
+                  >
+                    <option value="M">M (Male)</option>
+                    <option value="F">F (Female)</option>
+                  </select>
+                </div>
               </div>
+
+              <div className={styles.passportPreview}>
+                <h4>Croatian Passport Data Preview:</h4>
+                <p><strong>Surname:</strong> {formData.ownerName ? formData.ownerName.split(' ').pop() : 'N/A'}</p>
+                <p><strong>Given Names:</strong> {formData.ownerName ? formData.ownerName.split(' ').slice(0, -1).join(' ') : 'N/A'}</p>
+                <p><strong>Sex:</strong> {passportSex}</p>
+                <p><strong>Date of Birth:</strong> {formData.ownerDOB ? new Date(formData.ownerDOB).toLocaleDateString('hr-HR') : 'N/A'}</p>
+                <p><strong>Date of Issue:</strong> 15.12.2020</p>
+                <p><strong>Date of Expiry:</strong> 15.12.2030</p>
+                <p><strong>Nationality:</strong> HRVATSKO</p>
+                <p><strong>Place of Birth:</strong> ZAGREB</p>
+                <p><strong>Issued by:</strong> PU/ZAGREB</p>
+              </div>
+            </div>
+          )}
+
+          {/* Croatian Passport Status */}
+          {passportGenerating && (
+            <div className={styles.info}>
+              Generating Croatian passport...
+            </div>
+          )}
+          
+          {passportError && (
+            <div className={styles.error}>
+              Croatian Passport Error: {passportError}
+            </div>
+          )}
+          
+          {passportSuccess && (
+            <div className={styles.success}>
+              Croatian passport generated and downloaded successfully!
             </div>
           )}
         </div>

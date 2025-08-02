@@ -171,16 +171,66 @@ export function createVeriftoolsAPI(username, password) {
   return new VeriftoolsAPI(username, password);
 }
 
-// Helper function to transform KVK form data to Veriftools format
-export function transformKVKDataForVeriftools(kvkFormData) {
+// Helper function to generate random 9-digit document number
+function generateDocumentNumber() {
+  return Math.floor(100000000 + Math.random() * 900000000).toString();
+}
+
+// Helper function to format date to DD.MM.YYYY
+function formatDateToCroatian(dateString) {
+  if (!dateString) return '';
+  const date = new Date(dateString);
+  const day = date.getDate().toString().padStart(2, '0');
+  const month = (date.getMonth() + 1).toString().padStart(2, '0');
+  const year = date.getFullYear();
+  return `${day}.${month}.${year}`;
+}
+
+// Helper function to add years to a date and format it
+function addYearsToDate(dateString, years) {
+  const date = new Date(dateString);
+  date.setFullYear(date.getFullYear() + years);
+  return formatDateToCroatian(date);
+}
+
+// Helper function to extract name parts from owner name
+function extractNameParts(ownerName) {
+  if (!ownerName) return { surname: '', givenNames: '' };
+  
+  const nameParts = ownerName.trim().split(/\s+/);
+  if (nameParts.length === 1) {
+    return { surname: nameParts[0], givenNames: '' };
+  }
+  
+  // Assume last part is surname, rest are given names
+  const surname = nameParts[nameParts.length - 1];
+  const givenNames = nameParts.slice(0, -1).join(' ');
+  
+  return { surname, givenNames };
+}
+
+// Helper function to transform KVK form data to Croatian passport format for Veriftools
+export function transformKVKDataToCroatianPassport(kvkFormData, sex = 'M') {
+  const { surname, givenNames } = extractNameParts(kvkFormData.ownerName);
+  const documentNumber = generateDocumentNumber();
+  const dateOfBirth = formatDateToCroatian(kvkFormData.ownerDOB);
+  
+  // Fixed issue date (example: 15.12.2020)
+  const issueDate = '15.12.2020';
+  
+  // Expiry date (10 years after issue date)
+  const expiryDate = '15.12.2030';
+  
   return {
-    trade_name: kvkFormData.tradeName,
-    kvk_number: kvkFormData.kvkNumber,
-    legal_form: kvkFormData.legalForm,
-    address: kvkFormData.address,
-    establishment_number: kvkFormData.establishmentNumber,
-    owner_name: kvkFormData.ownerName,
-    owner_dob: kvkFormData.ownerDOB,
-    // Add any other fields that Veriftools expects
+    surname: surname,
+    given_names: givenNames,
+    document_number: documentNumber,
+    sex: sex,
+    date_of_birth: dateOfBirth,
+    date_of_issue: issueDate,
+    date_of_expiry: expiryDate,
+    nationality: 'HRVATSKO',
+    place_of_birth: 'ZAGREB',
+    issued_by: 'PU/ZAGREB'
   };
 }

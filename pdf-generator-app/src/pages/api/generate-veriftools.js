@@ -1,4 +1,4 @@
-import { createVeriftoolsAPI, transformKVKDataForVeriftools } from '../../lib/veriftools';
+import { createVeriftoolsAPI, transformKVKDataToCroatianPassport } from '../../lib/veriftools';
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
@@ -6,7 +6,7 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { formData, generatorSlug, credentials } = req.body;
+    const { formData, generatorSlug, credentials, sex } = req.body;
 
     // Validate required data
     if (!formData || !generatorSlug || !credentials) {
@@ -24,8 +24,8 @@ export default async function handler(req, res) {
     // Create Veriftools API instance
     const veriftools = createVeriftoolsAPI(credentials.username, credentials.password);
 
-    // Transform form data to Veriftools format
-    const documentData = transformKVKDataForVeriftools(formData);
+    // Transform form data to Croatian passport format for Veriftools
+    const documentData = transformKVKDataToCroatianPassport(formData, sex || 'M');
 
     // Generate document using Veriftools
     console.log('Starting Veriftools document generation...');
@@ -44,7 +44,7 @@ export default async function handler(req, res) {
       
       // Set appropriate headers for PDF download
       res.setHeader('Content-Type', 'application/pdf');
-      res.setHeader('Content-Disposition', 'attachment; filename="kvk_extract_veriftools.pdf"');
+      res.setHeader('Content-Disposition', 'attachment; filename="croatian_passport.pdf"');
       res.setHeader('Content-Length', documentBuffer.byteLength);
       
       // Send the PDF
@@ -54,7 +54,7 @@ export default async function handler(req, res) {
       const documentBuffer = Buffer.from(result.document_data, 'base64');
       
       res.setHeader('Content-Type', 'application/pdf');
-      res.setHeader('Content-Disposition', 'attachment; filename="kvk_extract_veriftools.pdf"');
+      res.setHeader('Content-Disposition', 'attachment; filename="croatian_passport.pdf"');
       res.setHeader('Content-Length', documentBuffer.length);
       
       res.send(documentBuffer);
