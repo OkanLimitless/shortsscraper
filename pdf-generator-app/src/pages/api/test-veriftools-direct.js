@@ -148,17 +148,18 @@ export default async function handler(req, res) {
     console.log('=== TEST 3: GENERATE DOCUMENT ===');
     try {
       const formData = new FormData();
-      formData.append('generator_slug', generatorSlug);
-      formData.append('surname', 'TestSurname');
-      formData.append('given_names', 'TestName');
-      formData.append('document_number', '123456789');
-      formData.append('sex', 'M');
-      formData.append('date_of_birth', '01.01.1990');
-      formData.append('date_of_issue', '15.12.2020');
-      formData.append('date_of_expiry', '15.12.2030');
-      formData.append('nationality', 'HRVATSKO');
-      formData.append('place_of_birth', 'ZAGREB');
-      formData.append('issued_by', 'PU/ZAGREB');
+      formData.append('generator', generatorSlug); // Use 'generator' not 'generator_slug'
+      // Use the correct field names as discovered from the API response
+      formData.append('LN', 'TestSurname');        // Last Name
+      formData.append('FN', 'TestName');           // First Name
+      formData.append('NUMBER', '123456789');      // Document Number
+      formData.append('SEX', 'M');                 // Sex
+      formData.append('DOB', '01.01.1990');        // Date of Birth
+      formData.append('DOI', '15.12.2020');        // Date of Issue
+      formData.append('DOE', '15.12.2030');        // Date of Expiry
+      formData.append('NATIONALITY', 'HRVATSKO');  // Nationality
+      formData.append('POB', 'ZAGREB');            // Place of Birth
+      formData.append('POI', 'PU/ZAGREB');         // Place of Issue
 
       console.log('Making generate request...');
       const generateResponse = await fetch('https://api.veriftools.com/api/integration/generate/', {

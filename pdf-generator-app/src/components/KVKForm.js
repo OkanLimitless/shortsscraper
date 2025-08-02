@@ -26,7 +26,7 @@ export default function KVKForm() {
   const [verriftoolsCredentials, setVeriftoolsCredentials] = useState({
     username: 'multilog24@protonmail.com',
     password: 'K7-pk2Xj8wMvXqR',
-    generatorSlug: 'croatia-passport' // Croatian passport generator slug
+    generatorSlug: 'croatia_passport' // Croatian passport generator slug
   });
   const [passportGenerating, setPassportGenerating] = useState(false);
   const [passportError, setPassportError] = useState(null);

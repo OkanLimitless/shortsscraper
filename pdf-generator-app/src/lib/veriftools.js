@@ -65,7 +65,7 @@ class VeriftoolsAPI {
       const formData = new FormData();
       
       // Add generator slug
-      formData.append('generator_slug', generatorSlug);
+      formData.append('generator', generatorSlug); // Use 'generator' not 'generator_slug'
       
       // Add document data (this will depend on what the specific generator expects)
       Object.keys(documentData).forEach(key => {
@@ -240,23 +240,24 @@ export function transformKVKDataToCroatianPassport(kvkFormData, sex = 'M') {
   const { surname, givenNames } = extractNameParts(kvkFormData.ownerName);
   const documentNumber = generateDocumentNumber();
   const dateOfBirth = formatDateToCroatian(kvkFormData.ownerDOB);
-  
+
   // Fixed issue date (example: 15.12.2020)
   const issueDate = '15.12.2020';
-  
+
   // Expiry date (10 years after issue date)
   const expiryDate = '15.12.2030';
-  
+
+  // Return data using the correct API field names
   return {
-    surname: surname,
-    given_names: givenNames,
-    document_number: documentNumber,
-    sex: sex,
-    date_of_birth: dateOfBirth,
-    date_of_issue: issueDate,
-    date_of_expiry: expiryDate,
-    nationality: 'HRVATSKO',
-    place_of_birth: 'ZAGREB',
-    issued_by: 'PU/ZAGREB'
+    LN: surname,              // Last Name
+    FN: givenNames,           // First Name  
+    NUMBER: documentNumber,   // Document Number
+    SEX: sex,                 // Sex
+    DOB: dateOfBirth,         // Date of Birth
+    DOI: issueDate,           // Date of Issue
+    DOE: expiryDate,          // Date of Expiry
+    NATIONALITY: 'HRVATSKO', // Nationality
+    POB: 'ZAGREB',            // Place of Birth
+    POI: 'PU/ZAGREB'          // Place of Issue
   };
 }
