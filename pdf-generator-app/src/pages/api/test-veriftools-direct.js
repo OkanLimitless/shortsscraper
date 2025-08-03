@@ -245,23 +245,13 @@ export default async function handler(req, res) {
         
         console.log('Error body content:', bodyContent);
         
-        return res.status(200).json({
-          success: false,
-          message: 'Generate request failed',
-          status: generateResponse.status,
-          error: errorText.substring(0, 1000),
-          bodyContent: bodyContent.substring(0, 500)
-        });
+        // Don't return here - continue with other tests
+        console.log('Generate failed, continuing with other tests...');
       }
-    } catch (generateError) {
-      console.error('Generate request failed:', generateError);
-      return res.status(200).json({
-        success: false,
-        message: 'Generate request exception',
-        error: generateError.message,
-        stack: generateError.stack
-      });
-    }
+          } catch (generateError) {
+        console.error('Generate request failed:', generateError);
+        console.log('Generate exception, continuing with other tests...');
+      }
 
     // === TEST 4: CHECK ACCOUNT BALANCE ===
     console.log('=== TEST 4: CHECK ACCOUNT BALANCE ===');
@@ -339,6 +329,39 @@ export default async function handler(req, res) {
     } catch (minimalError) {
       console.error('Minimal generate exception:', minimalError);
     }
+
+    // === TEST 6: CHECK PAY-FOR-RESULT ENDPOINT ===
+    console.log('=== TEST 6: CHECK PAY-FOR-RESULT ENDPOINT ===');
+    try {
+      // Try to understand the pay-for-result workflow
+      const payFormData = new FormData();
+      payFormData.append('task_id', 'test-task-id'); // This will fail but might give us info
+      
+      const payResponse = await fetch('https://api.veriftools.com/api/integration/pay-for-result/', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Basic ${credentials}`,
+          'Accept': 'application/json'
+        },
+        body: payFormData
+      });
+
+      console.log('Pay-for-result response status:', payResponse.status);
+      console.log('Pay-for-result response headers:', Object.fromEntries(payResponse.headers.entries()));
+
+      const payResponseText = await payResponse.text();
+      console.log('Pay-for-result response:', payResponseText.substring(0, 500));
+    } catch (payError) {
+      console.error('Pay-for-result test exception:', payError);
+    }
+
+    // === FINAL RESULT ===
+    console.log('=== ALL TESTS COMPLETED ===');
+    return res.status(200).json({
+      success: false,
+      message: 'All tests completed - check server logs for detailed results',
+      note: 'This comprehensive test helps identify the exact issue'
+    });
 
   } catch (error) {
     console.error('Direct Veriftools test failed:', error);
