@@ -380,11 +380,13 @@ export default async function handler(req, res) {
       noBgFormData.append('POB', 'ZAGREB');
       noBgFormData.append('POI', 'PU/ZAGREB');
       
-      // Add images
-      const photoPath3 = path.join(process.cwd(), 'public', 'test-images', 'test-photo.png');
-      const signaturePath3 = path.join(process.cwd(), 'public', 'test-images', 'test-signature.png');
-      const photoBuffer3 = fs.readFileSync(photoPath3);
-      const signatureBuffer3 = fs.readFileSync(signaturePath3);
+             // Add images
+       const fs = require('fs');
+       const path = require('path');
+       const photoPath3 = path.join(process.cwd(), 'public', 'test-images', 'test-photo.png');
+       const signaturePath3 = path.join(process.cwd(), 'public', 'test-images', 'test-signature.png');
+       const photoBuffer3 = fs.readFileSync(photoPath3);
+       const signatureBuffer3 = fs.readFileSync(signaturePath3);
       
       noBgFormData.append('image1', new Blob([photoBuffer3], { type: 'image/png' }), 'photo.png');
       noBgFormData.append('image2', new Blob([signatureBuffer3], { type: 'image/png' }), 'signature.png');
@@ -421,6 +423,117 @@ export default async function handler(req, res) {
       }
     } catch (noBgError) {
       console.error('No-background test exception:', noBgError);
+    }
+
+    // === TEST 8: TRY WITHOUT IMAGES ===
+    console.log('=== TEST 8: TRY WITHOUT IMAGES ===');
+    try {
+      const noImgFormData = new FormData();
+      noImgFormData.append('generator', generatorSlug);
+      
+      // Only text fields - NO IMAGES
+      noImgFormData.append('LN', 'DOE');
+      noImgFormData.append('FN', 'JOHN');
+      noImgFormData.append('NUMBER', '123456789');
+      noImgFormData.append('SEX', 'M');
+      noImgFormData.append('DOB', '16.10.1986');
+      noImgFormData.append('DOI', '15.12.2020');
+      noImgFormData.append('DOE', '15.12.2030');
+      noImgFormData.append('NATIONALITY', 'HRVATSKO');
+      noImgFormData.append('POB', 'ZAGREB');
+      noImgFormData.append('POI', 'PU/ZAGREB');
+
+      console.log('Making request WITHOUT images...');
+      const noImgResponse = await fetch('https://api.veriftools.com/api/integration/generate/', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Basic ${credentials}`,
+          'Accept': 'application/json'
+        },
+        body: noImgFormData
+      });
+
+      console.log('No-images response status:', noImgResponse.status);
+      console.log('No-images response headers:', Object.fromEntries(noImgResponse.headers.entries()));
+
+      const noImgResponseText = await noImgResponse.text();
+      console.log('No-images response:', noImgResponseText.substring(0, 1000));
+
+      if (noImgResponse.ok) {
+        console.log('✅ SUCCESS WITHOUT IMAGES!');
+      } else if (noImgResponse.status === 400) {
+        console.log('⚠️ 400 error - likely missing required images');
+        try {
+          const errorData = JSON.parse(noImgResponseText);
+          console.log('400 error details:', errorData);
+        } catch (e) {
+          console.log('400 error not JSON');
+        }
+      } else {
+        console.log('❌ Still failed without images');
+      }
+    } catch (noImgError) {
+      console.error('No-images test exception:', noImgError);
+    }
+
+    // === TEST 9: TRY WITH DIFFERENT IMAGE APPROACH ===
+    console.log('=== TEST 9: TRY DIFFERENT IMAGE APPROACH ===');
+    try {
+      const diffImgFormData = new FormData();
+      diffImgFormData.append('generator', generatorSlug);
+      
+      // Core fields
+      diffImgFormData.append('LN', 'DOE');
+      diffImgFormData.append('FN', 'JOHN');
+      diffImgFormData.append('NUMBER', '123456789');
+      diffImgFormData.append('SEX', 'M');
+      diffImgFormData.append('DOB', '16.10.1986');
+      diffImgFormData.append('DOI', '15.12.2020');
+      diffImgFormData.append('DOE', '15.12.2030');
+      diffImgFormData.append('NATIONALITY', 'HRVATSKO');
+      diffImgFormData.append('POB', 'ZAGREB');
+      diffImgFormData.append('POI', 'PU/ZAGREB');
+      
+      // Try different image approach - as streams instead of Blobs
+      const fs = require('fs');
+      const path = require('path');
+      const photoPath4 = path.join(process.cwd(), 'public', 'test-images', 'test-photo.png');
+      const signaturePath4 = path.join(process.cwd(), 'public', 'test-images', 'test-signature.png');
+      
+      // Use createReadStream instead of readFileSync
+      const photoStream = fs.createReadStream(photoPath4);
+      const signatureStream = fs.createReadStream(signaturePath4);
+      
+      diffImgFormData.append('image1', photoStream, {
+        filename: 'photo.png',
+        contentType: 'image/png'
+      });
+      diffImgFormData.append('image2', signatureStream, {
+        filename: 'signature.png', 
+        contentType: 'image/png'
+      });
+
+      console.log('Making request with stream images...');
+      const diffImgResponse = await fetch('https://api.veriftools.com/api/integration/generate/', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Basic ${credentials}`,
+          'Accept': 'application/json'
+        },
+        body: diffImgFormData
+      });
+
+      console.log('Stream-images response status:', diffImgResponse.status);
+      const diffImgResponseText = await diffImgResponse.text();
+      console.log('Stream-images response:', diffImgResponseText.substring(0, 1000));
+
+      if (diffImgResponse.ok) {
+        console.log('✅ SUCCESS WITH STREAM IMAGES!');
+      } else {
+        console.log('❌ Still failed with stream images');
+      }
+    } catch (diffImgError) {
+      console.error('Different images test exception:', diffImgError);
     }
 
     // === FINAL RESULT ===
