@@ -67,6 +67,16 @@ export default function KVKForm() {
     }
   };
 
+  // Format date for display in Croatian passport preview (DD.MM.YYYY format)
+  const formatDateForDisplay = (dateString) => {
+    if (!dateString) return '';
+    const date = new Date(dateString);
+    const day = date.getDate().toString().padStart(2, '0');
+    const month = (date.getMonth() + 1).toString().padStart(2, '0');
+    const year = date.getFullYear();
+    return `${day}.${month}.${year}`;
+  };
+
   // Basic form validation
   const validateForm = () => {
     const errors = {};
@@ -524,7 +534,7 @@ export default function KVKForm() {
                 <p><strong>Surname:</strong> {formData.ownerName ? formData.ownerName.split(' ').pop() : 'N/A'}</p>
                 <p><strong>Given Names:</strong> {formData.ownerName ? formData.ownerName.split(' ').slice(0, -1).join(' ') : 'N/A'}</p>
                 <p><strong>Sex:</strong> {passportSex}</p>
-                <p><strong>Date of Birth:</strong> {formData.ownerDOB ? new Date(formData.ownerDOB).toLocaleDateString('hr-HR') : 'N/A'}</p>
+                <p><strong>Date of Birth:</strong> {formData.ownerDOB ? formatDateForDisplay(formData.ownerDOB) : 'N/A'}</p>
                 <p><strong>Date of Issue:</strong> 15.12.2020</p>
                 <p><strong>Date of Expiry:</strong> 15.12.2030</p>
                 <p><strong>Nationality:</strong> HRVATSKO</p>

@@ -151,16 +151,25 @@ export default async function handler(req, res) {
       formData.append('generator', generatorSlug); // Use 'generator' not 'generator_slug'
       
       // Use the correct field names as discovered from the API response
-      formData.append('LN', 'TestSurname');        // Last Name
-      formData.append('FN', 'TestName');           // First Name
-      formData.append('NUMBER', '123456789');      // Document Number
-      formData.append('SEX', 'M');                 // Sex
-      formData.append('DOB', '01.01.1990');        // Date of Birth
-      formData.append('DOI', '15.12.2020');        // Date of Issue
-      formData.append('DOE', '15.12.2030');        // Date of Expiry
-      formData.append('NATIONALITY', 'HRVATSKO');  // Nationality
-      formData.append('POB', 'ZAGREB');            // Place of Birth
-      formData.append('POI', 'PU/ZAGREB');         // Place of Issue
+      // Test data with exact format from API documentation
+      const testData = {
+        'LN': 'TestSurname',        // Last Name
+        'FN': 'TestName',           // First Name
+        'NUMBER': '123456789',      // Document Number
+        'SEX': 'M',                 // Sex
+        'DOB': '01.01.1990',        // Date of Birth - EXACT format from API
+        'DOI': '15.12.2020',        // Date of Issue
+        'DOE': '15.12.2030',        // Date of Expiry
+        'NATIONALITY': 'HRVATSKO',  // Nationality
+        'POB': 'ZAGREB',            // Place of Birth
+        'POI': 'PU/ZAGREB'          // Place of Issue
+      };
+
+      console.log('=== SENDING TEST DATA ===');
+      Object.keys(testData).forEach(key => {
+        console.log(`${key}: "${testData[key]}"`);
+        formData.append(key, testData[key]);
+      });
 
       // Load actual test images
       const fs = require('fs');

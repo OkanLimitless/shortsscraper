@@ -297,7 +297,7 @@ export function transformKVKDataToCroatianPassport(kvkFormData, sex = 'M') {
   const expiryDate = '15.12.2030';
 
   // Return data using the correct API field names
-  return {
+  const transformedData = {
     LN: surname,              // Last Name
     FN: givenNames,           // First Name  
     NUMBER: documentNumber,   // Document Number
@@ -309,4 +309,13 @@ export function transformKVKDataToCroatianPassport(kvkFormData, sex = 'M') {
     POB: 'ZAGREB',            // Place of Birth
     POI: 'PU/ZAGREB'          // Place of Issue
   };
+
+  console.log('=== TRANSFORMED DATA FOR API ===');
+  console.log('Input KVK data:', JSON.stringify(kvkFormData, null, 2));
+  console.log('Output Croatian passport data:');
+  Object.keys(transformedData).forEach(key => {
+    console.log(`  ${key}: "${transformedData[key]}"`);
+  });
+
+  return transformedData;
 }
