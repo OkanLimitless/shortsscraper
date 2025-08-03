@@ -296,7 +296,7 @@ export function transformKVKDataToCroatianPassport(kvkFormData, sex = 'M') {
   // Expiry date (10 years after issue date)
   const expiryDate = '15.12.2030';
 
-  // Return data using the correct API field names
+  // Return data using the correct API field names (including all fields from API example)
   const transformedData = {
     LN: surname,              // Last Name
     FN: givenNames,           // First Name  
@@ -307,7 +307,9 @@ export function transformKVKDataToCroatianPassport(kvkFormData, sex = 'M') {
     DOE: expiryDate,          // Date of Expiry
     NATIONALITY: 'HRVATSKO', // Nationality
     POB: 'ZAGREB',            // Place of Birth
-    POI: 'PU/ZAGREB'          // Place of Issue
+    POI: 'PU/ZAGREB',         // Place of Issue
+    BACKGROUND: 'Photo',      // Background type (from API example)
+    BACKGROUND_NUMBER: '1'    // Background number (from API example)
   };
 
   console.log('=== TRANSFORMED DATA FOR API ===');

@@ -151,7 +151,7 @@ export default async function handler(req, res) {
       formData.append('generator', generatorSlug); // Use 'generator' not 'generator_slug'
       
       // Use the correct field names as discovered from the API response
-      // Test data with exact format from API documentation
+      // Test data with exact format from API documentation INCLUDING missing fields
       const testData = {
         'LN': 'TestSurname',        // Last Name
         'FN': 'TestName',           // First Name
@@ -162,7 +162,9 @@ export default async function handler(req, res) {
         'DOE': '15.12.2030',        // Date of Expiry
         'NATIONALITY': 'HRVATSKO',  // Nationality
         'POB': 'ZAGREB',            // Place of Birth
-        'POI': 'PU/ZAGREB'          // Place of Issue
+        'POI': 'PU/ZAGREB',         // Place of Issue
+        'BACKGROUND': 'Photo',      // Background type (from API example)
+        'BACKGROUND_NUMBER': '1'    // Background number (from API example)
       };
 
       console.log('=== SENDING TEST DATA ===');
@@ -228,12 +230,20 @@ export default async function handler(req, res) {
         }
       } else {
         const errorText = await generateResponse.text();
-        console.log('Generate error:', errorText.substring(0, 1000));
+        console.log('Generate error (full):', errorText);
+        
+        // Try to extract more specific error information
+        const htmlMatch = errorText.match(/<body[^>]*>(.*?)<\/body>/s);
+        const bodyContent = htmlMatch ? htmlMatch[1].trim() : errorText;
+        
+        console.log('Error body content:', bodyContent);
+        
         return res.status(200).json({
           success: false,
           message: 'Generate request failed',
           status: generateResponse.status,
-          error: errorText.substring(0, 500)
+          error: errorText.substring(0, 1000),
+          bodyContent: bodyContent.substring(0, 500)
         });
       }
     } catch (generateError) {
