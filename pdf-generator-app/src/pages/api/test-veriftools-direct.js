@@ -151,20 +151,20 @@ export default async function handler(req, res) {
       formData.append('generator', generatorSlug); // Use 'generator' not 'generator_slug'
       
       // Use the correct field names as discovered from the API response
-      // Test data with exact format from API documentation INCLUDING missing fields
+      // ITERATION 2: Use EXACT data from the working API response
       const testData = {
-        'LN': 'TestSurname',        // Last Name
-        'FN': 'TestName',           // First Name
-        'NUMBER': '123456789',      // Document Number
-        'SEX': 'M',                 // Sex
-        'DOB': '01.01.1990',        // Date of Birth - EXACT format from API
-        'DOI': '15.12.2020',        // Date of Issue
-        'DOE': '15.12.2030',        // Date of Expiry
-        'NATIONALITY': 'HRVATSKO',  // Nationality
-        'POB': 'ZAGREB',            // Place of Birth
-        'POI': 'PU/ZAGREB',         // Place of Issue
-        'BACKGROUND': 'Photo',      // Background type (from API example)
-        'BACKGROUND_NUMBER': '1'    // Background number (from API example)
+        'LN': 'DOE',                // EXACT from API example
+        'FN': 'JOHN',               // EXACT from API example
+        'NUMBER': '123456789',      // EXACT from API example
+        'SEX': 'M',                 // EXACT from API example
+        'DOB': '16.10.1986',        // EXACT from API example
+        'DOI': '15.12.2020',        // EXACT from API example
+        'DOE': '15.12.2030',        // EXACT from API example
+        'NATIONALITY': 'HRVATSKO',  // EXACT from API example
+        'POB': 'ZAGREB',            // EXACT from API example
+        'POI': 'PU/ZAGREB',         // EXACT from API example
+        'BACKGROUND': 'Photo',      // EXACT from API example
+        'BACKGROUND_NUMBER': '1'    // EXACT from API example
       };
 
       console.log('=== SENDING TEST DATA ===');
@@ -285,21 +285,28 @@ export default async function handler(req, res) {
       const minimalFormData = new FormData();
       minimalFormData.append('generator', generatorSlug);
       
-      // Only essential fields
-      minimalFormData.append('LN', 'TEST');
-      minimalFormData.append('FN', 'USER');
-      minimalFormData.append('NUMBER', '123456789');
-      minimalFormData.append('SEX', 'M');
-      minimalFormData.append('DOB', '01.01.1990');
-      minimalFormData.append('DOI', '15.12.2020');
-      minimalFormData.append('DOE', '15.12.2030');
-      minimalFormData.append('NATIONALITY', 'HRVATSKO');
-      minimalFormData.append('POB', 'ZAGREB');
-      minimalFormData.append('POI', 'PU/ZAGREB');
+             // ITERATION 2: Use EXACT API example data without BACKGROUND fields
+       minimalFormData.append('LN', 'DOE');
+       minimalFormData.append('FN', 'JOHN');
+       minimalFormData.append('NUMBER', '123456789');
+       minimalFormData.append('SEX', 'M');
+       minimalFormData.append('DOB', '16.10.1986');  // EXACT from API
+       minimalFormData.append('DOI', '15.12.2020');
+       minimalFormData.append('DOE', '15.12.2030');
+       minimalFormData.append('NATIONALITY', 'HRVATSKO');
+       minimalFormData.append('POB', 'ZAGREB');
+       minimalFormData.append('POI', 'PU/ZAGREB');
       
-      // Add images
-      minimalFormData.append('image1', new Blob([photoBuffer], { type: 'image/png' }), 'photo.png');
-      minimalFormData.append('image2', new Blob([signatureBuffer], { type: 'image/png' }), 'signature.png');
+             // Add images (reuse the buffers from earlier)
+       const fs = require('fs');
+       const path = require('path');
+       const photoPath2 = path.join(process.cwd(), 'public', 'test-images', 'test-photo.png');
+       const signaturePath2 = path.join(process.cwd(), 'public', 'test-images', 'test-signature.png');
+       const photoBuffer2 = fs.readFileSync(photoPath2);
+       const signatureBuffer2 = fs.readFileSync(signaturePath2);
+       
+       minimalFormData.append('image1', new Blob([photoBuffer2], { type: 'image/png' }), 'photo.png');
+       minimalFormData.append('image2', new Blob([signatureBuffer2], { type: 'image/png' }), 'signature.png');
 
       console.log('Making minimal generate request...');
       const minimalResponse = await fetch('https://api.veriftools.com/api/integration/generate/', {
@@ -353,6 +360,67 @@ export default async function handler(req, res) {
       console.log('Pay-for-result response:', payResponseText.substring(0, 500));
     } catch (payError) {
       console.error('Pay-for-result test exception:', payError);
+    }
+
+    // === TEST 7: TRY WITHOUT BACKGROUND FIELDS ===
+    console.log('=== TEST 7: TRY WITHOUT BACKGROUND FIELDS ===');
+    try {
+      const noBgFormData = new FormData();
+      noBgFormData.append('generator', generatorSlug);
+      
+      // Only the core fields - NO BACKGROUND fields
+      noBgFormData.append('LN', 'DOE');
+      noBgFormData.append('FN', 'JOHN');
+      noBgFormData.append('NUMBER', '123456789');
+      noBgFormData.append('SEX', 'M');
+      noBgFormData.append('DOB', '16.10.1986');
+      noBgFormData.append('DOI', '15.12.2020');
+      noBgFormData.append('DOE', '15.12.2030');
+      noBgFormData.append('NATIONALITY', 'HRVATSKO');
+      noBgFormData.append('POB', 'ZAGREB');
+      noBgFormData.append('POI', 'PU/ZAGREB');
+      
+      // Add images
+      const photoPath3 = path.join(process.cwd(), 'public', 'test-images', 'test-photo.png');
+      const signaturePath3 = path.join(process.cwd(), 'public', 'test-images', 'test-signature.png');
+      const photoBuffer3 = fs.readFileSync(photoPath3);
+      const signatureBuffer3 = fs.readFileSync(signaturePath3);
+      
+      noBgFormData.append('image1', new Blob([photoBuffer3], { type: 'image/png' }), 'photo.png');
+      noBgFormData.append('image2', new Blob([signatureBuffer3], { type: 'image/png' }), 'signature.png');
+
+      console.log('Making request WITHOUT background fields...');
+      const noBgResponse = await fetch('https://api.veriftools.com/api/integration/generate/', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Basic ${credentials}`,
+          'Accept': 'application/json'
+        },
+        body: noBgFormData
+      });
+
+      console.log('No-background response status:', noBgResponse.status);
+      console.log('No-background response headers:', Object.fromEntries(noBgResponse.headers.entries()));
+
+      const noBgResponseText = await noBgResponse.text();
+      console.log('No-background response:', noBgResponseText.substring(0, 1000));
+
+      if (noBgResponse.ok) {
+        console.log('✅ SUCCESS WITHOUT BACKGROUND FIELDS!');
+        try {
+          const data = JSON.parse(noBgResponseText);
+          console.log('Response data:', data);
+          if (data.task_id) {
+            console.log(`Task ID: ${data.task_id}`);
+          }
+        } catch (e) {
+          console.log('Response not JSON but request succeeded');
+        }
+      } else {
+        console.log('❌ Still failed without background fields');
+      }
+    } catch (noBgError) {
+      console.error('No-background test exception:', noBgError);
     }
 
     // === FINAL RESULT ===
