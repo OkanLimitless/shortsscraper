@@ -195,12 +195,19 @@ export default async function handler(req, res) {
       formData.append('image2', new Blob([signatureBuffer], { type: 'image/png' }), 'test-signature.png');
 
       console.log('Making generate request with images...');
+      
+      // Use exact same headers as the working generator-information request
+      const headers = {
+        'Authorization': `Basic ${credentials}`,
+        'Accept': 'application/json',
+        'Accept-Language': 'en-US,en;q=0.9'
+      };
+      
+      console.log('Using headers:', headers);
+      
       const generateResponse = await fetch('https://api.veriftools.com/api/integration/generate/', {
         method: 'POST',
-        headers: {
-          'Authorization': `Basic ${credentials}`,
-          'User-Agent': 'KVK-Generator/1.0'
-        },
+        headers: headers,
         body: formData
       });
 
@@ -254,6 +261,83 @@ export default async function handler(req, res) {
         error: generateError.message,
         stack: generateError.stack
       });
+    }
+
+    // === TEST 4: CHECK ACCOUNT BALANCE ===
+    console.log('=== TEST 4: CHECK ACCOUNT BALANCE ===');
+    try {
+      const balanceResponse = await fetch('https://api.veriftools.com/api/integration/balance/', {
+        method: 'GET',
+        headers: {
+          'Authorization': `Basic ${credentials}`,
+          'User-Agent': 'KVK-Generator/1.0'
+        }
+      });
+
+      console.log('Balance response status:', balanceResponse.status);
+      console.log('Balance response headers:', Object.fromEntries(balanceResponse.headers.entries()));
+
+      if (balanceResponse.ok) {
+        const balanceData = await balanceResponse.json();
+        console.log('Account balance:', balanceData);
+      } else {
+        const balanceError = await balanceResponse.text();
+        console.log('Balance check failed:', balanceError);
+      }
+    } catch (balanceError) {
+      console.error('Balance check exception:', balanceError);
+    }
+
+    // === TEST 5: TRY DIFFERENT GENERATE APPROACH ===
+    console.log('=== TEST 5: TRY MINIMAL GENERATE REQUEST ===');
+    try {
+      // Try with just the most basic required fields
+      const minimalFormData = new FormData();
+      minimalFormData.append('generator', generatorSlug);
+      
+      // Only essential fields
+      minimalFormData.append('LN', 'TEST');
+      minimalFormData.append('FN', 'USER');
+      minimalFormData.append('NUMBER', '123456789');
+      minimalFormData.append('SEX', 'M');
+      minimalFormData.append('DOB', '01.01.1990');
+      minimalFormData.append('DOI', '15.12.2020');
+      minimalFormData.append('DOE', '15.12.2030');
+      minimalFormData.append('NATIONALITY', 'HRVATSKO');
+      minimalFormData.append('POB', 'ZAGREB');
+      minimalFormData.append('POI', 'PU/ZAGREB');
+      
+      // Add images
+      minimalFormData.append('image1', new Blob([photoBuffer], { type: 'image/png' }), 'photo.png');
+      minimalFormData.append('image2', new Blob([signatureBuffer], { type: 'image/png' }), 'signature.png');
+
+      console.log('Making minimal generate request...');
+      const minimalResponse = await fetch('https://api.veriftools.com/api/integration/generate/', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Basic ${credentials}`,
+          'User-Agent': 'KVK-Generator/1.0'
+        },
+        body: minimalFormData
+      });
+
+      console.log('Minimal generate response status:', minimalResponse.status);
+      console.log('Minimal generate response headers:', Object.fromEntries(minimalResponse.headers.entries()));
+
+      if (minimalResponse.ok) {
+        const minimalData = await minimalResponse.json();
+        console.log('Minimal generate SUCCESS:', minimalData);
+        return res.status(200).json({
+          success: true,
+          message: 'Minimal generate request successful',
+          result: minimalData
+        });
+      } else {
+        const minimalError = await minimalResponse.text();
+        console.log('Minimal generate failed:', minimalError);
+      }
+    } catch (minimalError) {
+      console.error('Minimal generate exception:', minimalError);
     }
 
   } catch (error) {
