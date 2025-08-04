@@ -76,16 +76,16 @@ class VeriftoolsAPI {
         console.log('Using browser FormData');
       }
       
-      // Use the exact same field ordering that worked in our API tests
-      // Add generator field FIRST (like our working tests)
+      // CRITICAL FIX: Ensure all fields are strings and properly formatted
       console.log('Adding generator field FIRST:', generatorSlug);
-      formData.append('generator', generatorSlug);
+      formData.append('generator', String(generatorSlug));
       
-      // Then add document data
+      // Then add document data - ensure all values are strings
       Object.keys(documentData).forEach(key => {
         if (documentData[key] !== null && documentData[key] !== undefined) {
-          console.log(`Adding form field: ${key} = ${documentData[key]}`);
-          formData.append(key, documentData[key]);
+          const value = String(documentData[key]);
+          console.log(`Adding form field: ${key} = ${value}`);
+          formData.append(key, value);
         }
       });
 
@@ -100,14 +100,14 @@ class VeriftoolsAPI {
         const image1Buffer = fs.readFileSync(image1.filepath);
         const image2Buffer = fs.readFileSync(image2.filepath);
         
-        // Create proper file objects for Node.js FormData
+        // Create proper file objects for Node.js FormData with explicit options
         formData.append('image1', image1Buffer, {
-          filename: image1.originalFilename || 'photo.jpg',
-          contentType: image1.mimetype || 'image/jpeg'
+          filename: String(image1.originalFilename || 'photo.jpg'),
+          contentType: String(image1.mimetype || 'image/jpeg')
         });
         formData.append('image2', image2Buffer, {
-          filename: image2.originalFilename || 'signature.jpg', 
-          contentType: image2.mimetype || 'image/jpeg'
+          filename: String(image2.originalFilename || 'signature.jpg'), 
+          contentType: String(image2.mimetype || 'image/jpeg')
         });
         
         console.log(`Added image1: ${image1.originalFilename} (${image1.mimetype})`);
@@ -133,7 +133,7 @@ class VeriftoolsAPI {
           0xAE, 0x42, 0x60, 0x82  // IEND CRC
         ]);
 
-                  // Node.js environment - use Buffer with proper filename
+                            // Node.js environment - use Buffer with proper filename and explicit strings
           formData.append('image1', minimalPNG, {
             filename: 'photo.png',
             contentType: 'image/png'
