@@ -62,18 +62,25 @@ class VeriftoolsAPI {
       console.log('Generator slug:', generatorSlug);
       console.log('Document data:', documentData);
       
-      // CRITICAL FIX: Use the exact same approach that worked in our API tests
+      // Use the EXACT same approach that works in Test 3, but with ES module compatibility
+      console.log('Creating FormData using working Test 3 approach...');
       let formData;
-      if (typeof window === 'undefined') {
-        // Node.js environment - use require directly (like our working tests)
-        console.log('Creating Node.js FormData...');
-        const FormDataClass = require('form-data');
+      
+      try {
+        // Try dynamic import first (ES modules)
+        const FormDataModule = await import('form-data');
+        const FormDataClass = FormDataModule.default || FormDataModule;
         formData = new FormDataClass();
-        console.log('Node.js FormData created successfully');
-      } else {
-        // Browser environment
-        formData = new FormData();
-        console.log('Using browser FormData');
+        console.log('FormData created with dynamic import');
+      } catch (importError) {
+        try {
+          // Fallback to require (CommonJS)
+          const FormDataClass = require('form-data');
+          formData = new FormDataClass();
+          console.log('FormData created with require');
+        } catch (requireError) {
+          throw new Error(`Failed to load form-data: ${importError.message}, ${requireError.message}`);
+        }
       }
       
       // CRITICAL FIX: Ensure all fields are strings and properly formatted
@@ -147,18 +154,13 @@ class VeriftoolsAPI {
       console.log('Making API request...');
       console.log('FormData headers:', typeof window === 'undefined' && formData.getHeaders ? formData.getHeaders() : 'Browser FormData');
       
-      // Use the exact same request format that worked in our API tests
+      // Use the EXACT same headers approach that works in Test 3
       const headers = {
-        'Authorization': `Basic ${this.credentials}`
+        'Authorization': `Basic ${this.credentials}`,
+        ...formData.getHeaders()
       };
       
-      // Add FormData headers for Node.js environment
-      if (typeof window === 'undefined' && formData.getHeaders) {
-        console.log('Adding FormData headers:', formData.getHeaders());
-        Object.assign(headers, formData.getHeaders());
-      }
-      
-      console.log('Final request headers:', headers);
+      console.log('Using Test 3 headers approach:', headers);
       
       const response = await fetch(`${this.baseURL}/api/integration/generate/`, {
         method: 'POST',
