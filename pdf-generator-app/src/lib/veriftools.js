@@ -73,19 +73,11 @@ class VeriftoolsAPI {
         formData = new FormDataClass();
         console.log('FormData created with dynamic import');
       } catch (importError) {
-        try {
-          // Fallback to require (CommonJS)
-          const FormDataClass = require('form-data');
-          formData = new FormDataClass();
-          console.log('FormData created with require');
-        } catch (requireError) {
-          throw new Error(`Failed to load form-data: ${importError.message}, ${requireError.message}`);
-        }
+        throw new Error(`Failed to load form-data: ${importError.message}`);
       }
       
-      // Add generator field to form data (standard approach)
-      console.log('Adding generator field to form data:', generatorSlug);
-      formData.append('generator', String(generatorSlug));
+      // Don't add generator to FormData - it will be in URL
+      console.log('Generator will be passed as URL parameter:', generatorSlug);
       
       // Then add document data - ensure all values are strings
       Object.keys(documentData).forEach(key => {
@@ -101,7 +93,7 @@ class VeriftoolsAPI {
         console.log('Adding uploaded images...');
         
         // In Node.js environment, read the files and create proper form data
-        const fs = require('fs');
+        const fs = await import('fs');
         
         // Read the uploaded files
         const image1Buffer = fs.readFileSync(image1.filepath);
@@ -162,9 +154,9 @@ class VeriftoolsAPI {
       
       console.log('Using Test 3 headers approach:', headers);
       
-      // Use the standard generate endpoint
-      const generateUrl = `${this.baseURL}/api/integration/generate/`;
-      console.log('Using standard generate URL:', generateUrl);
+      // Use generate endpoint with generator as query parameter
+      const generateUrl = `${this.baseURL}/api/integration/generate/?generator=${generatorSlug}`;
+      console.log('Using generate URL with query parameter:', generateUrl);
       
       const response = await fetch(generateUrl, {
         method: 'POST',
@@ -279,7 +271,9 @@ class VeriftoolsAPI {
   }
 }
 
-// Export function to create API instance
+// Export the class and factory function
+export { VeriftoolsAPI };
+
 export function createVeriftoolsAPI(username, password) {
   return new VeriftoolsAPI(username, password);
 }

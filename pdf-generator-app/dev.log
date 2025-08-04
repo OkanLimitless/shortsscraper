@@ -1,24 +1,35 @@
-nohup: ignoring input
 
 > kvk-document-generator@0.1.0 dev
 > next dev -p 3001
 
- ⨯ Failed to start server
-Error: listen EADDRINUSE: address already in use :::3001
-    at Server.setupListenHandle [as _listen2] (node:net:1939:16)
-    at listenInCluster (node:net:1996:12)
-    at Server.listen (node:net:2101:7)
-    at /workspace/pdf-generator-app/node_modules/next/dist/server/lib/start-server.js:268:16
-    at new Promise (<anonymous>)
-    at startServer (/workspace/pdf-generator-app/node_modules/next/dist/server/lib/start-server.js:181:11)
-    at process.<anonymous> (/workspace/pdf-generator-app/node_modules/next/dist/server/lib/start-server.js:291:19)
-    at process.emit (node:events:518:28)
-    at emit (node:internal/child_process:949:14)
-    at process.processTicksAndRejections (node:internal/process/task_queues:91:21) {
-  code: 'EADDRINUSE',
-  errno: -98,
-  syscall: 'listen',
-  address: '::',
-  port: 3001
+   ▲ Next.js 14.0.0
+   - Local:        http://localhost:3001
+
+ ✓ Ready in 1003ms
+ ✓ Compiled /api/test-veriftools in 241ms (61 modules)
+Test API called
+Request body: 
+Test data: {
+  message: 'Test API working',
+  environment: { nodeVersion: 'v22.16.0', hasFetch: true, hasBuffer: true },
+  receivedData: ''
 }
-[?25h
+=== TRANSFORMED DATA FOR API ===
+Input KVK data: {
+  "ownerName": "John Doe",
+  "ownerDOB": "1990-01-01"
+}
+Output Croatian passport data:
+  LN: "Doe"
+  FN: "John"
+  NUMBER: "125145790"
+  SEX: "M"
+  DOB: "01.01.1990"
+  DOI: "15.12.2020"
+  DOE: "15.12.2030"
+  NATIONALITY: "HRVATSKO"
+  POB: "ZAGREB"
+  POI: "PU/ZAGREB"
+  BACKGROUND: "Photo"
+  BACKGROUND_NUMBER: "1"
+ ✓ Compiled in 71ms (43 modules)
