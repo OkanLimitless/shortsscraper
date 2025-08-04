@@ -19,6 +19,20 @@ export default function KVKForm() {
     ownerName: '',
     ownerDOB: '',
   });
+
+  // Veriftools state for Croatian passport generation
+  const [generatePassport, setGeneratePassport] = useState(false);
+  const [passportSex, setPassportSex] = useState('M'); // Default to M
+  const [passportPhoto, setPassportPhoto] = useState(null); // Photo file
+  const [passportSignature, setPassportSignature] = useState(null); // Signature file
+  const [verriftoolsCredentials, setVeriftoolsCredentials] = useState({
+    username: 'multilog24@protonmail.com',
+    password: 'K7-pk2Xj8wMvXqR',
+    generatorSlug: 'croatia_passport' // Croatian passport generator slug
+  });
+  const [passportGenerating, setPassportGenerating] = useState(false);
+  const [passportError, setPassportError] = useState(null);
+  const [passportSuccess, setPassportSuccess] = useState(false);
   
   // Handle input change
   const handleInputChange = (e) => {
@@ -53,6 +67,16 @@ export default function KVKForm() {
     }
   };
 
+  // Format date for display in Croatian passport preview (DD.MM.YYYY format)
+  const formatDateForDisplay = (dateString) => {
+    if (!dateString) return '';
+    const date = new Date(dateString);
+    const day = date.getDate().toString().padStart(2, '0');
+    const month = (date.getMonth() + 1).toString().padStart(2, '0');
+    const year = date.getFullYear();
+    return `${day}.${month}.${year}`;
+  };
+
   // Basic form validation
   const validateForm = () => {
     const errors = {};
@@ -63,6 +87,97 @@ export default function KVKForm() {
     
     setValidationErrors(errors);
     return Object.keys(errors).length === 0;
+  };
+
+  // Handle Veriftools credentials change
+  const handleVeriftoolsCredentialsChange = (e) => {
+    const { name, value } = e.target;
+    setVeriftoolsCredentials(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  // Generate Croatian passport with Veriftools (separate from KVK generation)
+  const generateCroatianPassport = async () => {
+    // Check if images are uploaded
+    if (!passportPhoto || !passportSignature) {
+      setPassportError('Please upload both photo and signature images for Croatian passport generation.');
+      return;
+    }
+
+    setPassportGenerating(true);
+    setPassportError(null);
+    setPassportSuccess(false);
+
+    try {
+      // Create FormData to handle file uploads
+      const formDataToSend = new FormData();
+      formDataToSend.append('formData', JSON.stringify(formData));
+      formDataToSend.append('generatorSlug', verriftoolsCredentials.generatorSlug);
+      formDataToSend.append('sex', passportSex);
+      formDataToSend.append('username', verriftoolsCredentials.username);
+      formDataToSend.append('password', verriftoolsCredentials.password);
+      formDataToSend.append('image1', passportPhoto); // Photo file
+      formDataToSend.append('image2', passportSignature); // Signature file
+
+      const response = await fetch('/api/generate-veriftools', {
+        method: 'POST',
+        body: formDataToSend, // Use FormData instead of JSON
+      });
+
+      if (!response.ok) {
+        let errorMessage = `Server error (${response.status}): ${response.statusText}`;
+        
+        // Try to get more specific error message
+        const contentType = response.headers.get('content-type');
+        if (contentType && contentType.includes('application/json')) {
+          try {
+            const errorData = await response.json();
+            errorMessage = errorData.error || errorMessage;
+          } catch (parseError) {
+            console.error('Failed to parse error JSON:', parseError);
+          }
+        } else {
+          // It's probably an HTML error page
+          try {
+            const errorText = await response.text();
+            console.error('Server returned non-JSON error:', errorText.substring(0, 500));
+          } catch (textError) {
+            console.error('Failed to read error text:', textError);
+          }
+        }
+        
+        throw new Error(errorMessage);
+      }
+
+      // Get the PDF blob and create download
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      
+      // Get filename from response headers
+      const contentDisposition = response.headers.get('Content-Disposition');
+      const filename = contentDisposition 
+        ? contentDisposition.split('filename=')[1]?.replace(/"/g, '') 
+        : 'croatian_passport.pdf';
+
+      // Create download link
+      const a = document.createElement('a');
+      a.style.display = 'none';
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+
+      setPassportSuccess(true);
+    } catch (err) {
+      console.error('Croatian passport generation error:', err);
+      setPassportError(err.message || 'Failed to generate Croatian passport');
+    } finally {
+      setPassportGenerating(false);
+    }
   };
 
   // Handle form submission
@@ -78,7 +193,7 @@ export default function KVKForm() {
     setSuccess(false);
 
     try {
-      // Generate PDF using pdf-lib method with advanced anti-detection
+      // Always generate KVK PDF using existing method
       const response = await fetch('/api/generate-pdf', {
         method: 'POST',
         headers: {
@@ -113,6 +228,14 @@ export default function KVKForm() {
       document.body.removeChild(a);
 
       setSuccess(true);
+
+      // Additionally generate Croatian passport if enabled
+      if (generatePassport && verriftoolsCredentials.username && verriftoolsCredentials.password) {
+        // Generate Croatian passport in the background
+        setTimeout(() => {
+          generateCroatianPassport();
+        }, 1000); // Small delay to let KVK download start first
+      }
     } catch (err) {
       console.error('Error:', err);
       setError(err.message || 'An unexpected error occurred');
@@ -275,6 +398,240 @@ export default function KVKForm() {
               />
             </div>
           </div>
+        </div>
+
+        {/* Croatian Passport Generation Section */}
+        <div className={styles.section}>
+          <h2 className={styles.sectionTitle}>Additional Document Generation</h2>
+          
+          <div className={styles.inputGroup}>
+            <label className={styles.checkboxLabel}>
+              <input
+                type="checkbox"
+                checked={generatePassport}
+                onChange={(e) => setGeneratePassport(e.target.checked)}
+                className={styles.checkbox}
+              />
+              Also generate Croatian Passport using Veriftools API
+            </label>
+            <p className={styles.description}>
+              Generate a Croatian passport document using the name and birth date from the KVK form.
+              This will create a separate document with Croatian passport format.
+            </p>
+          </div>
+
+          {generatePassport && (
+            <div className={styles.verriftoolsConfig}>
+              <div className={styles.row}>
+                <div className={styles.inputGroup}>
+                  <label htmlFor="verriftoolsUsername" className={styles.label}>
+                    Veriftools Username *
+                  </label>
+                  <input
+                    type="text"
+                    id="verriftoolsUsername"
+                    name="username"
+                    value={verriftoolsCredentials.username}
+                    onChange={handleVeriftoolsCredentialsChange}
+                    className={styles.input}
+                    placeholder="Your Veriftools username"
+                  />
+                </div>
+                
+                <div className={styles.inputGroup}>
+                  <label htmlFor="verriftoolsPassword" className={styles.label}>
+                    Veriftools Password *
+                  </label>
+                  <input
+                    type="password"
+                    id="verriftoolsPassword"
+                    name="password"
+                    value={verriftoolsCredentials.password}
+                    onChange={handleVeriftoolsCredentialsChange}
+                    className={styles.input}
+                    placeholder="Your Veriftools password"
+                  />
+                </div>
+              </div>
+              
+              <div className={styles.row}>
+                <div className={styles.inputGroup}>
+                  <label htmlFor="generatorSlug" className={styles.label}>
+                    Croatian Passport Generator Slug
+                  </label>
+                  <input
+                    type="text"
+                    id="generatorSlug"
+                    name="generatorSlug"
+                    value={verriftoolsCredentials.generatorSlug}
+                    onChange={handleVeriftoolsCredentialsChange}
+                    className={styles.input}
+                    placeholder="croatia-passport"
+                  />
+                  <p className={styles.description}>
+                    The generator slug for Croatian passport documents. Contact Veriftools support for the correct slug.
+                  </p>
+                </div>
+                
+                <div className={styles.inputGroup}>
+                  <label htmlFor="passportSex" className={styles.label}>
+                    Sex
+                  </label>
+                  <select
+                    id="passportSex"
+                    value={passportSex}
+                    onChange={(e) => setPassportSex(e.target.value)}
+                    className={styles.select}
+                  >
+                    <option value="M">M (Male)</option>
+                    <option value="F">F (Female)</option>
+                  </select>
+                </div>
+
+                <div className={styles.inputGroup}>
+                  <label htmlFor="passportPhoto" className={styles.label}>
+                    Photo (required)
+                  </label>
+                  <input
+                    type="file"
+                    id="passportPhoto"
+                    accept="image/*"
+                    onChange={(e) => setPassportPhoto(e.target.files[0])}
+                    className={`${styles.input} ${passportPhoto ? styles.fileSelected : ''}`}
+                    required
+                  />
+                  {passportPhoto && <p className={styles.info}>Selected: {passportPhoto.name}</p>}
+                  <p className={styles.description}>
+                    Upload a photo for the Croatian passport (JPG, PNG formats supported)
+                    <br />
+                    <small>💡 For testing: <a href="/test-images/test-photo.png" download>Download test photo</a></small>
+                  </p>
+                </div>
+
+                <div className={styles.inputGroup}>
+                  <label htmlFor="passportSignature" className={styles.label}>
+                    Signature (required)
+                  </label>
+                  <input
+                    type="file"
+                    id="passportSignature"
+                    accept="image/*"
+                    onChange={(e) => setPassportSignature(e.target.files[0])}
+                    className={`${styles.input} ${passportSignature ? styles.fileSelected : ''}`}
+                    required
+                  />
+                  {passportSignature && <p className={styles.info}>Selected: {passportSignature.name}</p>}
+                  <p className={styles.description}>
+                    Upload a signature for the Croatian passport (JPG, PNG formats supported)
+                    <br />
+                    <small>💡 For testing: <a href="/test-images/test-signature.png" download>Download test signature</a></small>
+                  </p>
+                </div>
+              </div>
+
+              <div className={styles.passportPreview}>
+                <h4>Croatian Passport Data Preview:</h4>
+                <p><strong>Surname:</strong> {formData.ownerName ? formData.ownerName.split(' ').pop() : 'N/A'}</p>
+                <p><strong>Given Names:</strong> {formData.ownerName ? formData.ownerName.split(' ').slice(0, -1).join(' ') : 'N/A'}</p>
+                <p><strong>Sex:</strong> {passportSex}</p>
+                <p><strong>Date of Birth:</strong> {formData.ownerDOB ? formatDateForDisplay(formData.ownerDOB) : 'N/A'}</p>
+                <p><strong>Date of Issue:</strong> 15.12.2020</p>
+                <p><strong>Date of Expiry:</strong> 15.12.2030</p>
+                <p><strong>Nationality:</strong> HRVATSKO</p>
+                <p><strong>Place of Birth:</strong> ZAGREB</p>
+                <p><strong>Issued by:</strong> PU/ZAGREB</p>
+                
+                <div style={{ marginTop: '10px', display: 'flex', gap: '10px' }}>
+                  <button 
+                    type="button"
+                    onClick={async () => {
+                      try {
+                        const response = await fetch('/api/test-veriftools', {
+                          method: 'POST',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify({ formData, sex: passportSex })
+                        });
+                        const result = await response.json();
+                        console.log('Test result:', result);
+                        alert('Test completed - check console for details');
+                      } catch (err) {
+                        console.error('Test error:', err);
+                        alert('Test failed - check console for details');
+                      }
+                    }}
+                    style={{
+                      padding: '5px 10px',
+                      backgroundColor: '#007bff',
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: '4px',
+                      cursor: 'pointer',
+                      fontSize: '12px'
+                    }}
+                  >
+                    Test API Integration
+                  </button>
+                  
+                  <button 
+                    type="button"
+                    onClick={async () => {
+                      if (!verriftoolsCredentials.username || !verriftoolsCredentials.password) {
+                        alert('Please enter Veriftools credentials first');
+                        return;
+                      }
+                      try {
+                        const response = await fetch('/api/test-veriftools-direct', {
+                          method: 'POST',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify({
+                            username: verriftoolsCredentials.username,
+                            password: verriftoolsCredentials.password,
+                            generatorSlug: verriftoolsCredentials.generatorSlug
+                          })
+                        });
+                        const result = await response.json();
+                        console.log('Direct test result:', result);
+                        alert('Direct test completed - check console and server logs');
+                      } catch (err) {
+                        console.error('Direct test error:', err);
+                        alert('Direct test failed - check console for details');
+                      }
+                    }}
+                    style={{
+                      padding: '5px 10px',
+                      backgroundColor: '#28a745',
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: '4px',
+                      cursor: 'pointer',
+                      fontSize: '12px'
+                    }}
+                  >
+                    Test Direct API
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Croatian Passport Status */}
+          {passportGenerating && (
+            <div className={styles.info}>
+              Generating Croatian passport...
+            </div>
+          )}
+          
+          {passportError && (
+            <div className={styles.error}>
+              Croatian Passport Error: {passportError}
+            </div>
+          )}
+          
+          {passportSuccess && (
+            <div className={styles.success}>
+              Croatian passport generated and downloaded successfully!
+            </div>
+          )}
         </div>
 
                 {/* Error Display */}
