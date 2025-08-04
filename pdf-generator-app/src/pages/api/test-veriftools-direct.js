@@ -147,7 +147,9 @@ export default async function handler(req, res) {
     // Test 3: Try to generate a document with images
     console.log('=== TEST 3: GENERATE DOCUMENT WITH IMAGES ===');
     try {
-      const formData = new FormData();
+      // Use Node.js form-data package instead of browser FormData
+      const FormDataClass = require('form-data');
+      const formData = new FormDataClass();
       formData.append('generator', generatorSlug); // Use 'generator' not 'generator_slug'
       
       // Use the correct field names as discovered from the API response
@@ -190,17 +192,23 @@ export default async function handler(req, res) {
       console.log('Photo buffer size:', photoBuffer.length);
       console.log('Signature buffer size:', signatureBuffer.length);
 
-      // Add actual test images
-      formData.append('image1', new Blob([photoBuffer], { type: 'image/png' }), 'test-photo.png');
-      formData.append('image2', new Blob([signatureBuffer], { type: 'image/png' }), 'test-signature.png');
+      // Add actual test images using Node.js FormData format
+      formData.append('image1', photoBuffer, {
+        filename: 'test-photo.png',
+        contentType: 'image/png'
+      });
+      formData.append('image2', signatureBuffer, {
+        filename: 'test-signature.png',
+        contentType: 'image/png'
+      });
 
       console.log('Making generate request with images...');
       
-      // CRITICAL: Don't set Content-Type for FormData - let browser set it with boundary
-      const headers = {
-        'Authorization': `Basic ${credentials}`
-        // Removed Accept and Accept-Language to match minimal working request
-      };
+              // Use proper headers for Node.js FormData
+        const headers = {
+          'Authorization': `Basic ${credentials}`,
+          ...formData.getHeaders() // This adds the correct multipart boundary
+        };
       
       console.log('Using headers:', headers);
       
@@ -281,7 +289,8 @@ export default async function handler(req, res) {
     console.log('=== TEST 5: TRY MINIMAL GENERATE REQUEST ===');
     try {
       // Try with just the most basic required fields
-      const minimalFormData = new FormData();
+      const FormDataClass = require('form-data');
+      const minimalFormData = new FormDataClass();
       minimalFormData.append('generator', generatorSlug);
       
              // ITERATION 2: Use EXACT API example data without BACKGROUND fields
@@ -340,7 +349,8 @@ export default async function handler(req, res) {
     console.log('=== TEST 6: CHECK PAY-FOR-RESULT ENDPOINT ===');
     try {
       // Try to understand the pay-for-result workflow
-      const payFormData = new FormData();
+      const FormDataClass = require('form-data');
+      const payFormData = new FormDataClass();
       payFormData.append('task_id', 'test-task-id'); // This will fail but might give us info
       
       const payResponse = await fetch('https://api.veriftools.com/api/integration/pay-for-result/', {
@@ -364,7 +374,8 @@ export default async function handler(req, res) {
     // === TEST 7: TRY WITHOUT BACKGROUND FIELDS ===
     console.log('=== TEST 7: TRY WITHOUT BACKGROUND FIELDS ===');
     try {
-      const noBgFormData = new FormData();
+      const FormDataClass = require('form-data');
+      const noBgFormData = new FormDataClass();
       noBgFormData.append('generator', generatorSlug);
       
       // Only the core fields - NO BACKGROUND fields
@@ -395,7 +406,7 @@ export default async function handler(req, res) {
         method: 'POST',
         headers: {
           'Authorization': `Basic ${credentials}`,
-          'Accept': 'application/json'
+          ...noBgFormData.getHeaders()
         },
         body: noBgFormData
       });
@@ -479,7 +490,8 @@ export default async function handler(req, res) {
     // === TEST 9: TRY WITH DIFFERENT IMAGE APPROACH ===
     console.log('=== TEST 9: TRY DIFFERENT IMAGE APPROACH ===');
     try {
-      const diffImgFormData = new FormData();
+      const FormDataClass = require('form-data');
+      const diffImgFormData = new FormDataClass();
       diffImgFormData.append('generator', generatorSlug);
       
       // Core fields
@@ -540,15 +552,16 @@ export default async function handler(req, res) {
     console.log('=== TEST 10: MINIMAL WORKING REQUEST ===');
     try {
       // Absolute minimal request - just generator field
-      const minimalFormData = new FormData();
+      const FormDataClass = require('form-data');
+      const minimalFormData = new FormDataClass();
       minimalFormData.append('generator', generatorSlug);
 
       console.log('Making absolutely minimal request...');
       const minimalResponse = await fetch('https://api.veriftools.com/api/integration/generate/', {
         method: 'POST',
         headers: {
-          'Authorization': `Basic ${credentials}`
-          // No other headers - let browser handle everything
+          'Authorization': `Basic ${credentials}`,
+          ...minimalFormData.getHeaders()
         },
         body: minimalFormData
       });

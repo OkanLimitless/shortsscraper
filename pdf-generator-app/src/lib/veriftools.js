@@ -62,12 +62,26 @@ class VeriftoolsAPI {
       console.log('Generator slug:', generatorSlug);
       console.log('Document data:', documentData);
       
-      const formData = new FormData();
+      // CRITICAL FIX: Use the exact same approach that worked in our API tests
+      let formData;
+      if (typeof window === 'undefined') {
+        // Node.js environment - use require directly (like our working tests)
+        console.log('Creating Node.js FormData...');
+        const FormDataClass = require('form-data');
+        formData = new FormDataClass();
+        console.log('Node.js FormData created successfully');
+      } else {
+        // Browser environment
+        formData = new FormData();
+        console.log('Using browser FormData');
+      }
       
-      // Add generator slug
-      formData.append('generator', generatorSlug); // Use 'generator' not 'generator_slug'
+      // Use the exact same field ordering that worked in our API tests
+      // Add generator field FIRST (like our working tests)
+      console.log('Adding generator field FIRST:', generatorSlug);
+      formData.append('generator', generatorSlug);
       
-      // Add document data (this will depend on what the specific generator expects)
+      // Then add document data
       Object.keys(documentData).forEach(key => {
         if (documentData[key] !== null && documentData[key] !== undefined) {
           console.log(`Adding form field: ${key} = ${documentData[key]}`);
@@ -86,7 +100,7 @@ class VeriftoolsAPI {
         const image1Buffer = fs.readFileSync(image1.filepath);
         const image2Buffer = fs.readFileSync(image2.filepath);
         
-        // Create proper file objects for FormData
+        // Create proper file objects for Node.js FormData
         formData.append('image1', image1Buffer, {
           filename: image1.originalFilename || 'photo.jpg',
           contentType: image1.mimetype || 'image/jpeg'
@@ -119,18 +133,36 @@ class VeriftoolsAPI {
           0xAE, 0x42, 0x60, 0x82  // IEND CRC
         ]);
 
-        // Node.js environment - use Buffer directly
-        formData.append('image1', minimalPNG, 'photo.png');
-        formData.append('image2', minimalPNG, 'signature.png');
+                  // Node.js environment - use Buffer with proper filename
+          formData.append('image1', minimalPNG, {
+            filename: 'photo.png',
+            contentType: 'image/png'
+          });
+          formData.append('image2', minimalPNG, {
+            filename: 'signature.png', 
+            contentType: 'image/png'
+          });
       }
 
       console.log('Making API request...');
+      console.log('FormData headers:', typeof window === 'undefined' && formData.getHeaders ? formData.getHeaders() : 'Browser FormData');
+      
+      // Use the exact same request format that worked in our API tests
+      const headers = {
+        'Authorization': `Basic ${this.credentials}`
+      };
+      
+      // Add FormData headers for Node.js environment
+      if (typeof window === 'undefined' && formData.getHeaders) {
+        console.log('Adding FormData headers:', formData.getHeaders());
+        Object.assign(headers, formData.getHeaders());
+      }
+      
+      console.log('Final request headers:', headers);
+      
       const response = await fetch(`${this.baseURL}/api/integration/generate/`, {
         method: 'POST',
-        headers: {
-          'Authorization': `Basic ${this.credentials}`
-          // Don't set Content-Type for FormData, let browser set it with boundary
-        },
+        headers: headers,
         body: formData
       });
 
