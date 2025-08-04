@@ -76,8 +76,17 @@ class VeriftoolsAPI {
         throw new Error(`Failed to load form-data: ${importError.message}`);
       }
       
-      // Don't add generator to FormData - it will be in URL
-      console.log('Generator will be passed as URL parameter:', generatorSlug);
+      // Add generator field to FormData using different approaches
+      console.log('Testing generator field approaches:', generatorSlug);
+      
+      // Try raw string without any options
+      formData.append('generator', generatorSlug);
+      
+      // Also try with explicit options
+      formData.append('generator_slug', generatorSlug, {
+        contentType: 'text/plain',
+        filename: null
+      });
       
       // Then add document data - ensure all values are strings
       Object.keys(documentData).forEach(key => {
@@ -154,9 +163,9 @@ class VeriftoolsAPI {
       
       console.log('Using Test 3 headers approach:', headers);
       
-      // Use generate endpoint with generator as query parameter
-      const generateUrl = `${this.baseURL}/api/integration/generate/?generator=${generatorSlug}`;
-      console.log('Using generate URL with query parameter:', generateUrl);
+      // Use standard generate endpoint (generator in FormData)
+      const generateUrl = `${this.baseURL}/api/integration/generate/`;
+      console.log('Using standard generate URL:', generateUrl);
       
       const response = await fetch(generateUrl, {
         method: 'POST',
