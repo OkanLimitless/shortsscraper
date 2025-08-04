@@ -196,11 +196,10 @@ export default async function handler(req, res) {
 
       console.log('Making generate request with images...');
       
-      // Use exact same headers as the working generator-information request
+      // CRITICAL: Don't set Content-Type for FormData - let browser set it with boundary
       const headers = {
-        'Authorization': `Basic ${credentials}`,
-        'Accept': 'application/json',
-        'Accept-Language': 'en-US,en;q=0.9'
+        'Authorization': `Basic ${credentials}`
+        // Removed Accept and Accept-Language to match minimal working request
       };
       
       console.log('Using headers:', headers);
@@ -425,55 +424,56 @@ export default async function handler(req, res) {
       console.error('No-background test exception:', noBgError);
     }
 
-    // === TEST 8: TRY WITHOUT IMAGES ===
-    console.log('=== TEST 8: TRY WITHOUT IMAGES ===');
+    // === TEST 8: TRY URL-ENCODED FORMAT ===
+    console.log('=== TEST 8: TRY URL-ENCODED FORMAT ===');
     try {
-      const noImgFormData = new FormData();
-      noImgFormData.append('generator', generatorSlug);
-      
-      // Only text fields - NO IMAGES
-      noImgFormData.append('LN', 'DOE');
-      noImgFormData.append('FN', 'JOHN');
-      noImgFormData.append('NUMBER', '123456789');
-      noImgFormData.append('SEX', 'M');
-      noImgFormData.append('DOB', '16.10.1986');
-      noImgFormData.append('DOI', '15.12.2020');
-      noImgFormData.append('DOE', '15.12.2030');
-      noImgFormData.append('NATIONALITY', 'HRVATSKO');
-      noImgFormData.append('POB', 'ZAGREB');
-      noImgFormData.append('POI', 'PU/ZAGREB');
+      // Try application/x-www-form-urlencoded instead of multipart/form-data
+      const urlEncodedData = new URLSearchParams();
+      urlEncodedData.append('generator', generatorSlug);
+      urlEncodedData.append('LN', 'DOE');
+      urlEncodedData.append('FN', 'JOHN');
+      urlEncodedData.append('NUMBER', '123456789');
+      urlEncodedData.append('SEX', 'M');
+      urlEncodedData.append('DOB', '16.10.1986');
+      urlEncodedData.append('DOI', '15.12.2020');
+      urlEncodedData.append('DOE', '15.12.2030');
+      urlEncodedData.append('NATIONALITY', 'HRVATSKO');
+      urlEncodedData.append('POB', 'ZAGREB');
+      urlEncodedData.append('POI', 'PU/ZAGREB');
 
-      console.log('Making request WITHOUT images...');
-      const noImgResponse = await fetch('https://api.veriftools.com/api/integration/generate/', {
+      console.log('Making URL-encoded request (no images)...');
+      const urlEncodedResponse = await fetch('https://api.veriftools.com/api/integration/generate/', {
         method: 'POST',
         headers: {
           'Authorization': `Basic ${credentials}`,
-          'Accept': 'application/json'
+          'Content-Type': 'application/x-www-form-urlencoded'
         },
-        body: noImgFormData
+        body: urlEncodedData
       });
 
-      console.log('No-images response status:', noImgResponse.status);
-      console.log('No-images response headers:', Object.fromEntries(noImgResponse.headers.entries()));
+      console.log('URL-encoded response status:', urlEncodedResponse.status);
+      console.log('URL-encoded response headers:', Object.fromEntries(urlEncodedResponse.headers.entries()));
 
-      const noImgResponseText = await noImgResponse.text();
-      console.log('No-images response:', noImgResponseText.substring(0, 1000));
+      const urlEncodedResponseText = await urlEncodedResponse.text();
+      console.log('URL-encoded response:', urlEncodedResponseText.substring(0, 1000));
 
-      if (noImgResponse.ok) {
-        console.log('✅ SUCCESS WITHOUT IMAGES!');
-      } else if (noImgResponse.status === 400) {
-        console.log('⚠️ 400 error - likely missing required images');
+      if (urlEncodedResponse.ok) {
+        console.log('✅ SUCCESS WITH URL-ENCODED!');
+      } else if (urlEncodedResponse.status === 400) {
+        console.log('⚠️ 400 error - likely missing required images (good progress!)');
         try {
-          const errorData = JSON.parse(noImgResponseText);
+          const errorData = JSON.parse(urlEncodedResponseText);
           console.log('400 error details:', errorData);
         } catch (e) {
           console.log('400 error not JSON');
         }
+      } else if (urlEncodedResponse.status === 500) {
+        console.log('❌ Still 500 with URL-encoded');
       } else {
-        console.log('❌ Still failed without images');
+        console.log(`❌ Different error: ${urlEncodedResponse.status}`);
       }
-    } catch (noImgError) {
-      console.error('No-images test exception:', noImgError);
+    } catch (urlEncodedError) {
+      console.error('URL-encoded test exception:', urlEncodedError);
     }
 
     // === TEST 9: TRY WITH DIFFERENT IMAGE APPROACH ===
@@ -534,6 +534,48 @@ export default async function handler(req, res) {
       }
     } catch (diffImgError) {
       console.error('Different images test exception:', diffImgError);
+    }
+
+    // === TEST 10: MINIMAL WORKING REQUEST ===
+    console.log('=== TEST 10: MINIMAL WORKING REQUEST ===');
+    try {
+      // Absolute minimal request - just generator field
+      const minimalFormData = new FormData();
+      minimalFormData.append('generator', generatorSlug);
+
+      console.log('Making absolutely minimal request...');
+      const minimalResponse = await fetch('https://api.veriftools.com/api/integration/generate/', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Basic ${credentials}`
+          // No other headers - let browser handle everything
+        },
+        body: minimalFormData
+      });
+
+      console.log('Minimal response status:', minimalResponse.status);
+      console.log('Minimal response headers:', Object.fromEntries(minimalResponse.headers.entries()));
+
+      const minimalResponseText = await minimalResponse.text();
+      console.log('Minimal response:', minimalResponseText.substring(0, 500));
+
+      if (minimalResponse.status === 400) {
+        console.log('🎯 400 ERROR = PROGRESS! API is working, just needs more data');
+        try {
+          const errorData = JSON.parse(minimalResponseText);
+          console.log('Required fields error:', errorData);
+        } catch (e) {
+          console.log('400 response not JSON');
+        }
+      } else if (minimalResponse.status === 500) {
+        console.log('❌ Still 500 - deeper authentication or server issue');
+      } else if (minimalResponse.ok) {
+        console.log('✅ UNEXPECTED SUCCESS!');
+      } else {
+        console.log(`❓ Unexpected status: ${minimalResponse.status}`);
+      }
+    } catch (minimalError) {
+      console.error('Minimal request exception:', minimalError);
     }
 
     // === FINAL RESULT ===
