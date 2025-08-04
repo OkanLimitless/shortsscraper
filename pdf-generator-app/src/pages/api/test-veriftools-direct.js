@@ -147,10 +147,11 @@ export default async function handler(req, res) {
     // Test 3: Try to generate a document with images
     console.log('=== TEST 3: GENERATE DOCUMENT WITH IMAGES ===');
     try {
-      // Use Node.js form-data package instead of browser FormData
+      // CRITICAL TEST: Try sending generator as URL parameter instead of form data
       const FormDataClass = require('form-data');
       const formData = new FormDataClass();
-      formData.append('generator', generatorSlug); // Use 'generator' not 'generator_slug'
+      
+      console.log('Testing generator as URL parameter approach...');
       
       // Use the correct field names as discovered from the API response
       // ITERATION 2: Use EXACT data from the working API response
@@ -212,7 +213,11 @@ export default async function handler(req, res) {
       
       console.log('Using headers:', headers);
       
-      const generateResponse = await fetch('https://api.veriftools.com/api/integration/generate/', {
+      // CRITICAL TEST: Try generator in URL path (like generator-information endpoint)
+      const generateUrl = `https://api.veriftools.com/api/integration/generate/${generatorSlug}/`;
+      console.log('Generate URL with path parameter:', generateUrl);
+      
+      const generateResponse = await fetch(generateUrl, {
         method: 'POST',
         headers: headers,
         body: formData

@@ -83,8 +83,8 @@ class VeriftoolsAPI {
         }
       }
       
-      // CRITICAL FIX: Ensure all fields are strings and properly formatted
-      console.log('Adding generator field FIRST:', generatorSlug);
+      // Add generator field to form data (standard approach)
+      console.log('Adding generator field to form data:', generatorSlug);
       formData.append('generator', String(generatorSlug));
       
       // Then add document data - ensure all values are strings
@@ -162,7 +162,11 @@ class VeriftoolsAPI {
       
       console.log('Using Test 3 headers approach:', headers);
       
-      const response = await fetch(`${this.baseURL}/api/integration/generate/`, {
+      // Use the standard generate endpoint
+      const generateUrl = `${this.baseURL}/api/integration/generate/`;
+      console.log('Using standard generate URL:', generateUrl);
+      
+      const response = await fetch(generateUrl, {
         method: 'POST',
         headers: headers,
         body: formData
