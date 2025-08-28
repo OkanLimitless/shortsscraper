@@ -242,13 +242,14 @@ export async function generatePDF(formData = {}) {
   const employees = (formData.employees || '0').toString();
   const establishmentNumber = (formData.establishmentNumber || '').toString();
   const visitingAddress = canonicalizePostcodeCity(formData.address || '');
-  // Owner name canonicalization to "Surname, Given name" if not already
+  // Owner name canonicalization to "Surname, Given name" with single given-name rule
+  // Rule: first token is the given name; the remainder (including particles) is the surname
   let ownerName = formData.ownerName || '';
   if (ownerName && !ownerName.includes(',')) {
-    const parts = ownerName.trim().split(/\s+/);
+    const parts = ownerName.trim().replace(/\s+/g, ' ').split(' ');
     if (parts.length >= 2) {
-      const surname = parts.pop();
-      const given = parts.join(' ');
+      const given = parts.shift();
+      const surname = parts.join(' ');
       ownerName = `${surname}, ${given}`;
     }
   }
