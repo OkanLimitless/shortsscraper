@@ -124,21 +124,27 @@ export async function generatePDF(formData = {}) {
   // Try to embed Inter fonts; fall back to Helvetica if unavailable
   let regular;
   let bold;
+  let labelFont;
   try {
     const interRegularPath = path.join(process.cwd(), 'public', 'fonts', 'Inter-Regular.ttf');
     const interBoldPath = path.join(process.cwd(), 'public', 'fonts', 'Inter-SemiBold.ttf');
+    const interMediumPath = path.join(process.cwd(), 'public', 'fonts', 'Inter-Medium.ttf');
     const interRegular = fs.existsSync(interRegularPath) ? fs.readFileSync(interRegularPath) : null;
     const interBold = fs.existsSync(interBoldPath) ? fs.readFileSync(interBoldPath) : null;
+    const interMedium = fs.existsSync(interMediumPath) ? fs.readFileSync(interMediumPath) : null;
     if (interRegular && interBold) {
       regular = await pdfDoc.embedFont(interRegular, { subset: true });
       bold = await pdfDoc.embedFont(interBold, { subset: true });
+      labelFont = interMedium ? await pdfDoc.embedFont(interMedium, { subset: true }) : bold;
     } else {
       regular = await pdfDoc.embedFont(StandardFonts.Helvetica);
       bold = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
+      labelFont = bold;
     }
   } catch {
     regular = await pdfDoc.embedFont(StandardFonts.Helvetica);
     bold = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
+    labelFont = bold;
   }
 
   // Content frame
@@ -203,7 +209,7 @@ export async function generatePDF(formData = {}) {
   const valueColumnWidth = right - valueX;
   const drawRow = (label, value, options = {}) => {
     const { wrap = false, activityTight = false } = options;
-    if (label) page.drawText(label, { x: labelX, y, size: TYPO.label, font: bold, color: COLORS.black });
+    if (label) page.drawText(label, { x: labelX, y, size: TYPO.label, font: labelFont, color: COLORS.black });
     const writeValue = (val, yy) => page.drawText(val || '', { x: valueX, y: yy, size: TYPO.value, font: regular, color: COLORS.black });
     if (Array.isArray(value)) {
       let yy = y;
@@ -272,7 +278,7 @@ export async function generatePDF(formData = {}) {
   y -= mm(6);
   page.drawLine({ start: { x: left, y }, end: { x: right, y }, thickness: 0.4, color: COLORS.lightRule });
   y -= mm(6);
-  page.drawText('Company', { x: left, y, size: TYPO.section, font: bold, color: COLORS.black });
+  page.drawText('Company', { x: left, y, size: TYPO.section, font: labelFont || bold, color: COLORS.black });
   y -= mm(3);
   drawRow('Trade names', tradeNamesLines.length ? tradeNamesLines : (formData.tradeName || ''));
   drawRow('Legal form', legalForm);
@@ -285,7 +291,7 @@ export async function generatePDF(formData = {}) {
   y -= mm(6);
   page.drawLine({ start: { x: left, y }, end: { x: right, y }, thickness: 0.4, color: COLORS.lightRule });
   y -= mm(6);
-  page.drawText('Establishment', { x: left, y, size: TYPO.section, font: bold, color: COLORS.black });
+  page.drawText('Establishment', { x: left, y, size: TYPO.section, font: labelFont || bold, color: COLORS.black });
   y -= mm(3);
   drawRow('Establishment number', establishmentNumber);
   drawRow('Trade names', tradeNamesLines.length ? tradeNamesLines : (formData.tradeName || ''));
@@ -296,7 +302,9 @@ export async function generatePDF(formData = {}) {
   if (formData.activitiesNote) {
     // Muted helper line
     const note = 'For further information on activities, see Dutch extract.';
-    page.drawText(note, { x: valueX, y, size: TYPO.furniture, font: regular, color: COLORS.furniture });
+    // 3 mm below last SBI line
+    y -= mm(3);
+    page.drawText(note, { x: valueX, y, size: TYPO.value, font: regular, color: COLORS.black });
     y -= rowGap;
   }
   drawRow('Employees', employees);
@@ -305,7 +313,7 @@ export async function generatePDF(formData = {}) {
   y -= mm(6);
   page.drawLine({ start: { x: left, y }, end: { x: right, y }, thickness: 0.4, color: COLORS.lightRule });
   y -= mm(6);
-  page.drawText('Owner', { x: left, y, size: TYPO.section, font: bold, color: COLORS.black });
+  page.drawText('Owner', { x: left, y, size: TYPO.section, font: labelFont || bold, color: COLORS.black });
   y -= mm(3);
   drawRow('Name', ownerName);
   drawRow('Date of birth', ownerDOB);
