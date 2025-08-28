@@ -204,7 +204,7 @@ export async function generatePDF(formData = {}) {
     page.drawText(title, { x: left, y, size: TYPO.section, font: bold, color: COLORS.kvkBlue });
     y -= mm(6);
   };
-  const rowGap = mm(3.5);
+  const rowGap = mm(TYPO.valueLinePt * (25.4 / 72));
   const valueColumnWidth = right - valueX;
   const drawRow = (label, value, options = {}) => {
     const { wrap = false, activityTight = false } = options;
@@ -325,16 +325,17 @@ export async function generatePDF(formData = {}) {
   page.drawText(extractLine, { x: left, y: extractY, size: TYPO.value, font: regular, color: COLORS.furniture });
 
   // Footer
-  // Position WAARMERK stack 6 mm below the extract line
+  // Position WAARMERK stack 6 mm below the extract line; align WAARMERK baseline to first paragraph line
   const footerStackY = extractY - mm(6);
-  page.drawText('WAARMERK', { x: left, y: footerStackY, size: TYPO.waarmerk, font: bold, color: COLORS.furniture });
-  const kvkStackY = footerStackY - mm(3.5);
-  page.drawText('KAMER VAN KOOPHANDEL', { x: left, y: kvkStackY, size: TYPO.waarmerk, font: bold, color: COLORS.furniture });
 
   // Exact certification paragraph, color #374151
   const certText = 'This extract has been certified with a digital signature and is an official proof of registration in the Business Register. You can check the integrity of this document and validate the signature in Adobe at the top of your screen. The Chamber of Commerce recommends that this document be viewed in digital form so that its integrity is safeguarded and the signature remains verifiable.';
   const certWidth = mm(110);
-  const certX = left + mm(12);
+  // Compute label block width to offset paragraph by label width + 12 mm
+  const waarmerkWidth = bold.widthOfTextAtSize('WAARMERK', TYPO.waarmerk);
+  const kamerWidth = bold.widthOfTextAtSize('KAMER VAN KOOPHANDEL', TYPO.waarmerk);
+  const labelBlockWidth = Math.max(waarmerkWidth, kamerWidth);
+  const certX = left + labelBlockWidth + mm(12);
   const certLines = wrapText({ text: certText, maxWidth: certWidth, font: regular, size: TYPO.notes });
   // Ensure paragraph bottom sits at least 2 mm above gradient; adjust baseline if needed
   const paraAdvance = mm(TYPO.paraLinePt * (25.4 / 72));
@@ -349,6 +350,10 @@ export async function generatePDF(formData = {}) {
     page.drawText(line, { x: certX, y: certY, size: TYPO.notes, font: regular, color: COLORS.furniture });
     certY -= paraAdvance;
   });
+  // Draw WAARMERK stack aligned with first paragraph line baseline
+  page.drawText('WAARMERK', { x: left, y: adjustedFooterY, size: TYPO.waarmerk, font: bold, color: COLORS.furniture });
+  const kvkStackY = adjustedFooterY - mm(3.5);
+  page.drawText('KAMER VAN KOOPHANDEL', { x: left, y: kvkStackY, size: TYPO.waarmerk, font: bold, color: COLORS.furniture });
 
   // Bottom gradient bar
   const slices = 160;
