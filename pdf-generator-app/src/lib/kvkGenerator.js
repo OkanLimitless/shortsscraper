@@ -16,34 +16,35 @@ const hexToRgb = (hex) => {
 
 // Colors per spec
 const COLORS = {
-  kvkBlue: hexToRgb('#0A6FB6'),
-  text: hexToRgb('#1F2937'),
-  lightRule: hexToRgb('#E5E7EB'),
+  headingBlue: hexToRgb('#5A7E91'),
+  logoBlue: hexToRgb('#285571'),
+  valueText: hexToRgb('#6D646D'),
+  furniture: hexToRgb('#8A8A8A'),
+  lightRule: hexToRgb('#E6E6E6'),
   waarmerk: hexToRgb('#B0B7C3'),
-  timestamp: hexToRgb('#9CA3AF'),
-  notes: hexToRgb('#6B7280'),
-  certText: hexToRgb('#374151'),
 };
 
 // Page and grid
 const PAGE = {
   width: 595.28,
   height: 841.89,
-  margins: { top: mm(22), right: mm(18), bottom: mm(24), left: mm(18) },
-  grid: { labelWidth: mm(44), gutter: mm(6) },
+  margins: { top: mm(26), right: mm(22), bottom: mm(28), left: mm(22) },
+  grid: { labelWidth: mm(58), gutter: mm(4) },
 };
 
 // Typography
 const TYPO = {
-  h1: 18,
-  h2: 14,
-  section: 12,
+  h1: 21,
+  h2: 13.5,
+  section: 12.5,
   label: 10.5,
   value: 10.5,
-  notes: 9,
+  furniture: 10,
+  notes: 9.5,
   waarmerk: 10,
-  timestamp: 8.5,
-  lineHeight: 1.35,
+  timestamp: 9,
+  paraLinePt: 13, // paragraph line height in pt
+  valueLinePt: 14, // desired value line height
 };
 
 // Text formatting helpers
@@ -70,7 +71,7 @@ function formatTimestampStrip(now = new Date()) {
   const hh = String(now.getHours()).padStart(2, '0');
   const mi = String(now.getMinutes()).padStart(2, '0');
   const ss = String(now.getSeconds()).padStart(2, '0');
-  return `${yyyy}-${MM}-${DD} ${hh}.${mi}.${ss}`;
+  return `${yyyy}-${MM}-${DD} ${hh}:${mi}:${ss}`;
 }
 
 function canonicalizePostcodeCity(raw) {
@@ -151,7 +152,7 @@ export async function generatePDF(formData = {}) {
   const valueX = left + PAGE.grid.labelWidth + PAGE.grid.gutter;
   let y = PAGE.height - PAGE.margins.top;
 
-  // Logo at top-left margin; ensure 6 mm gap before H1
+  // Logo at top-left; baseline 30 mm below top margin
   const logoPath = path.join(process.cwd(), 'public', 'images', 'kvklogo.png');
   const logoBytes = await loadImage(logoPath);
   if (logoBytes) {
@@ -159,45 +160,40 @@ export async function generatePDF(formData = {}) {
     const targetW = mm(22);
     const scale = targetW / img.width;
     const targetH = img.height * scale;
-    const logoY = y - targetH; // top aligned to top margin
+    const logoBaseline = (PAGE.height - PAGE.margins.top) - mm(30);
+    const logoY = logoBaseline; // image y is bottom
     page.drawImage(img, { x: left, y: logoY, width: targetW, height: targetH });
-    y = logoY - mm(6); // 6 mm gap under logo before H1 baseline
+    // H1 is 10 mm below logo baseline
+    y = logoBaseline - mm(10);
   } else {
-    page.drawText('KVK', { x: left, y: y - TYPO.h1, size: TYPO.h1, font: bold, color: COLORS.kvkBlue });
-    y = y - TYPO.h1 - mm(6);
+    page.drawText('KVK', { x: left, y: y - TYPO.h1, size: TYPO.h1, font: bold, color: COLORS.logoBlue });
+    const logoBaseline = (PAGE.height - PAGE.margins.top) - mm(30);
+    y = logoBaseline - mm(10);
   }
 
   // Titles
-  page.drawText('Business Register extract', { x: left, y, size: TYPO.h1, font: bold, color: COLORS.kvkBlue });
-  // 4 mm gap below H1 to H2 baseline
-  y -= (mm(4) + TYPO.h2);
-  page.drawText('Netherlands Chamber of Commerce', { x: left, y, size: TYPO.h2, font: bold, color: COLORS.kvkBlue });
+  page.drawText('Business Register extract', { x: left, y, size: TYPO.h1, font: bold, color: COLORS.headingBlue });
+  // 2.5 mm gap below H1 to H2 baseline
+  y -= (mm(2.5) + TYPO.h2);
+  page.drawText('Netherlands Chamber of Commerce', { x: left, y, size: TYPO.h2, font: bold, color: COLORS.headingBlue });
 
-  // CCI row
-  y -= mm(8);
+  // Metadata row: Page note left, CCI number right, 6 mm below title stack
+  y -= mm(6);
   const kvkNumber = (formData.kvkNumber || '').toString().trim();
-  page.drawText('CCI number', { x: labelX, y, size: TYPO.label, font: bold, color: COLORS.text });
+  page.drawText('Page 1 (of 1)', { x: left, y, size: TYPO.furniture, font: regular, color: COLORS.furniture });
   if (kvkNumber) {
-    const w = regular.widthOfTextAtSize(kvkNumber, TYPO.value);
-    // Nudge 7 mm left from content right edge per delta
-    page.drawText(kvkNumber, { x: right - w - mm(7), y, size: TYPO.value, font: regular, color: COLORS.text });
+    const w = regular.widthOfTextAtSize(kvkNumber, TYPO.furniture);
+    page.drawText(kvkNumber, { x: right - w, y, size: TYPO.furniture, font: regular, color: COLORS.furniture });
   }
 
-  // Divider
-  y -= mm(8);
-  page.drawLine({ start: { x: left, y }, end: { x: right, y }, thickness: 0.5, color: COLORS.lightRule });
-
-  // Page note and disclaimer
-  // Page note 6 mm below divider
-  y -= mm(6);
-  page.drawText('Page 1 (of 1)', { x: left, y, size: TYPO.notes, font: regular, color: COLORS.notes });
-  // Disclaimer 6 mm below page note
+  // Info note line (wrapped to 2 lines), 10 pt furniture color
   y -= mm(6);
   const disclaimer = 'The company / organisation does not want its address details to be used for unsolicited postal advertising or visits from sales representatives.';
-  const discLines = wrapText({ text: disclaimer, maxWidth: width, font: regular, size: TYPO.notes });
-  discLines.forEach((line) => {
-    page.drawText(line, { x: left, y, size: TYPO.notes, font: regular, color: COLORS.notes });
-    y -= TYPO.notes * TYPO.lineHeight;
+  const discLines = wrapText({ text: disclaimer, maxWidth: width, font: regular, size: TYPO.furniture }).slice(0, 2);
+  const discLineAdvance = mm(TYPO.paraLinePt * (25.4 / 72));
+  discLines.forEach((line, idx) => {
+    page.drawText(line, { x: left, y, size: TYPO.furniture, font: regular, color: COLORS.furniture });
+    if (idx < discLines.length - 1) y -= discLineAdvance;
   });
 
   // Section helpers
@@ -206,25 +202,31 @@ export async function generatePDF(formData = {}) {
     page.drawText(title, { x: left, y, size: TYPO.section, font: bold, color: COLORS.kvkBlue });
     y -= mm(6);
   };
-  const rowGap = mm(4);
-  const multiGap = mm(2);
-  const drawRow = (label, value) => {
-    if (label) page.drawText(label, { x: labelX, y, size: TYPO.label, font: bold, color: COLORS.text });
-    const writeValue = (val, yy) => page.drawText(val || '', { x: valueX, y: yy, size: TYPO.value, font: regular, color: COLORS.text });
+  const rowGap = mm(3.5);
+  const valueColumnWidth = right - valueX;
+  const drawRow = (label, value, options = {}) => {
+    const { wrap = false, activityTight = false } = options;
+    if (label) page.drawText(label, { x: labelX, y, size: TYPO.label, font: bold, color: COLORS.valueText });
+    const writeValue = (val, yy) => page.drawText(val || '', { x: valueX, y: yy, size: TYPO.value, font: regular, color: COLORS.valueText });
     if (Array.isArray(value)) {
       let yy = y;
       if (value.length > 0) writeValue(value[0], yy);
       for (let i = 1; i < value.length; i++) {
-        // Place second line with tight internal spacing: normal line advance minus 2 mm
-        const lineAdvance = TYPO.value * TYPO.lineHeight;
-        yy -= (lineAdvance - mm(2));
+        if (activityTight) {
+          yy -= mm(2);
+        } else {
+          const lh = mm(TYPO.valueLinePt * (25.4 / 72));
+          yy -= lh;
+        }
         writeValue(value[i], yy);
       }
-      // No extra blank line after multi-line block; proceed with normal row gap
       y = yy - rowGap;
     } else if (typeof value === 'string' && value.includes('\n')) {
       const lines = value.split('\n');
-      drawRow(label, lines);
+      drawRow(label, lines, options);
+    } else if (wrap) {
+      const lines = wrapText({ text: value || '', maxWidth: valueColumnWidth, font: regular, size: TYPO.value });
+      drawRow(label, lines, options);
     } else {
       writeValue(value, y);
       y -= rowGap;
@@ -269,77 +271,95 @@ export async function generatePDF(formData = {}) {
     activity2 = formData.activities[1] || activity2;
   }
 
+  // Divider above Company
+  y -= mm(6);
+  page.drawLine({ start: { x: left, y }, end: { x: right, y }, thickness: 0.4, color: COLORS.lightRule });
   // Company
-  drawSectionTitle('Company');
+  y -= mm(6); // top padding before heading
+  page.drawText('Company', { x: left, y, size: TYPO.section, font: bold, color: COLORS.headingBlue });
+  y -= mm(3); // bottom padding after heading
   drawRow('Trade names', tradeNamesLines.length ? tradeNamesLines : (formData.tradeName || ''));
   drawRow('Legal form', legalForm);
   drawRow('Company start date', `${companyStart} (registration date: ${companyReg})`);
-  drawRow('Activities', activity1);
-  drawRow('', activity2);
+  drawRow('Activities', activity1, { activityTight: true });
+  drawRow('', activity2, { activityTight: true });
   drawRow('Employees', employees);
 
   // Establishment
-  drawSectionTitle('Establishment');
+  y -= mm(6); // top padding before heading
+  page.drawText('Establishment', { x: left, y, size: TYPO.section, font: bold, color: COLORS.headingBlue });
+  y -= mm(3); // bottom padding after heading
   drawRow('Establishment number', establishmentNumber);
   drawRow('Trade names', tradeNamesLines.length ? tradeNamesLines : (formData.tradeName || ''));
   drawRow('Visiting address', visitingAddress);
   drawRow('Date of incorporation', `${incDate} (registration date: ${incReg})`);
-  drawRow('Activities', activity1);
-  drawRow('', activity2);
+  drawRow('Activities', activity1, { activityTight: true });
+  drawRow('', activity2, { activityTight: true });
+  if (formData.activitiesNote) {
+    // Muted helper line
+    const note = 'For further information on activities, see Dutch extract.';
+    page.drawText(note, { x: valueX, y, size: TYPO.furniture, font: regular, color: COLORS.furniture });
+    y -= rowGap;
+  }
   drawRow('Employees', employees);
 
+  // Divider above Owner
+  y -= mm(6);
+  page.drawLine({ start: { x: left, y }, end: { x: right, y }, thickness: 0.4, color: COLORS.lightRule });
   // Owner
-  drawSectionTitle('Owner');
+  y -= mm(6); // top padding before heading
+  page.drawText('Owner', { x: left, y, size: TYPO.section, font: bold, color: COLORS.headingBlue });
+  y -= mm(3); // bottom padding after heading
   drawRow('Name', ownerName);
   drawRow('Date of birth', ownerDOB);
   drawRow('Date of entry into office', `${entryDate} (registration date: ${entryReg})`);
 
-  // Footer geometry first to place extract line exactly 8 mm above
-  const gradientHeight = mm(15);
+  // Footer geometry first to place extract line exactly 10 mm above gradient
+  const gradientHeight = mm(20);
   const gapAboveGradient = mm(4);
-  // Move footer baseline up by additional 4 mm to avoid clipping
   const footerBaseY = gradientHeight + gapAboveGradient + mm(6);
-  const extractY = footerBaseY + mm(8);
+  const extractY = gradientHeight + mm(10);
   const extractLine = `Extract was made on ${formatDateDDMMYYYY(now)} at ${formatTimeHHdotMM(now)} hours.`;
-  page.drawText(extractLine, { x: left, y: extractY, size: TYPO.value, font: regular, color: COLORS.text });
+  page.drawText(extractLine, { x: left, y: extractY, size: TYPO.value, font: regular, color: COLORS.valueText });
 
   // Footer
   page.drawText('WAARMERK', { x: left, y: footerBaseY, size: TYPO.waarmerk, font: bold, color: COLORS.waarmerk });
+  const kvkStackY = footerBaseY - mm(3.5);
+  page.drawText('KAMER VAN KOOPHANDEL', { x: left, y: kvkStackY, size: TYPO.waarmerk, font: bold, color: COLORS.waarmerk });
 
   // Exact certification paragraph, color #374151
   const certText = 'This extract has been certified with a digital signature and is an official proof of registration in the Business Register. You can check the integrity of this document and validate the signature in Adobe at the top of your screen. The Chamber of Commerce recommends that this document be viewed in digital form so that its integrity is safeguarded and the signature remains verifiable.';
-  const certWidth = width * 0.62;
-  const certX = right - certWidth;
+  const certWidth = mm(110);
+  const certX = left;
   const certLines = wrapText({ text: certText, maxWidth: certWidth, font: regular, size: TYPO.notes });
   let certY = footerBaseY;
   certLines.forEach((line) => {
-    page.drawText(line, { x: certX, y: certY, size: TYPO.notes, font: regular, color: COLORS.certText });
-    certY -= TYPO.notes * TYPO.lineHeight;
+    page.drawText(line, { x: certX, y: certY, size: TYPO.notes, font: regular, color: COLORS.furniture });
+    certY -= mm(TYPO.paraLinePt * (25.4 / 72));
   });
 
   // Bottom gradient bar
-  const slices = 140;
+  const slices = 160;
   const sliceW = PAGE.width / slices;
-  const magenta = [0x9c / 255, 0x2a / 255, 0xa0 / 255];
-  const mid = [0xc9 / 255, 0x3a / 255, 0x68 / 255];
-  const orange = [0xf5 / 255, 0x9e / 255, 0x0b / 255];
+  const leftC = [0xa0 / 255, 0x29 / 255, 0x74 / 255];
+  const mid = [0xc6 / 255, 0x58 / 255, 0x46 / 255];
+  const rightC = [0xec / 255, 0x92 / 255, 0x36 / 255];
   for (let i = 0; i < slices; i++) {
     const t = i / (slices - 1);
     let c;
-    if (t <= 0.15) c = magenta;
-    else if (t <= 0.6) {
-      const u = (t - 0.15) / 0.45;
-      c = [magenta[0] + (mid[0] - magenta[0]) * u, magenta[1] + (mid[1] - magenta[1]) * u, magenta[2] + (mid[2] - magenta[2]) * u];
+    if (t <= 0.5) {
+      const u = t / 0.5;
+      c = [leftC[0] + (mid[0] - leftC[0]) * u, leftC[1] + (mid[1] - leftC[1]) * u, leftC[2] + (mid[2] - leftC[2]) * u];
     } else {
-      const u = (t - 0.6) / 0.4;
-      c = [mid[0] + (orange[0] - mid[0]) * u, mid[1] + (orange[1] - mid[1]) * u, mid[2] + (orange[2] - mid[2]) * u];
+      const u = (t - 0.5) / 0.5;
+      c = [mid[0] + (rightC[0] - mid[0]) * u, mid[1] + (rightC[1] - mid[1]) * u, mid[2] + (rightC[2] - mid[2]) * u];
     }
     page.drawRectangle({ x: i * sliceW, y: 0, width: sliceW + 0.5, height: gradientHeight, color: rgb(c[0], c[1], c[2]) });
   }
 
-  // Rotated timestamp strip (22 mm from bottom)
+  // Rotated timestamp strip (6 mm from right, vertically centered)
   const stamp = formatTimestampStrip(now);
-  page.drawText(stamp, { x: PAGE.width - mm(6), y: mm(22), size: TYPO.timestamp, font: regular, color: COLORS.timestamp, rotate: degrees(90) });
+  page.drawText(stamp, { x: PAGE.width - mm(6), y: PAGE.height / 2, size: TYPO.timestamp, font: regular, color: COLORS.furniture, rotate: degrees(90) });
 
   const pdfBytes = await pdfDoc.save({ addDefaultPage: false });
   return pdfBytes;
