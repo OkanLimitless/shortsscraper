@@ -16,12 +16,9 @@ const hexToRgb = (hex) => {
 
 // Colors per spec
 const COLORS = {
-  headingBlue: hexToRgb('#5A7E91'),
-  logoBlue: hexToRgb('#285571'),
-  valueText: hexToRgb('#6D646D'),
+  black: rgb(0, 0, 0),
   furniture: hexToRgb('#8A8A8A'),
-  lightRule: hexToRgb('#E6E6E6'),
-  waarmerk: hexToRgb('#B0B7C3'),
+  lightRule: hexToRgb('#000000'),
 };
 
 // Page and grid
@@ -36,12 +33,12 @@ const PAGE = {
 const TYPO = {
   h1: 21,
   h2: 13.5,
-  section: 12.5,
-  label: 10.5,
-  value: 10.5,
+  section: 10.5,
+  label: 10,
+  value: 10,
   furniture: 10,
   notes: 9.5,
-  waarmerk: 9,
+  waarmerk: 10,
   timestamp: 9,
   paraLinePt: 13, // paragraph line height in pt
   valueLinePt: 14, // desired value line height
@@ -173,27 +170,23 @@ export async function generatePDF(formData = {}) {
   }
 
   // Titles
-  page.drawText('Business Register extract', { x: left, y, size: TYPO.h1, font: bold, color: COLORS.headingBlue });
+  page.drawText('Business Register extract', { x: left, y, size: TYPO.h1, font: bold, color: COLORS.black });
   // 2.5 mm gap below H1 to H2 baseline
   y -= (mm(2.5) + TYPO.h2);
-  page.drawText('Netherlands Chamber of Commerce', { x: left, y, size: TYPO.h2, font: bold, color: COLORS.headingBlue });
+  page.drawText('Netherlands Chamber of Commerce', { x: left, y, size: TYPO.h2, font: bold, color: COLORS.black });
 
-  // Metadata row: Page note left, CCI number right, 6 mm below title stack
+  // Metadata block: CCI bold line, then Page line with 3 mm gap
   y -= mm(6);
   const kvkNumber = (formData.kvkNumber || '').toString().trim();
-  const metaSize = TYPO.furniture;
-  const baselineY = y; // single baseline for both
-  page.drawText('Page 1 (of 1)', { x: left, y: baselineY, size: metaSize, font: regular, color: COLORS.furniture });
-  if (kvkNumber) {
-    const rightText = `CCI number ${kvkNumber}`;
-    const w = regular.widthOfTextAtSize(rightText, metaSize);
-    page.drawText(rightText, { x: right - w, y: baselineY, size: metaSize, font: regular, color: COLORS.furniture });
-  }
+  const cciText = `CCI number ${kvkNumber}`;
+  page.drawText(cciText, { x: left, y, size: TYPO.label + 0.5, font: bold, color: COLORS.black });
+  y -= mm(3);
+  page.drawText('Page 1 (of 1)', { x: left, y, size: TYPO.furniture, font: regular, color: COLORS.furniture });
 
-  // Info note line (wrapped to 2 lines), 10 pt furniture color
+  // Info note line (wrapped), 10 pt furniture color
   y -= mm(6);
   const disclaimer = 'The company / organisation does not want its address details to be used for unsolicited postal advertising or visits from sales representatives.';
-  const discLines = wrapText({ text: disclaimer, maxWidth: width, font: regular, size: TYPO.furniture }).slice(0, 2);
+  const discLines = wrapText({ text: disclaimer, maxWidth: width, font: regular, size: TYPO.furniture });
   const discLineAdvance = mm(TYPO.paraLinePt * (25.4 / 72));
   discLines.forEach((line, idx) => {
     page.drawText(line, { x: left, y, size: TYPO.furniture, font: regular, color: COLORS.furniture });
@@ -275,13 +268,12 @@ export async function generatePDF(formData = {}) {
     activity2 = formData.activities[1] || activity2;
   }
 
-  // Divider above Company
+  // Divider above Company (black, 0.6 pt), then heading after 6 mm
   y -= mm(6);
-  page.drawLine({ start: { x: left, y }, end: { x: right, y }, thickness: 0.4, color: COLORS.lightRule });
-  // Company
-  y -= mm(6); // top padding before heading
-  page.drawText('Company', { x: left, y, size: TYPO.section, font: bold, color: COLORS.headingBlue });
-  y -= mm(3); // bottom padding after heading
+  page.drawLine({ start: { x: left, y }, end: { x: right, y }, thickness: 0.6, color: COLORS.lightRule });
+  y -= mm(6);
+  page.drawText('COMPANY', { x: left, y, size: TYPO.section, font: bold, color: COLORS.black });
+  y -= mm(3);
   drawRow('Trade names', tradeNamesLines.length ? tradeNamesLines : (formData.tradeName || ''));
   drawRow('Legal form', legalForm);
   drawRow('Company start date', `${companyStart} (registration date: ${companyReg})`);
@@ -289,10 +281,12 @@ export async function generatePDF(formData = {}) {
   drawRow('', activity2, { activityTight: true });
   drawRow('Employees', employees);
 
-  // Establishment
-  y -= mm(6); // top padding before heading
-  page.drawText('Establishment', { x: left, y, size: TYPO.section, font: bold, color: COLORS.headingBlue });
-  y -= mm(3); // bottom padding after heading
+  // Divider above Establishment
+  y -= mm(6);
+  page.drawLine({ start: { x: left, y }, end: { x: right, y }, thickness: 0.6, color: COLORS.lightRule });
+  y -= mm(6);
+  page.drawText('ESTABLISHMENT', { x: left, y, size: TYPO.section, font: bold, color: COLORS.black });
+  y -= mm(3);
   drawRow('Establishment number', establishmentNumber);
   drawRow('Trade names', tradeNamesLines.length ? tradeNamesLines : (formData.tradeName || ''));
   drawRow('Visiting address', visitingAddress);
@@ -309,11 +303,10 @@ export async function generatePDF(formData = {}) {
 
   // Divider above Owner
   y -= mm(6);
-  page.drawLine({ start: { x: left, y }, end: { x: right, y }, thickness: 0.4, color: COLORS.lightRule });
-  // Owner
-  y -= mm(6); // top padding before heading
-  page.drawText('Owner', { x: left, y, size: TYPO.section, font: bold, color: COLORS.headingBlue });
-  y -= mm(3); // bottom padding after heading
+  page.drawLine({ start: { x: left, y }, end: { x: right, y }, thickness: 0.6, color: COLORS.lightRule });
+  y -= mm(6);
+  page.drawText('OWNER', { x: left, y, size: TYPO.section, font: bold, color: COLORS.black });
+  y -= mm(3);
   drawRow('Name', ownerName);
   drawRow('Date of birth', ownerDOB);
   drawRow('Date of entry into office', `${entryDate} (registration date: ${entryReg})`);
