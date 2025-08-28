@@ -38,7 +38,7 @@ const TYPO = {
   value: 10,
   furniture: 10,
   notes: 9.5,
-  waarmerk: 10,
+  waarmerk: 9,
   timestamp: 9,
   paraLinePt: 13, // paragraph line height in pt
   valueLinePt: 14, // desired value line height
@@ -203,8 +203,8 @@ export async function generatePDF(formData = {}) {
   const valueColumnWidth = right - valueX;
   const drawRow = (label, value, options = {}) => {
     const { wrap = false, activityTight = false } = options;
-    if (label) page.drawText(label, { x: labelX, y, size: TYPO.label, font: bold, color: rgb(0, 0, 0) });
-    const writeValue = (val, yy) => page.drawText(val || '', { x: valueX, y: yy, size: TYPO.value, font: regular, color: COLORS.valueText });
+    if (label) page.drawText(label, { x: labelX, y, size: TYPO.label, font: bold, color: COLORS.black });
+    const writeValue = (val, yy) => page.drawText(val || '', { x: valueX, y: yy, size: TYPO.value, font: regular, color: COLORS.black });
     if (Array.isArray(value)) {
       let yy = y;
       if (value.length > 0) writeValue(value[0], yy);
@@ -268,11 +268,11 @@ export async function generatePDF(formData = {}) {
     activity2 = formData.activities[1] || activity2;
   }
 
-  // Divider above Company (black, 0.6 pt), then heading after 6 mm
+  // Divider above Company (black, 0.4 pt), then heading after 6 mm
   y -= mm(6);
-  page.drawLine({ start: { x: left, y }, end: { x: right, y }, thickness: 0.6, color: COLORS.lightRule });
+  page.drawLine({ start: { x: left, y }, end: { x: right, y }, thickness: 0.4, color: COLORS.lightRule });
   y -= mm(6);
-  page.drawText('COMPANY', { x: left, y, size: TYPO.section, font: bold, color: COLORS.black });
+  page.drawText('Company', { x: left, y, size: TYPO.section, font: bold, color: COLORS.black });
   y -= mm(3);
   drawRow('Trade names', tradeNamesLines.length ? tradeNamesLines : (formData.tradeName || ''));
   drawRow('Legal form', legalForm);
@@ -281,11 +281,11 @@ export async function generatePDF(formData = {}) {
   drawRow('', activity2, { activityTight: true });
   drawRow('Employees', employees);
 
-  // Divider above Establishment
+  // Divider above Establishment (black, 0.4 pt)
   y -= mm(6);
-  page.drawLine({ start: { x: left, y }, end: { x: right, y }, thickness: 0.6, color: COLORS.lightRule });
+  page.drawLine({ start: { x: left, y }, end: { x: right, y }, thickness: 0.4, color: COLORS.lightRule });
   y -= mm(6);
-  page.drawText('ESTABLISHMENT', { x: left, y, size: TYPO.section, font: bold, color: COLORS.black });
+  page.drawText('Establishment', { x: left, y, size: TYPO.section, font: bold, color: COLORS.black });
   y -= mm(3);
   drawRow('Establishment number', establishmentNumber);
   drawRow('Trade names', tradeNamesLines.length ? tradeNamesLines : (formData.tradeName || ''));
@@ -301,11 +301,11 @@ export async function generatePDF(formData = {}) {
   }
   drawRow('Employees', employees);
 
-  // Divider above Owner
+  // Divider above Owner (black, 0.4 pt)
   y -= mm(6);
-  page.drawLine({ start: { x: left, y }, end: { x: right, y }, thickness: 0.6, color: COLORS.lightRule });
+  page.drawLine({ start: { x: left, y }, end: { x: right, y }, thickness: 0.4, color: COLORS.lightRule });
   y -= mm(6);
-  page.drawText('OWNER', { x: left, y, size: TYPO.section, font: bold, color: COLORS.black });
+  page.drawText('Owner', { x: left, y, size: TYPO.section, font: bold, color: COLORS.black });
   y -= mm(3);
   drawRow('Name', ownerName);
   drawRow('Date of birth', ownerDOB);
@@ -317,7 +317,7 @@ export async function generatePDF(formData = {}) {
   const footerBaseY = gradientHeight + gapAboveGradient + mm(6);
   const extractY = gradientHeight + mm(10);
   const extractLine = `Extract was made on ${formatDateDDMMYYYY(now)} at ${formatTimeHHdotMM(now)} hours.`;
-  page.drawText(extractLine, { x: left, y: extractY, size: TYPO.value, font: regular, color: COLORS.furniture });
+  page.drawText(extractLine, { x: left, y: extractY, size: TYPO.value, font: regular, color: COLORS.black });
 
   // Footer
   // Position WAARMERK block 6 mm below the extract line; WAARMERK top baseline flush with first paragraph line
@@ -346,9 +346,9 @@ export async function generatePDF(formData = {}) {
     certY -= paraAdvance;
   });
   // Draw WAARMERK stack aligned with first paragraph line baseline (not bold)
-  page.drawText('WAARMERK', { x: left, y: adjustedFooterY, size: TYPO.waarmerk, font: regular, color: COLORS.furniture });
+  page.drawText('WAARMERK', { x: left, y: adjustedFooterY, size: TYPO.waarmerk, font: regular, color: COLORS.black });
   const kvkStackY = adjustedFooterY - mm(3.5);
-  page.drawText('KAMER VAN KOOPHANDEL', { x: left, y: kvkStackY, size: TYPO.waarmerk, font: regular, color: COLORS.furniture });
+  page.drawText('KAMER VAN KOOPHANDEL', { x: left, y: kvkStackY, size: TYPO.waarmerk, font: regular, color: COLORS.black });
 
   // Bottom gradient bar
   const slices = 160;
@@ -371,7 +371,7 @@ export async function generatePDF(formData = {}) {
 
   // Rotated timestamp strip (6 mm from right, vertically centered)
   const stamp = formatTimestampStrip(now);
-  page.drawText(stamp, { x: PAGE.width - mm(6), y: PAGE.height / 2, size: TYPO.timestamp, font: regular, color: COLORS.furniture, rotate: degrees(90) });
+  page.drawText(stamp, { x: PAGE.width - mm(6), y: PAGE.height / 2, size: TYPO.timestamp, font: regular, color: COLORS.black, rotate: degrees(90) });
 
   const pdfBytes = await pdfDoc.save({ addDefaultPage: false });
   return pdfBytes;
