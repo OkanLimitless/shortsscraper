@@ -181,11 +181,13 @@ export async function generatePDF(formData = {}) {
   // Metadata row: Page note left, CCI number right, 6 mm below title stack
   y -= mm(6);
   const kvkNumber = (formData.kvkNumber || '').toString().trim();
-  page.drawText('Page 1 (of 1)', { x: left, y, size: TYPO.furniture, font: regular, color: COLORS.furniture });
+  const metaSize = TYPO.furniture;
+  const baselineY = y; // single baseline for both
+  page.drawText('Page 1 (of 1)', { x: left, y: baselineY, size: metaSize, font: regular, color: COLORS.furniture });
   if (kvkNumber) {
     const rightText = `CCI number ${kvkNumber}`;
-    const w = regular.widthOfTextAtSize(rightText, TYPO.furniture);
-    page.drawText(rightText, { x: right - w, y, size: TYPO.furniture, font: regular, color: COLORS.furniture });
+    const w = regular.widthOfTextAtSize(rightText, metaSize);
+    page.drawText(rightText, { x: right - w, y: baselineY, size: metaSize, font: regular, color: COLORS.furniture });
   }
 
   // Info note line (wrapped to 2 lines), 10 pt furniture color
@@ -208,7 +210,7 @@ export async function generatePDF(formData = {}) {
   const valueColumnWidth = right - valueX;
   const drawRow = (label, value, options = {}) => {
     const { wrap = false, activityTight = false } = options;
-    if (label) page.drawText(label, { x: labelX, y, size: TYPO.label, font: bold, color: COLORS.valueText });
+    if (label) page.drawText(label, { x: labelX, y, size: TYPO.label, font: bold, color: rgb(0, 0, 0) });
     const writeValue = (val, yy) => page.drawText(val || '', { x: valueX, y: yy, size: TYPO.value, font: regular, color: COLORS.valueText });
     if (Array.isArray(value)) {
       let yy = y;
@@ -316,7 +318,7 @@ export async function generatePDF(formData = {}) {
   drawRow('Date of birth', ownerDOB);
   drawRow('Date of entry into office', `${entryDate} (registration date: ${entryReg})`);
 
-  // Footer geometry first to place extract line exactly 10 mm above gradient
+  // Footer geometry first: gradient at bottom, then extract line 10 mm above
   const gradientHeight = mm(20);
   const gapAboveGradient = mm(4);
   const footerBaseY = gradientHeight + gapAboveGradient + mm(6);
@@ -325,7 +327,7 @@ export async function generatePDF(formData = {}) {
   page.drawText(extractLine, { x: left, y: extractY, size: TYPO.value, font: regular, color: COLORS.furniture });
 
   // Footer
-  // Position WAARMERK stack 6 mm below the extract line; align WAARMERK baseline to first paragraph line
+  // Position WAARMERK block 6 mm below the extract line; WAARMERK top baseline flush with first paragraph line
   const footerStackY = extractY - mm(6);
 
   // Exact certification paragraph, color #374151
@@ -350,10 +352,10 @@ export async function generatePDF(formData = {}) {
     page.drawText(line, { x: certX, y: certY, size: TYPO.notes, font: regular, color: COLORS.furniture });
     certY -= paraAdvance;
   });
-  // Draw WAARMERK stack aligned with first paragraph line baseline
-  page.drawText('WAARMERK', { x: left, y: adjustedFooterY, size: TYPO.waarmerk, font: bold, color: COLORS.furniture });
+  // Draw WAARMERK stack aligned with first paragraph line baseline (not bold)
+  page.drawText('WAARMERK', { x: left, y: adjustedFooterY, size: TYPO.waarmerk, font: regular, color: COLORS.furniture });
   const kvkStackY = adjustedFooterY - mm(3.5);
-  page.drawText('KAMER VAN KOOPHANDEL', { x: left, y: kvkStackY, size: TYPO.waarmerk, font: bold, color: COLORS.furniture });
+  page.drawText('KAMER VAN KOOPHANDEL', { x: left, y: kvkStackY, size: TYPO.waarmerk, font: regular, color: COLORS.furniture });
 
   // Bottom gradient bar
   const slices = 160;
