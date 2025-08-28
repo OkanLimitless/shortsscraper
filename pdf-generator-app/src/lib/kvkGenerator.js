@@ -160,15 +160,16 @@ export async function generatePDF(formData = {}) {
     const targetW = mm(22);
     const scale = targetW / img.width;
     const targetH = img.height * scale;
-    const logoBaseline = (PAGE.height - PAGE.margins.top) - mm(30);
-    const logoY = logoBaseline; // image y is bottom
+    // Place so top of letters is 26 mm from top edge
+    const topY = PAGE.height - mm(26);
+    const logoY = topY - targetH; // bottom position
     page.drawImage(img, { x: left, y: logoY, width: targetW, height: targetH });
-    // H1 is 10 mm below logo baseline
-    y = logoBaseline - mm(10);
+    // Treat logo baseline as bottom of image
+    y = logoY - mm(10); // 10 mm to H1 baseline
   } else {
-    page.drawText('KVK', { x: left, y: y - TYPO.h1, size: TYPO.h1, font: bold, color: COLORS.logoBlue });
-    const logoBaseline = (PAGE.height - PAGE.margins.top) - mm(30);
-    y = logoBaseline - mm(10);
+    page.drawText('KVK', { x: left, y: PAGE.height - mm(26) - TYPO.h1, size: TYPO.h1, font: bold, color: COLORS.logoBlue });
+    const logoBottom = PAGE.height - mm(26) - TYPO.h1;
+    y = logoBottom - mm(10);
   }
 
   // Titles
@@ -182,8 +183,9 @@ export async function generatePDF(formData = {}) {
   const kvkNumber = (formData.kvkNumber || '').toString().trim();
   page.drawText('Page 1 (of 1)', { x: left, y, size: TYPO.furniture, font: regular, color: COLORS.furniture });
   if (kvkNumber) {
-    const w = regular.widthOfTextAtSize(kvkNumber, TYPO.furniture);
-    page.drawText(kvkNumber, { x: right - w, y, size: TYPO.furniture, font: regular, color: COLORS.furniture });
+    const rightText = `CCI number ${kvkNumber}`;
+    const w = regular.widthOfTextAtSize(rightText, TYPO.furniture);
+    page.drawText(rightText, { x: right - w, y, size: TYPO.furniture, font: regular, color: COLORS.furniture });
   }
 
   // Info note line (wrapped to 2 lines), 10 pt furniture color
@@ -320,19 +322,21 @@ export async function generatePDF(formData = {}) {
   const footerBaseY = gradientHeight + gapAboveGradient + mm(6);
   const extractY = gradientHeight + mm(10);
   const extractLine = `Extract was made on ${formatDateDDMMYYYY(now)} at ${formatTimeHHdotMM(now)} hours.`;
-  page.drawText(extractLine, { x: left, y: extractY, size: TYPO.value, font: regular, color: COLORS.valueText });
+  page.drawText(extractLine, { x: left, y: extractY, size: TYPO.value, font: regular, color: COLORS.furniture });
 
   // Footer
-  page.drawText('WAARMERK', { x: left, y: footerBaseY, size: TYPO.waarmerk, font: bold, color: COLORS.waarmerk });
-  const kvkStackY = footerBaseY - mm(3.5);
+  // Position WAARMERK stack 6 mm below the extract line
+  const footerStackY = extractY - mm(6);
+  page.drawText('WAARMERK', { x: left, y: footerStackY, size: TYPO.waarmerk, font: bold, color: COLORS.waarmerk });
+  const kvkStackY = footerStackY - mm(3.5);
   page.drawText('KAMER VAN KOOPHANDEL', { x: left, y: kvkStackY, size: TYPO.waarmerk, font: bold, color: COLORS.waarmerk });
 
   // Exact certification paragraph, color #374151
   const certText = 'This extract has been certified with a digital signature and is an official proof of registration in the Business Register. You can check the integrity of this document and validate the signature in Adobe at the top of your screen. The Chamber of Commerce recommends that this document be viewed in digital form so that its integrity is safeguarded and the signature remains verifiable.';
   const certWidth = mm(110);
-  const certX = left;
+  const certX = left + mm(12);
   const certLines = wrapText({ text: certText, maxWidth: certWidth, font: regular, size: TYPO.notes });
-  let certY = footerBaseY;
+  let certY = footerStackY;
   certLines.forEach((line) => {
     page.drawText(line, { x: certX, y: certY, size: TYPO.notes, font: regular, color: COLORS.furniture });
     certY -= mm(TYPO.paraLinePt * (25.4 / 72));
