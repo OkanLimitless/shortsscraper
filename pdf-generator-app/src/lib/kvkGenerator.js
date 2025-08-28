@@ -22,6 +22,7 @@ const COLORS = {
   waarmerk: hexToRgb('#B0B7C3'),
   timestamp: hexToRgb('#9CA3AF'),
   notes: hexToRgb('#6B7280'),
+  certText: hexToRgb('#374151'),
 };
 
 // Page and grid
@@ -122,8 +123,25 @@ export async function generatePDF(formData = {}) {
   const pdfDoc = await PDFDocument.create();
   const page = pdfDoc.addPage([PAGE.width, PAGE.height]);
 
-  const regular = await pdfDoc.embedFont(StandardFonts.Helvetica);
-  const bold = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
+  // Try to embed Inter fonts; fall back to Helvetica if unavailable
+  let regular;
+  let bold;
+  try {
+    const interRegularPath = path.join(process.cwd(), 'public', 'fonts', 'Inter-Regular.ttf');
+    const interBoldPath = path.join(process.cwd(), 'public', 'fonts', 'Inter-SemiBold.ttf');
+    const interRegular = fs.existsSync(interRegularPath) ? fs.readFileSync(interRegularPath) : null;
+    const interBold = fs.existsSync(interBoldPath) ? fs.readFileSync(interBoldPath) : null;
+    if (interRegular && interBold) {
+      regular = await pdfDoc.embedFont(interRegular, { subset: true });
+      bold = await pdfDoc.embedFont(interBold, { subset: true });
+    } else {
+      regular = await pdfDoc.embedFont(StandardFonts.Helvetica);
+      bold = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
+    }
+  } catch {
+    regular = await pdfDoc.embedFont(StandardFonts.Helvetica);
+    bold = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
+  }
 
   // Content frame
   const left = PAGE.margins.left;
@@ -133,7 +151,7 @@ export async function generatePDF(formData = {}) {
   const valueX = left + PAGE.grid.labelWidth + PAGE.grid.gutter;
   let y = PAGE.height - PAGE.margins.top;
 
-  // Logo
+  // Logo at top-left margin; ensure 6 mm gap before H1
   const logoPath = path.join(process.cwd(), 'public', 'images', 'kvklogo.png');
   const logoBytes = await loadImage(logoPath);
   if (logoBytes) {
@@ -141,15 +159,18 @@ export async function generatePDF(formData = {}) {
     const targetW = mm(22);
     const scale = targetW / img.width;
     const targetH = img.height * scale;
-    page.drawImage(img, { x: left, y: y - targetH + 2, width: targetW, height: targetH });
+    const logoY = y - targetH; // top aligned to top margin
+    page.drawImage(img, { x: left, y: logoY, width: targetW, height: targetH });
+    y = logoY - mm(6); // 6 mm gap under logo before H1 baseline
   } else {
-    page.drawText('KVK', { x: left, y: y - TYPO.h1 + 2, size: TYPO.h1, font: bold, color: COLORS.kvkBlue });
+    page.drawText('KVK', { x: left, y: y - TYPO.h1, size: TYPO.h1, font: bold, color: COLORS.kvkBlue });
+    y = y - TYPO.h1 - mm(6);
   }
 
   // Titles
-  y -= mm(2) + TYPO.h1;
   page.drawText('Business Register extract', { x: left, y, size: TYPO.h1, font: bold, color: COLORS.kvkBlue });
-  y -= TYPO.h2 + mm(1.5);
+  // 4 mm gap below H1 to H2 baseline
+  y -= (mm(4) + TYPO.h2);
   page.drawText('Netherlands Chamber of Commerce', { x: left, y, size: TYPO.h2, font: bold, color: COLORS.kvkBlue });
 
   // CCI row
@@ -166,9 +187,11 @@ export async function generatePDF(formData = {}) {
   page.drawLine({ start: { x: left, y }, end: { x: right, y }, thickness: 0.5, color: COLORS.lightRule });
 
   // Page note and disclaimer
-  y -= TYPO.notes + mm(1.5);
+  // Page note immediately below divider
+  y -= mm(2);
   page.drawText('Page 1 (of 1)', { x: left, y, size: TYPO.notes, font: regular, color: COLORS.notes });
-  y -= mm(6) + TYPO.notes;
+  // Disclaimer 6 mm below page note
+  y -= mm(6);
   const disclaimer = 'The company / organisation does not want its address details to be used for unsolicited postal advertising or visits from sales representatives.';
   const discLines = wrapText({ text: disclaimer, maxWidth: width, font: regular, size: TYPO.notes });
   discLines.forEach((line) => {
@@ -210,7 +233,16 @@ export async function generatePDF(formData = {}) {
   const employees = (formData.employees || '0').toString();
   const establishmentNumber = (formData.establishmentNumber || '').toString();
   const visitingAddress = canonicalizePostcodeCity(formData.address || '');
-  const ownerName = formData.ownerName || '';
+  // Owner name canonicalization to "Surname, Given name" if not already
+  let ownerName = formData.ownerName || '';
+  if (ownerName && !ownerName.includes(',')) {
+    const parts = ownerName.trim().split(/\s+/);
+    if (parts.length >= 2) {
+      const surname = parts.pop();
+      const given = parts.join(' ');
+      ownerName = `${surname}, ${given}`;
+    }
+  }
   const ownerDOB = formData.ownerDOB ? formatDateDDMMYYYY(formData.ownerDOB) : '';
 
   const now = new Date();
@@ -258,24 +290,25 @@ export async function generatePDF(formData = {}) {
   drawRow('Date of birth', ownerDOB);
   drawRow('Date of entry into office', `${entryDate} (registration date: ${entryReg})`);
 
-  // Extract line
-  y -= mm(8);
-  const extractLine = `Extract was made on ${formatDateDDMMYYYY(now)} at ${formatTimeHHdotMM(now)} hours.`;
-  page.drawText(extractLine, { x: left, y, size: TYPO.value, font: regular, color: COLORS.text });
-
-  // Footer
+  // Footer geometry first to place extract line exactly 8 mm above
   const gradientHeight = mm(15);
   const gapAboveGradient = mm(4);
   const footerBaseY = gradientHeight + gapAboveGradient + mm(2);
+  const extractY = footerBaseY + mm(8);
+  const extractLine = `Extract was made on ${formatDateDDMMYYYY(now)} at ${formatTimeHHdotMM(now)} hours.`;
+  page.drawText(extractLine, { x: left, y: extractY, size: TYPO.value, font: regular, color: COLORS.text });
+
+  // Footer
   page.drawText('WAARMERK', { x: left, y: footerBaseY, size: TYPO.waarmerk, font: bold, color: COLORS.waarmerk });
 
-  const certText = 'This extract has been certified with a digital signature and is an official proof of registration in the Business Register. You can check the integrity/validity of this document and validate the signature in Adobe at the top of your screen. The Chamber of Commerce recommends that this document be viewed in digital form so that its integrity is safeguarded and the signature remains verifiable.';
+  // Exact certification paragraph, color #374151
+  const certText = 'This extract has been certified with a digital signature and is an official proof of registration in the Business Register. You can check the integrity of this document and validate the signature in Adobe at the top of your screen. The Chamber of Commerce recommends that this document be viewed in digital form so that its integrity is safeguarded and the signature remains verifiable.';
   const certWidth = width * 0.62;
   const certX = right - certWidth;
   const certLines = wrapText({ text: certText, maxWidth: certWidth, font: regular, size: TYPO.notes });
   let certY = footerBaseY;
   certLines.forEach((line) => {
-    page.drawText(line, { x: certX, y: certY, size: TYPO.notes, font: regular, color: COLORS.text });
+    page.drawText(line, { x: certX, y: certY, size: TYPO.notes, font: regular, color: COLORS.certText });
     certY -= TYPO.notes * TYPO.lineHeight;
   });
 
@@ -299,9 +332,9 @@ export async function generatePDF(formData = {}) {
     page.drawRectangle({ x: i * sliceW, y: 0, width: sliceW + 0.5, height: gradientHeight, color: rgb(c[0], c[1], c[2]) });
   }
 
-  // Rotated timestamp strip
+  // Rotated timestamp strip (nudge up ~3 mm)
   const stamp = formatTimestampStrip(now);
-  page.drawText(stamp, { x: PAGE.width - mm(6), y: mm(20), size: TYPO.timestamp, font: regular, color: COLORS.timestamp, rotate: degrees(90) });
+  page.drawText(stamp, { x: PAGE.width - mm(6), y: mm(23), size: TYPO.timestamp, font: regular, color: COLORS.timestamp, rotate: degrees(90) });
 
   const pdfBytes = await pdfDoc.save({ addDefaultPage: false });
   return pdfBytes;
