@@ -41,7 +41,7 @@ const TYPO = {
   value: 10.5,
   furniture: 10,
   notes: 9.5,
-  waarmerk: 10,
+  waarmerk: 9,
   timestamp: 9,
   paraLinePt: 13, // paragraph line height in pt
   valueLinePt: 14, // desired value line height
@@ -327,19 +327,27 @@ export async function generatePDF(formData = {}) {
   // Footer
   // Position WAARMERK stack 6 mm below the extract line
   const footerStackY = extractY - mm(6);
-  page.drawText('WAARMERK', { x: left, y: footerStackY, size: TYPO.waarmerk, font: bold, color: COLORS.waarmerk });
+  page.drawText('WAARMERK', { x: left, y: footerStackY, size: TYPO.waarmerk, font: bold, color: COLORS.furniture });
   const kvkStackY = footerStackY - mm(3.5);
-  page.drawText('KAMER VAN KOOPHANDEL', { x: left, y: kvkStackY, size: TYPO.waarmerk, font: bold, color: COLORS.waarmerk });
+  page.drawText('KAMER VAN KOOPHANDEL', { x: left, y: kvkStackY, size: TYPO.waarmerk, font: bold, color: COLORS.furniture });
 
   // Exact certification paragraph, color #374151
   const certText = 'This extract has been certified with a digital signature and is an official proof of registration in the Business Register. You can check the integrity of this document and validate the signature in Adobe at the top of your screen. The Chamber of Commerce recommends that this document be viewed in digital form so that its integrity is safeguarded and the signature remains verifiable.';
   const certWidth = mm(110);
   const certX = left + mm(12);
   const certLines = wrapText({ text: certText, maxWidth: certWidth, font: regular, size: TYPO.notes });
-  let certY = footerStackY;
+  // Ensure paragraph bottom sits at least 2 mm above gradient; adjust baseline if needed
+  const paraAdvance = mm(TYPO.paraLinePt * (25.4 / 72));
+  const linesCount = certLines.length;
+  const desiredFooterY = footerStackY;
+  const paragraphBottomIfDesired = desiredFooterY - (linesCount - 1) * paraAdvance;
+  const minBottom = gradientHeight + mm(2);
+  const shiftUp = paragraphBottomIfDesired < minBottom ? (minBottom - paragraphBottomIfDesired) : 0;
+  const adjustedFooterY = desiredFooterY + shiftUp;
+  let certY = adjustedFooterY;
   certLines.forEach((line) => {
     page.drawText(line, { x: certX, y: certY, size: TYPO.notes, font: regular, color: COLORS.furniture });
-    certY -= mm(TYPO.paraLinePt * (25.4 / 72));
+    certY -= paraAdvance;
   });
 
   // Bottom gradient bar
