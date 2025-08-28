@@ -274,11 +274,11 @@ export async function generatePDF(formData = {}) {
     activity2 = formData.activities[1] || activity2;
   }
 
-  // Divider above Company (black, 0.4 pt), then heading after 6 mm
+  // Divider above Company (black, 0.4 pt), then heading after 7 mm
   y -= mm(6);
   page.drawLine({ start: { x: left, y }, end: { x: right, y }, thickness: 0.4, color: COLORS.lightRule });
-  y -= mm(6);
-  page.drawText('Company', { x: left, y, size: TYPO.section, font: labelFont || bold, color: COLORS.black });
+  y -= mm(7);
+  page.drawText('Company', { x: left, y, size: TYPO.section, font: bold, color: COLORS.black });
   y -= mm(3);
   drawRow('Trade names', tradeNamesLines.length ? tradeNamesLines : (formData.tradeName || ''));
   drawRow('Legal form', legalForm);
@@ -290,8 +290,8 @@ export async function generatePDF(formData = {}) {
   // Divider above Establishment (black, 0.4 pt)
   y -= mm(6);
   page.drawLine({ start: { x: left, y }, end: { x: right, y }, thickness: 0.4, color: COLORS.lightRule });
-  y -= mm(6);
-  page.drawText('Establishment', { x: left, y, size: TYPO.section, font: labelFont || bold, color: COLORS.black });
+  y -= mm(7);
+  page.drawText('Establishment', { x: left, y, size: TYPO.section, font: bold, color: COLORS.black });
   y -= mm(3);
   drawRow('Establishment number', establishmentNumber);
   drawRow('Trade names', tradeNamesLines.length ? tradeNamesLines : (formData.tradeName || ''));
@@ -299,8 +299,8 @@ export async function generatePDF(formData = {}) {
   drawRow('Date of incorporation', `${incDate} (registration date: ${incReg})`);
   drawRow('Activities', activity1, { activityTight: true });
   drawRow('', activity2, { activityTight: true });
-  if (formData.activitiesNote) {
-    // Muted helper line
+  // Helper line (always present per spec)
+  {
     const note = 'For further information on activities, see Dutch extract.';
     // 3 mm below last SBI line
     y -= mm(3);
@@ -312,8 +312,8 @@ export async function generatePDF(formData = {}) {
   // Divider above Owner (black, 0.4 pt)
   y -= mm(6);
   page.drawLine({ start: { x: left, y }, end: { x: right, y }, thickness: 0.4, color: COLORS.lightRule });
-  y -= mm(6);
-  page.drawText('Owner', { x: left, y, size: TYPO.section, font: labelFont || bold, color: COLORS.black });
+  y -= mm(7);
+  page.drawText('Owner', { x: left, y, size: TYPO.section, font: bold, color: COLORS.black });
   y -= mm(3);
   drawRow('Name', ownerName);
   drawRow('Date of birth', ownerDOB);
