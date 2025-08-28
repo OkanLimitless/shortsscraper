@@ -179,7 +179,8 @@ export async function generatePDF(formData = {}) {
   page.drawText('CCI number', { x: labelX, y, size: TYPO.label, font: bold, color: COLORS.text });
   if (kvkNumber) {
     const w = regular.widthOfTextAtSize(kvkNumber, TYPO.value);
-    page.drawText(kvkNumber, { x: right - w, y, size: TYPO.value, font: regular, color: COLORS.text });
+    // Nudge 7 mm left from content right edge per delta
+    page.drawText(kvkNumber, { x: right - w - mm(7), y, size: TYPO.value, font: regular, color: COLORS.text });
   }
 
   // Divider
@@ -187,8 +188,8 @@ export async function generatePDF(formData = {}) {
   page.drawLine({ start: { x: left, y }, end: { x: right, y }, thickness: 0.5, color: COLORS.lightRule });
 
   // Page note and disclaimer
-  // Page note immediately below divider
-  y -= mm(2);
+  // Page note 6 mm below divider
+  y -= mm(6);
   page.drawText('Page 1 (of 1)', { x: left, y, size: TYPO.notes, font: regular, color: COLORS.notes });
   // Disclaimer 6 mm below page note
   y -= mm(6);
@@ -214,9 +215,12 @@ export async function generatePDF(formData = {}) {
       let yy = y;
       if (value.length > 0) writeValue(value[0], yy);
       for (let i = 1; i < value.length; i++) {
-        yy -= multiGap + TYPO.value * 0.2;
+        // Place second line with tight internal spacing: normal line advance minus 2 mm
+        const lineAdvance = TYPO.value * TYPO.lineHeight;
+        yy -= (lineAdvance - mm(2));
         writeValue(value[i], yy);
       }
+      // No extra blank line after multi-line block; proceed with normal row gap
       y = yy - rowGap;
     } else if (typeof value === 'string' && value.includes('\n')) {
       const lines = value.split('\n');
@@ -293,7 +297,8 @@ export async function generatePDF(formData = {}) {
   // Footer geometry first to place extract line exactly 8 mm above
   const gradientHeight = mm(15);
   const gapAboveGradient = mm(4);
-  const footerBaseY = gradientHeight + gapAboveGradient + mm(2);
+  // Move footer baseline up by additional 4 mm to avoid clipping
+  const footerBaseY = gradientHeight + gapAboveGradient + mm(6);
   const extractY = footerBaseY + mm(8);
   const extractLine = `Extract was made on ${formatDateDDMMYYYY(now)} at ${formatTimeHHdotMM(now)} hours.`;
   page.drawText(extractLine, { x: left, y: extractY, size: TYPO.value, font: regular, color: COLORS.text });
@@ -332,9 +337,9 @@ export async function generatePDF(formData = {}) {
     page.drawRectangle({ x: i * sliceW, y: 0, width: sliceW + 0.5, height: gradientHeight, color: rgb(c[0], c[1], c[2]) });
   }
 
-  // Rotated timestamp strip (nudge up ~3 mm)
+  // Rotated timestamp strip (22 mm from bottom)
   const stamp = formatTimestampStrip(now);
-  page.drawText(stamp, { x: PAGE.width - mm(6), y: mm(23), size: TYPO.timestamp, font: regular, color: COLORS.timestamp, rotate: degrees(90) });
+  page.drawText(stamp, { x: PAGE.width - mm(6), y: mm(22), size: TYPO.timestamp, font: regular, color: COLORS.timestamp, rotate: degrees(90) });
 
   const pdfBytes = await pdfDoc.save({ addDefaultPage: false });
   return pdfBytes;
