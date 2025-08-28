@@ -319,17 +319,15 @@ export async function generatePDF(formData = {}) {
   drawRow('Date of birth', ownerDOB);
   drawRow('Date of entry into office', `${entryDate} (registration date: ${entryReg})`);
 
-  // Footer geometry first: gradient at bottom, then extract line 10 mm above
+  // Footer geometry first: gradient at bottom
   const gradientHeight = mm(20);
   const gapAboveGradient = mm(4);
   const footerBaseY = gradientHeight + gapAboveGradient + mm(6);
-  const extractY = gradientHeight + mm(10);
-  const extractLine = `Extract was made on ${formatDateDDMMYYYY(now)} at ${formatTimeHHdotMM(now)} hours.`;
-  page.drawText(extractLine, { x: left, y: extractY, size: TYPO.value, font: regular, color: COLORS.black });
 
   // Footer
-  // Position WAARMERK block 6 mm below the extract line; WAARMERK top baseline flush with first paragraph line
-  const footerStackY = extractY - mm(6);
+  // Compute WAARMERK block target top baseline relative to extract; we may raise both to avoid gradient overlap
+  const baseExtractY = gradientHeight + mm(10);
+  const footerStackY = baseExtractY - mm(6);
 
   // Exact certification paragraph, color #374151
   const certText = 'This extract has been certified with a digital signature and is an official proof of registration in the Business Register. You can check the integrity of this document and validate the signature in Adobe at the top of your screen. The Chamber of Commerce recommends that this document be viewed in digital form so that its integrity is safeguarded and the signature remains verifiable.';
@@ -348,9 +346,13 @@ export async function generatePDF(formData = {}) {
   const minBottom = gradientHeight + mm(2);
   const shiftUp = paragraphBottomIfDesired < minBottom ? (minBottom - paragraphBottomIfDesired) : 0;
   const adjustedFooterY = desiredFooterY + shiftUp;
+  const adjustedExtractY = adjustedFooterY + mm(6);
+  // Draw Extract line (always above WAARMERK block)
+  const extractLine = `Extract was made on ${formatDateDDMMYYYY(now)} at ${formatTimeHHdotMM(now)} hours.`;
+  page.drawText(extractLine, { x: left, y: adjustedExtractY, size: TYPO.value, font: regular, color: COLORS.black });
   let certY = adjustedFooterY;
   certLines.forEach((line) => {
-    page.drawText(line, { x: certX, y: certY, size: TYPO.notes, font: regular, color: COLORS.furniture });
+    page.drawText(line, { x: certX, y: certY, size: TYPO.notes, font: regular, color: COLORS.black });
     certY -= paraAdvance;
   });
   // Draw WAARMERK stack aligned with first paragraph line baseline (not bold)
