@@ -1,4 +1,4 @@
-import { generatePDF } from '../../../lib/pdfGenerator';
+import { generatePDF } from '../../../lib/kvkGenerator';
 import { NextResponse } from 'next/server';
 
 export async function POST(request) {
