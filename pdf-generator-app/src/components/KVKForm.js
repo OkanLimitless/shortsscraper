@@ -20,6 +20,10 @@ export default function KVKForm() {
     ownerDOB: '',
   });
   
+  // Single combined input for company information
+  const [companyRaw, setCompanyRaw] = useState('');
+  const [detected, setDetected] = useState({ tradeName: '', kvkNumber: '', establishmentNumber: '', legalForm: '', address: '' });
+  
   // Handle input change
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -35,6 +39,47 @@ export default function KVKForm() {
         [name]: null,
       }));
     }
+  };
+  
+  // Handle combined textarea input
+  const handleCompanyRawChange = (e) => {
+    const value = e.target.value;
+    setCompanyRaw(value);
+    // Parse and auto-fill detected fields
+    const lines = value.split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
+    const text = value;
+    const firstLine = lines[0] || '';
+    // KVK number (8 digits)
+    const kvkMatch = text.match(/KVK[-\s]?nummer\s*:\s*(\d{8})/i);
+    const kvkNumber = kvkMatch ? kvkMatch[1] : '';
+    // Establishment number (12 digits)
+    const estMatch = text.match(/Vestigingsnummer\s*:\s*(\d{12})/i);
+    const establishmentNumber = estMatch ? estMatch[1] : '';
+    // Legal form mapping
+    const legalFormMap = [
+      { re: /eenmanszaak/i, val: 'Eenmanszaak (comparable with One-man business)' },
+      { re: /besloten\s+vennootschap|\bBV\b/i, val: 'Besloten vennootschap (comparable with Private limited company)' },
+      { re: /naamloze\s+vennootschap|\bNV\b/i, val: 'Naamloze vennootschap (comparable with Public limited company)' },
+      { re: /vennootschap\s+onder\s+firma|\bVOF\b/i, val: 'Vennootschap onder firma (comparable with General partnership)' },
+      { re: /commanditaire\s+vennootschap|\bCV\b/i, val: 'Commanditaire vennootschap (comparable with Limited partnership)' },
+      { re: /stichting/i, val: 'Stichting (comparable with Foundation)' },
+      { re: /vereniging/i, val: 'Vereniging (comparable with Association)' },
+      { re: /co[oö]peratie/i, val: 'Coöperatie (comparable with Cooperative)' },
+    ];
+    let legalForm = '';
+    for (const { re, val } of legalFormMap) {
+      if (re.test(text)) { legalForm = val; break; }
+    }
+    // Address: find a line with Dutch postcode
+    let address = '';
+    for (let i = lines.length - 1; i >= 0; i--) {
+      if (/\b\d{4}\s?[A-Za-z]{2}\b/.test(lines[i])) { address = lines[i]; break; }
+    }
+    // Trade name: first non-empty line
+    const tradeName = firstLine;
+    const nextDetected = { tradeName, kvkNumber, establishmentNumber, legalForm, address };
+    setDetected(nextDetected);
+    setFormData((prev) => ({ ...prev, ...nextDetected }));
   };
   
   // Format date for display - stable across server/client
@@ -143,100 +188,30 @@ export default function KVKForm() {
         <div className={styles.section}>
           <h2 className={styles.sectionTitle}>Company Information</h2>
           
-          <div className={styles.row}>
-            <div className={styles.inputGroup}>
-              <label htmlFor="tradeName" className={styles.label}>
-                Trade Name *
-              </label>
-              <input
-                type="text"
-                id="tradeName"
-                name="tradeName"
-                value={formData.tradeName}
-                onChange={handleInputChange}
-                className={styles.input}
-                placeholder="Enter company trade name"
-              />
-            </div>
-            
-
-          </div>
-
-          <div className={styles.row}>
-            <div className={styles.inputGroup}>
-              <label htmlFor="kvkNumber" className={styles.label}>
-                KVK Number *
-              </label>
-              <input
-                type="text"
-                id="kvkNumber"
-                name="kvkNumber"
-                value={formData.kvkNumber}
-                onChange={handleInputChange}
-                className={styles.input}
-                placeholder="8-digit KVK number"
-                maxLength="8"
-              />
-            </div>
-            
-            <div className={styles.inputGroup}>
-              <label htmlFor="establishmentNumber" className={styles.label}>
-                Establishment Number
-              </label>
-              <input
-                type="text"
-                id="establishmentNumber"
-                name="establishmentNumber"
-                value={formData.establishmentNumber}
-                onChange={handleInputChange}
-                className={styles.input}
-                placeholder="12-digit establishment number"
-                maxLength="12"
-              />
-            </div>
-          </div>
-
-          <div className={styles.row}>
-            <div className={styles.inputGroup}>
-              <label htmlFor="legalForm" className={styles.label}>
-                Legal Form
-              </label>
-              <select
-                id="legalForm"
-                name="legalForm"
-                value={formData.legalForm}
-                onChange={handleInputChange}
-                className={styles.select}
-              >
-                <option value="Eenmanszaak (comparable with One-man business)">Eenmanszaak (One-man business)</option>
-                <option value="Besloten vennootschap (comparable with Private limited company)">BV (Private Limited Company)</option>
-                <option value="Naamloze vennootschap (comparable with Public limited company)">NV (Public Limited Company)</option>
-                <option value="Vennootschap onder firma (comparable with General partnership)">VOF (General Partnership)</option>
-                <option value="Commanditaire vennootschap (comparable with Limited partnership)">CV (Limited Partnership)</option>
-                <option value="Stichting (comparable with Foundation)">Stichting (Foundation)</option>
-                <option value="Vereniging (comparable with Association)">Vereniging (Association)</option>
-                <option value="Coöperatie (comparable with Cooperative)">Coöperatie (Cooperative)</option>
-              </select>
-            </div>
-            
-
-          </div>
-
           <div className={styles.inputGroup}>
-            <label htmlFor="address" className={styles.label}>
-              Address
+            <label htmlFor="companyRaw" className={styles.label}>
+              Paste company extract text
             </label>
-            <input
-              type="text"
-              id="address"
-              name="address"
-              value={formData.address}
-              onChange={handleInputChange}
+            <textarea
+              id="companyRaw"
+              name="companyRaw"
+              rows={8}
+              value={companyRaw}
+              onChange={handleCompanyRawChange}
               className={styles.input}
-              placeholder="Street address, postal code, city"
+              placeholder={`e.g.\nVerkeersschool Timmer\nAuto- en motor- en bromfietsrijschool.\nKVK-nummer: 30214916\nEenmanszaak\nHoofdvestiging\nVestigingsnummer: 000001818309\nTexasdreef 24, 3565CL Utrecht`}
             />
           </div>
 
+          {/* Detected summary */}
+          <div className={styles.note}>
+            <strong>Detected:</strong>
+            <div>Trade Name: {detected.tradeName || '—'}</div>
+            <div>KVK: {detected.kvkNumber || '—'}</div>
+            <div>Establishment: {detected.establishmentNumber || '—'}</div>
+            <div>Legal Form: {detected.legalForm || '—'}</div>
+            <div>Address: {detected.address || '—'}</div>
+          </div>
 
         </div>
 
